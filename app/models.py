@@ -49,7 +49,7 @@ class Superior(models.Model):
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
-        related_name='car_info_created_by',
+        related_name='superior_created_by',
         verbose_name=_('创建人员'),
         help_text=_('创建人员')
     )
@@ -58,7 +58,7 @@ class Superior(models.Model):
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
-        related_name='car_info_confirmed_by',
+        related_name='superior_confirmed_by',
         verbose_name=_('审核人员'),
         help_text=_('审核人员')
     )

@@ -30,20 +30,19 @@ class AutoUpdateUserModelAdmin(admin.ModelAdmin):
 
 @admin.register(UserLevel)
 class UserLevelAdmin(GeneralModelAdmin):
-    list_display = ['pk', 'level_code', 'level_name', 'level_desc']
-    search_fields = ['level_code', 'level_name', 'level_desc']
+    list_display = ['pk', 'level_code', 'level_name', 'desc']
+    search_fields = ['level_code', 'level_name', 'desc']
 
 
 @admin.register(WxUser)
 class WxUserAdmin(UserAdmin):
     readonly_fields = (
         'last_login', 'date_joined',
-        'nick_name', 'city', 'province', 'country', 'china_district', 'avatar_url'
+        'nick_name', 'city', 'province', 'country', 'avatar_url'
     )
     search_fields = [
         'username', 'openid', 'email', 'full_name', 'first_name', 'last_name', 'nick_name']
-    list_filter = ['is_owner', 'is_client', 'is_manager']
-    autocomplete_fields = ['company', 'user_level']
+    autocomplete_fields = ['user_level']
     fieldsets = (
         (_('基础信息'), {'fields': ('username', 'password', 'openid')}),
         (_('个人信息'), {'fields': (
