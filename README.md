@@ -22,3 +22,9 @@ pip3 install --upgrade setuptools pip
 pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
+查看服务
+
+```sh
+ps auxw | grep uwsgi
+uwsgi --ini /opt/car_service/car_uwsgi.ini
+```
