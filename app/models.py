@@ -41,8 +41,7 @@ class Superior(models.Model):
         "WxUser",
         null=True,
         on_delete=models.CASCADE,
-        verbose_name=_('关联账号'),
-        help_text=_('关联账号')
+        verbose_name=_('关联账号')
     )
     created_by = models.ForeignKey(
         "WxUser",
@@ -50,8 +49,7 @@ class Superior(models.Model):
         blank=True,
         on_delete=models.SET_NULL,
         related_name='superior_created_by',
-        verbose_name=_('创建人员'),
-        help_text=_('创建人员')
+        verbose_name=_('创建人员')
     )
     confirmed_by = models.ForeignKey(
         "WxUser",
@@ -59,8 +57,7 @@ class Superior(models.Model):
         blank=True,
         on_delete=models.SET_NULL,
         related_name='superior_confirmed_by',
-        verbose_name=_('审核人员'),
-        help_text=_('审核人员')
+        verbose_name=_('审核人员')
     )
     datetime_created = models.DateTimeField(verbose_name=_('记录时间'), auto_now_add=True)
     datetime_updated = models.DateTimeField(verbose_name=_('更新时间'), auto_now=True)
@@ -113,8 +110,7 @@ class WxUser(AbstractUser):
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
-        verbose_name=_('用户等级'),
-        help_text=_('用户等级'),
+        verbose_name=_('用户等级')
     )
     current_credits = models.BigIntegerField(
         verbose_name=_('当前积分'), null=True, blank=True, default=0
@@ -129,9 +125,13 @@ class WxUser(AbstractUser):
         swappable = 'AUTH_USER_MODEL'
 
     def __str__(self):
+        if self.nick_name:
+            res = self.nick_name
+        else:
+            res = self.username
         return "[{0}] {1}".format(
             self.pk,
-            self.nick_name,
+            res
         )
 
     def create_username_password(self):
@@ -157,8 +157,7 @@ class Customer(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        verbose_name=_('客户归属'),
-        help_text=_('客户归属'),
+        verbose_name=_('客户归属')
     )
     related_user = models.ForeignKey(
         "WxUser",
@@ -166,8 +165,7 @@ class Customer(models.Model):
         blank=True,
         on_delete=models.SET_NULL,
         related_name='customer_related_user',
-        verbose_name=_('关联用户'),
-        help_text=_('关联用户')
+        verbose_name=_('关联用户')
     )
     created_by = models.ForeignKey(
         "WxUser",
@@ -175,8 +173,7 @@ class Customer(models.Model):
         blank=True,
         on_delete=models.SET_NULL,
         related_name='customer_created_by',
-        verbose_name=_('创建人员'),
-        help_text=_('创建人员')
+        verbose_name=_('创建人员')
     )
     confirmed_by = models.ForeignKey(
         "WxUser",
@@ -184,8 +181,7 @@ class Customer(models.Model):
         blank=True,
         on_delete=models.SET_NULL,
         related_name='customer_confirmed_by',
-        verbose_name=_('审核人员'),
-        help_text=_('审核人员')
+        verbose_name=_('审核人员')
     )
     datetime_created = models.DateTimeField(verbose_name=_('记录时间'), auto_now_add=True)
     datetime_updated = models.DateTimeField(verbose_name=_('更新时间'), auto_now=True)
@@ -224,8 +220,7 @@ class CarInfo(models.Model):
         Customer,
         null=True,
         on_delete=models.CASCADE,
-        verbose_name=_('客户'),
-        help_text=_('客户')
+        verbose_name=_('客户')
     )
     created_by = models.ForeignKey(
         "WxUser",
@@ -233,8 +228,7 @@ class CarInfo(models.Model):
         blank=True,
         on_delete=models.SET_NULL,
         related_name='car_info_created_by',
-        verbose_name=_('创建人员'),
-        help_text=_('创建人员')
+        verbose_name=_('创建人员')
     )
     confirmed_by = models.ForeignKey(
         "WxUser",
@@ -242,8 +236,7 @@ class CarInfo(models.Model):
         blank=True,
         on_delete=models.SET_NULL,
         related_name='car_info_confirmed_by',
-        verbose_name=_('审核人员'),
-        help_text=_('审核人员')
+        verbose_name=_('审核人员')
     )
     datetime_created = models.DateTimeField(verbose_name=_('记录时间'), auto_now_add=True)
     datetime_updated = models.DateTimeField(verbose_name=_('更新时间'), auto_now=True)
@@ -302,36 +295,32 @@ class InsuranceRecord(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        verbose_name=_('车辆信息'),
-        help_text=_('请选择车辆')
+        verbose_name=_('车辆信息')
     )
     record_date = models.DateField(verbose_name=_('签单日期'), null=True)
     insurance_date = models.DateField(verbose_name=_('保单开始日期'), null=True, blank=True)
     total_price = models.DecimalField(
-        verbose_name=_('总价'), max_digits=10, decimal_places=2, null=True, blank=True)
+        verbose_name=_('含税总保费'), max_digits=10, decimal_places=2, null=True, blank=True)
     receiver = models.ForeignKey(
         Superior,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        verbose_name=_('验车人'),
-        help_text=_('验车人')
+        verbose_name=_('验车人')
     )
     belong_to = models.ForeignKey(
         BelongTo,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        verbose_name=_('归属渠道'),
-        help_text=_('归属渠道')
+        verbose_name=_('归属渠道')
     )
     insurance_company = models.ForeignKey(
         InsuranceCompany,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        verbose_name=_('保险公司'),
-        help_text=_('保险公司')
+        verbose_name=_('保险公司')
     )
     tax = models.DecimalField(
         verbose_name=_('车船税'), max_digits=10, decimal_places=2, null=True, blank=True)
@@ -349,8 +338,7 @@ class InsuranceRecord(models.Model):
         blank=True,
         on_delete=models.SET_NULL,
         related_name='insurance_record_created_by',
-        verbose_name=_('创建人员'),
-        help_text=_('创建人员')
+        verbose_name=_('创建人员')
     )
     confirmed_by = models.ForeignKey(
         "WxUser",
@@ -358,8 +346,7 @@ class InsuranceRecord(models.Model):
         blank=True,
         on_delete=models.SET_NULL,
         related_name='insurance_record_confirmed_by',
-        verbose_name=_('审核人员'),
-        help_text=_('审核人员')
+        verbose_name=_('审核人员')
     )
     datetime_created = models.DateTimeField(verbose_name=_('记录时间'), auto_now_add=True)
     datetime_updated = models.DateTimeField(verbose_name=_('更新时间'), auto_now=True)

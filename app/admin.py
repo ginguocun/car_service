@@ -67,6 +67,7 @@ class WxUserAdmin(UserAdmin):
 @admin.register(Customer)
 class CustomerAdmin(AutoUpdateUserModelAdmin):
     list_display = ['pk', 'name', 'mobile', 'related_superior', 'related_user']
+    list_display_links = ['pk', 'name']
     search_fields = ['name', 'mobile']
     list_filter = ['related_superior']
     autocomplete_fields = ['related_superior', 'related_user']
@@ -76,10 +77,17 @@ class CustomerAdmin(AutoUpdateUserModelAdmin):
 class CarInfoAdmin(AutoUpdateUserModelAdmin):
     list_display = [
         'pk', 'car_number', 'car_brand', 'car_model', 'car_price', 'bought_date', 'desc',
-        'is_confirmed', 'is_active', 'customer', 'created_by', 'confirmed_by']
+        'is_confirmed', 'is_active', 'customer', 'created_by']
+    list_display_links = ['pk', 'car_number']
+    list_filter = ['is_active', 'is_confirmed']
     search_fields = ['car_number', 'car_brand', 'car_model', 'customer__name', 'customer__mobile']
-    list_filter = ['customer']
     autocomplete_fields = ['customer']
+    fieldsets = (
+        (_('基础'), {
+            'fields': ('car_number', 'customer', 'desc')}),
+        (_('车辆详情'), {'fields': ('car_brand', 'car_model', 'car_price', 'bought_date', )}),
+        (_('状态'), {'fields': ('is_confirmed', 'is_active')})
+    )
 
 
 @admin.register(InsuranceCompany)
@@ -100,6 +108,9 @@ class InsuranceRecordAdmin(AutoUpdateUserModelAdmin):
         'pk', 'car', 'record_date', 'insurance_date', 'total_price', 'receiver', 'belong_to', 'insurance_company',
         'tax', 'has_payback', 'payback_percent', 'payback_amount', 'is_payed', 'notes'
     ]
+    list_display_links = ['pk', 'car']
+    list_filter = ['has_payback']
+    date_hierarchy = 'record_date'
     search_fields = ['name']
     autocomplete_fields = ['car', 'receiver', 'belong_to', 'insurance_company']
     fieldsets = (
@@ -107,7 +118,8 @@ class InsuranceRecordAdmin(AutoUpdateUserModelAdmin):
         (_('金额'), {'fields': (
             'total_price', 'tax', 'payback_percent', 'payback_amount', 'has_payback', 'is_payed',
         )}),
-        (_('接待'), {
+        (_('人员'), {
             'classes': ('wide', 'extrapretty'),
             'fields': (('receiver', 'belong_to', 'insurance_company'),)}),
+        (_('备注'), {'fields': ('notes',)})
     )
