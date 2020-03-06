@@ -27,4 +27,5 @@ pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```sh
 ps auxw | grep uwsgi
 uwsgi --ini /opt/car_service/car_uwsgi.ini
+uwsgi --reload /opt/car_service/uwsgi/uwsgi.pid
 ```
