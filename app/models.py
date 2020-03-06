@@ -30,52 +30,6 @@ class UserLevel(models.Model):
         )
 
 
-class Superior(models.Model):
-    name = models.CharField(
-        verbose_name=_('名字'), max_length=100, unique=True, null=True)
-    mobile = models.CharField(
-        verbose_name=_('手机号'), max_length=100, null=True, blank=True, unique=True)
-    desc = models.TextField(
-        verbose_name=_('描述'), max_length=1000, null=True, blank=True)
-    user = models.ForeignKey(
-        "WxUser",
-        null=True,
-        on_delete=models.CASCADE,
-        verbose_name=_('关联账号')
-    )
-    created_by = models.ForeignKey(
-        "WxUser",
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name='superior_created_by',
-        verbose_name=_('创建人员')
-    )
-    confirmed_by = models.ForeignKey(
-        "WxUser",
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name='superior_confirmed_by',
-        verbose_name=_('审核人员')
-    )
-    datetime_created = models.DateTimeField(verbose_name=_('记录时间'), auto_now_add=True)
-    datetime_updated = models.DateTimeField(verbose_name=_('更新时间'), auto_now=True)
-
-    objects = models.Manager()
-
-    class Meta:
-        ordering = ['id']
-        verbose_name = _('管理人员')
-        verbose_name_plural = _('管理人员')
-
-    def __str__(self):
-        return "{0} {1}".format(
-            self.name,
-            self.mobile,
-        )
-
-
 class WxUser(AbstractUser):
     """
     用户列表
@@ -145,6 +99,52 @@ class WxUser(AbstractUser):
     def save(self, *args, **kwargs):
         self.create_username_password()
         super().save(*args, **kwargs)
+
+
+class Superior(models.Model):
+    name = models.CharField(
+        verbose_name=_('名字'), max_length=100, unique=True, null=True)
+    mobile = models.CharField(
+        verbose_name=_('手机号'), max_length=100, null=True, blank=True, unique=True)
+    desc = models.TextField(
+        verbose_name=_('描述'), max_length=1000, null=True, blank=True)
+    user = models.ForeignKey(
+        "WxUser",
+        null=True,
+        on_delete=models.CASCADE,
+        verbose_name=_('关联账号')
+    )
+    created_by = models.ForeignKey(
+        "WxUser",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='superior_created_by',
+        verbose_name=_('创建人员')
+    )
+    confirmed_by = models.ForeignKey(
+        "WxUser",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='superior_confirmed_by',
+        verbose_name=_('审核人员')
+    )
+    datetime_created = models.DateTimeField(verbose_name=_('记录时间'), auto_now_add=True)
+    datetime_updated = models.DateTimeField(verbose_name=_('更新时间'), auto_now=True)
+
+    objects = models.Manager()
+
+    class Meta:
+        ordering = ['id']
+        verbose_name = _('工作人员')
+        verbose_name_plural = _('工作人员')
+
+    def __str__(self):
+        return "{0} {1}".format(
+            self.name,
+            self.mobile,
+        )
 
 
 class Customer(models.Model):
@@ -362,4 +362,119 @@ class InsuranceRecord(models.Model):
         return "{} {}".format(
             self.record_date,
             self.car,
+        )
+
+
+class ServicePackageType(models.Model):
+    name = models.CharField(verbose_name=_('名称'), max_length=200, null=True,  blank=True, unique=True)
+    desc = models.CharField(verbose_name=_('介绍'), max_length=200, null=True, blank=True)
+
+    objects = models.Manager()
+
+    class Meta:
+        ordering = ['id']
+        verbose_name = _('套餐归类')
+        verbose_name_plural = _('套餐归类')
+
+    def __str__(self):
+        return "{}".format(
+            self.name,
+        )
+
+
+class ServicePackage(models.Model):
+    name = models.CharField(verbose_name=_('名称'), max_length=200, null=True,  blank=True, unique=True)
+    desc = models.CharField(verbose_name=_('介绍'), max_length=200, null=True, blank=True)
+    price = models.DecimalField(verbose_name=_('价格'), max_digits=10, decimal_places=2, null=True, blank=True)
+    service_type = models.ForeignKey(
+        ServicePackageType,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        verbose_name=_('归类')
+    )
+
+    objects = models.Manager()
+
+    class Meta:
+        ordering = ['id']
+        verbose_name = _('服务套餐')
+        verbose_name_plural = _('服务套餐')
+
+    def __str__(self):
+        return "{}".format(
+            self.name,
+        )
+
+
+class ServiceReserve(models.Model):
+    car = models.ForeignKey(
+        CarInfo,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_('车辆信息')
+    )
+    service_package = models.ForeignKey(
+        ServicePackage,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_('服务套餐')
+    )
+    reserve_type = models.IntegerField(
+        verbose_name=_('类型'), null=True, blank=True, choices=[(1, '上门'), (2, '到店')])
+    is_reversed = models.BooleanField(verbose_name=_('是预约服务'), default=False)
+    reserve_time = models.DateTimeField(verbose_name=_('服务时间'), null=True, blank=True)
+    reserve_address = models.TextField(verbose_name=_('服务地点'), max_length=1000, null=True, blank=True)
+    checked_by = models.ForeignKey(
+        Superior,
+        on_delete=models.SET_NULL,
+        related_name='service_reserve_check_by',
+        null=True,
+        blank=True,
+        verbose_name=_('由谁联系')
+    )
+    is_checked = models.BooleanField(verbose_name=_('已联系/已确认'), default=False)
+    served_by = models.ForeignKey(
+        Superior,
+        on_delete=models.SET_NULL,
+        related_name='service_reserve_served_by',
+        null=True,
+        blank=True,
+        verbose_name=_('由谁服务')
+    )
+    is_served = models.BooleanField(verbose_name=_('服务已完成'), default=False)
+    notes = models.TextField(
+        verbose_name=_('备注'), max_length=1000, null=True, blank=True)
+    created_by = models.ForeignKey(
+        "WxUser",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='service_reserve_created_by',
+        verbose_name=_('创建人员')
+    )
+    confirmed_by = models.ForeignKey(
+        "WxUser",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='service_reserve_confirmed_by',
+        verbose_name=_('审核人员')
+    )
+    datetime_created = models.DateTimeField(verbose_name=_('记录时间'), auto_now_add=True)
+    datetime_updated = models.DateTimeField(verbose_name=_('更新时间'), auto_now=True)
+
+    objects = models.Manager()
+
+    class Meta:
+        ordering = ['-id']
+        verbose_name = _('服务记录')
+        verbose_name_plural = _('服务记录')
+
+    def __str__(self):
+        return "{} {}".format(
+            self.car,
+            self.reserve_time,
         )

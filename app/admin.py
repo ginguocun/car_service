@@ -123,3 +123,21 @@ class InsuranceRecordAdmin(AutoUpdateUserModelAdmin):
         (_('人员'), {'fields': ('receiver', 'belong_to', 'insurance_company')}),
         (_('备注'), {'fields': ('notes',)})
     )
+
+
+@admin.register(ServiceReserve)
+class ServiceReserveAdmin(AutoUpdateUserModelAdmin):
+    list_display = [
+        'pk', 'car', 'reserve_type', 'is_reversed', 'reserve_time', 'reserve_address',
+        'checked_by', 'is_checked', 'served_by', 'is_served', 'notes'
+    ]
+    list_display_links = ['pk', 'car']
+    list_filter = ['is_reversed', 'checked_by', 'served_by', 'is_checked', 'is_served']
+    date_hierarchy = 'reserve_time'
+    search_fields = ['car__car_number', 'car__customer__name', 'car__customer__mobile']
+    autocomplete_fields = ['car', 'checked_by', 'served_by']
+    fieldsets = (
+        (_('基础信息'), {'fields': ('car', 'reserve_type', 'reserve_time', 'reserve_address', 'is_reversed')}),
+        (_('服务信息'), {'fields': ('service_package', ('checked_by', 'is_checked'), ('served_by', 'is_served'))}),
+        (_('备注'), {'fields': ('notes',)})
+    )
