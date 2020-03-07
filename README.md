@@ -1,3 +1,33 @@
+## 服务升级
+进入指定的路径
+
+```sh
+cd /opt/car_service
+```
+
+启动虚拟环境
+```sh
+source venv/bin/activate
+```
+
+拉取最新的代码
+```sh
+git pull
+python3 manage.py migrate
+```
+
+重启服务
+
+```sh
+ps auxw | grep uwsgi
+uwsgi --reload /opt/car_service/uwsgi/uwsgi.pid
+
+
+uwsgi --ini /opt/car_service/car_uwsgi.ini
+```
+
+
+## 服务安装
 进入指定的路径
 
 ```sh
