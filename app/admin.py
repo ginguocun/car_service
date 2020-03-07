@@ -126,11 +126,19 @@ class InsuranceRecordAdmin(AutoUpdateUserModelAdmin):
     )
 
 
+class ServicePackageInline(admin.TabularInline):
+    model = ServicePackage
+    extra = 0
+    fields = ['name', 'desc', 'price', 'is_active']
+
+
 @admin.register(ServicePackageType)
 class ServicePackageTypeAdmin(admin.ModelAdmin):
-    list_display = ['pk', 'name', 'desc']
+    list_display = ['pk', 'name', 'desc', 'is_active']
     search_fields = ['name', 'desc']
     list_display_links = ['pk', 'name']
+    list_filter = ['is_active']
+    inlines = [ServicePackageInline]
 
 
 @admin.register(ServicePackage)
@@ -138,6 +146,7 @@ class ServicePackageAdmin(admin.ModelAdmin):
     list_display = ['pk', 'name', 'price']
     search_fields = ['name']
     list_display_links = ['pk', 'name']
+    autocomplete_fields = ['service_type']
 
 
 @admin.register(StoreInfo)
