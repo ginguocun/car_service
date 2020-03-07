@@ -95,9 +95,10 @@ class CarInfoAdmin(AutoUpdateUserModelAdmin):
 
 @admin.register(InsuranceCompany)
 class InsuranceCompanyAdmin(admin.ModelAdmin):
-    list_display = ['pk', 'name']
+    list_display = ['pk', 'name', 'is_active']
     search_fields = ['name']
     list_display_links = ['pk', 'name']
+    list_filter = ['is_active']
 
 
 @admin.register(BelongTo)
@@ -151,9 +152,10 @@ class ServicePackageAdmin(admin.ModelAdmin):
 
 @admin.register(StoreInfo)
 class StoreInfoAdmin(admin.ModelAdmin):
-    list_display = ['pk', 'name']
+    list_display = ['pk', 'name', 'address', 'is_active']
     search_fields = ['name']
     list_display_links = ['pk', 'name']
+    list_filter = ['is_active']
 
 
 @admin.register(ServiceRecord)

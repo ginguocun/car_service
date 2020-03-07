@@ -19,6 +19,13 @@ class WxUserSerializer(serializers.ModelSerializer):
         fields = ['id', 'nick_name', 'avatar_url', 'gender']
 
 
+class ServicePackageTypeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ServicePackageType
+        fields = '__all__'
+
+
 class ServicePackageSerializer(serializers.ModelSerializer):
 
     class Meta:

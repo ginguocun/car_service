@@ -90,6 +90,7 @@ class Superior(models.Model):
     name = models.CharField(verbose_name=_('名字'), max_length=100, unique=True, null=True)
     mobile = models.CharField(verbose_name=_('手机号'), max_length=100, null=True, blank=True, unique=True)
     desc = models.TextField(verbose_name=_('描述'), max_length=1000, null=True, blank=True)
+    is_active = models.BooleanField(verbose_name=_('是否有效'), default=True)
     user = models.ForeignKey(
         "WxUser",
         null=True,
@@ -230,8 +231,8 @@ class CarInfo(models.Model):
 
 
 class InsuranceCompany(models.Model):
-    name = models.CharField(
-        verbose_name=_('保险出单公司'), max_length=200, null=True, unique=True)
+    name = models.CharField(verbose_name=_('保险出单公司'), max_length=200, null=True, unique=True)
+    is_active = models.BooleanField(verbose_name=_('是否有效'), default=True)
 
     objects = models.Manager()
 
@@ -382,6 +383,7 @@ class StoreInfo(models.Model):
     name = models.CharField(verbose_name=_('名称'), max_length=200, null=True, unique=True)
     contact = models.CharField(verbose_name=_('联系电话'), max_length=200, null=True, blank=True)
     address = models.TextField(verbose_name=_('地址'), max_length=1000, null=True, blank=True)
+    is_active = models.BooleanField(verbose_name=_('有效'), default=True)
     desc = models.TextField(verbose_name=_('介绍'), max_length=2000, null=True, blank=True)
 
     objects = models.Manager()

@@ -155,6 +155,25 @@ class AppListCreateApi(ListCreateAPIView):
         return Response(serializer.data, status=HTTP_201_CREATED, headers=headers)
 
 
+class ServicePackageTypeListView(ListAPIView):
+    """
+    get:
+    获取套餐类别列表
+    """
+    pagination_class = None
+    permission_classes = ()
+    queryset = ServicePackageType.objects.order_by('name')
+    serializer_class = ServicePackageTypeSerializer
+
+
+class ServicePackageFilter(AppFilter):
+    class Meta:
+        model = ServicePackage
+        fields = {
+            'service_type': ['exact'],
+        }
+
+
 class ServicePackageListView(ListAPIView):
     """
     get:
@@ -164,6 +183,7 @@ class ServicePackageListView(ListAPIView):
     permission_classes = ()
     queryset = ServicePackage.objects.order_by('name')
     serializer_class = ServicePackageSerializer
+    filterset_class = ServicePackageFilter
 
 
 class StoreInfoListView(ListAPIView):
