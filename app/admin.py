@@ -125,19 +125,85 @@ class InsuranceRecordAdmin(AutoUpdateUserModelAdmin):
     )
 
 
-@admin.register(ServiceReserve)
-class ServiceReserveAdmin(AutoUpdateUserModelAdmin):
+@admin.register(ServicePackageType)
+class ServicePackageTypeAdmin(admin.ModelAdmin):
+    list_display = ['pk', 'name', 'desc']
+    search_fields = ['name', 'desc']
+    list_display_links = ['pk', 'name']
+
+
+@admin.register(ServicePackage)
+class ServicePackageAdmin(admin.ModelAdmin):
+    list_display = ['pk', 'name', 'price']
+    search_fields = ['name']
+    list_display_links = ['pk', 'name']
+
+
+@admin.register(StoreInfo)
+class StoreInfoAdmin(admin.ModelAdmin):
+    list_display = ['pk', 'name']
+    search_fields = ['name']
+    list_display_links = ['pk', 'name']
+
+
+@admin.register(ServiceRecord)
+class ServiceRecordAdmin(AutoUpdateUserModelAdmin):
+    readonly_fields = ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')
     list_display = [
-        'pk', 'car', 'reserve_type', 'is_reversed', 'reserve_time', 'reserve_address',
+        'pk', 'car', 'reserve_type', 'is_reversed', 'reserve_time', 'reserve_address', 'related_store',
         'checked_by', 'is_checked', 'served_by', 'is_served', 'notes'
     ]
     list_display_links = ['pk', 'car']
-    list_filter = ['is_reversed', 'checked_by', 'served_by', 'is_checked', 'is_served']
+    list_filter = [
+        'is_reversed', 'checked_by', 'served_by', 'is_checked', 'is_served', 'related_store', 'service_package']
     date_hierarchy = 'reserve_time'
     search_fields = ['car__car_number', 'car__customer__name', 'car__customer__mobile']
-    autocomplete_fields = ['car', 'checked_by', 'served_by']
+    autocomplete_fields = ['car', 'checked_by', 'served_by', 'related_store', 'service_package']
     fieldsets = (
         (_('基础信息'), {'fields': ('car', 'reserve_type', 'reserve_time', 'reserve_address', 'is_reversed')}),
-        (_('服务信息'), {'fields': ('service_package', ('checked_by', 'is_checked'), ('served_by', 'is_served'))}),
-        (_('备注'), {'fields': ('notes',)})
+        (_('服务信息'), {
+            'fields': ('related_store', 'service_package', ('checked_by', 'is_checked'), ('served_by', 'is_served'))}),
+        (_('备注'), {'fields': ('notes', 'datetime_created', 'datetime_updated')})
+    )
+
+
+@admin.register(ServiceApply)
+class ServiceApplyAdmin(AutoUpdateUserModelAdmin):
+    readonly_fields = ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')
+    list_display = [
+        'pk', 'car_number', 'name', 'mobile', 'is_checked', 'data_import', 'service_package',
+        'reserve_type', 'reserve_time', 'reserve_address', 'related_store', 'notes'
+    ]
+    list_display_links = ['pk', 'car_number']
+    list_filter = ['is_checked', 'data_import', 'service_package', 'related_store', 'checked_by']
+    date_hierarchy = 'datetime_created'
+    search_fields = ['car_number', 'name', 'mobile']
+    autocomplete_fields = ['service_package', 'related_store', 'related_record', 'checked_by']
+    fieldsets = (
+        (_('车辆信息'), {'fields': ('car_number', 'car_brand', 'car_model', 'name', 'mobile')}),
+        (_('审核信息'), {'fields': ('checked_by', 'is_checked', 'data_import')}),
+        (_('服务信息'), {
+            'fields': (
+                'related_store', 'service_package', 'reserve_type', 'reserve_time',
+                'reserve_address', 'related_record')}),
+        (_('备注'), {'fields': ('notes', 'datetime_created', 'datetime_updated')})
+    )
+
+
+@admin.register(InsuranceApply)
+class InsuranceApplyAdmin(AutoUpdateUserModelAdmin):
+    readonly_fields = ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')
+    list_display = [
+        'pk', 'car_number', 'name', 'mobile',  'is_checked', 'data_import', 'checked_by',
+        'insurance_date',  'related_record', 'notes'
+    ]
+    list_display_links = ['pk', 'car_number']
+    list_filter = ['is_checked', 'data_import', 'service_type', 'checked_by']
+    date_hierarchy = 'datetime_created'
+    search_fields = ['car_number', 'name', 'mobile']
+    autocomplete_fields = ['checked_by']
+    fieldsets = (
+        (_('车辆信息'), {'fields': ('car_number', 'car_brand', 'car_model', 'name', 'mobile', 'insurance_date')}),
+        (_('审核信息'), {'fields': ('checked_by', 'is_checked', 'data_import')}),
+        (_('备注'), {'fields': ('notes', 'datetime_created', 'datetime_updated')})
     )
