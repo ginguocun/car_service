@@ -337,6 +337,7 @@ class InsuranceRecord(models.Model):
 class ServicePackageType(models.Model):
     name = models.CharField(verbose_name=_('名称'), max_length=200, null=True, unique=True)
     desc = models.CharField(verbose_name=_('介绍'), max_length=200, null=True, blank=True)
+    is_active = models.BooleanField(verbose_name=_('是否有效'), default=True)
 
     objects = models.Manager()
 
@@ -355,6 +356,7 @@ class ServicePackage(models.Model):
     name = models.CharField(verbose_name=_('名称'), max_length=200, null=True,  unique=True)
     desc = models.CharField(verbose_name=_('介绍'), max_length=200, null=True, blank=True)
     price = models.DecimalField(verbose_name=_('价格'), max_digits=10, decimal_places=2, null=True, blank=True)
+    is_active = models.BooleanField(verbose_name=_('是否有效'), default=True)
     service_type = models.ForeignKey(
         ServicePackageType,
         on_delete=models.CASCADE,

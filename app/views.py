@@ -4,24 +4,28 @@ import logging
 from django.forms import model_to_dict
 from django_filters import rest_framework as filters
 
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.decorators import api_view
-from rest_framework.generics import ListCreateAPIView
+from rest_framework.generics import ListCreateAPIView, ListAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import *
 from rest_framework.views import APIView
 
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from weixin import WXAPPAPI
 from weixin.oauth2 import OAuth2AuthExchangeError
 
+from car.utils import NormalResultsSetPagination
 from .serializers import *
 
 
 logger = logging.getLogger('django')
 
 
-class WxFilter(filters.FilterSet):
+class AppFilter(filters.FilterSet):
 
     @classmethod
     def filter_for_field(cls, field, field_name, lookup_expr='exact'):
@@ -124,3 +128,87 @@ class AppTokenObtainPairView(TokenObtainPairView):
     Token Obtain API
     """
     serializer_class = AppTokenObtainPairSerializer
+
+
+class CsrfExemptSessionAuthentication(SessionAuthentication):
+
+    def enforce_csrf(self, request):
+        return True  # To not perform the csrf check previously happening
+
+
+class AppListCreateApi(ListCreateAPIView):
+
+    authentication_classes = (JWTAuthentication, CsrfExemptSessionAuthentication, BasicAuthentication)
+    permission_classes = (IsAuthenticated, )
+    pagination_class = NormalResultsSetPagination
+
+    def create(self, request, *args, **kwargs):
+        new_data = dict()
+        for k, v in request.data.items():
+            new_data[k] = v
+        if self.request.user:
+            new_data['created_by'] = getattr(self.request.user, 'id')
+        serializer = self.get_serializer(data=new_data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=HTTP_201_CREATED, headers=headers)
+
+
+class ServicePackageListView(ListAPIView):
+    """
+    get:
+    获取套餐列表
+    """
+    pagination_class = None
+    permission_classes = ()
+    queryset = ServicePackage.objects.order_by('name')
+    serializer_class = ServicePackageSerializer
+
+
+class StoreInfoListView(ListAPIView):
+    """
+    get:
+    获取门店信息列表
+    """
+    pagination_class = None
+    permission_classes = ()
+    queryset = StoreInfo.objects.order_by('name')
+    serializer_class = StoreInfoSerializer
+    search_fields = ('name', 'address')
+
+
+class ServiceApplyListView(AppListCreateApi):
+    """
+    get:
+    获取维修服务申请列表，如果不是后台管理员用户，只能获取自己的申请记录。
+
+    post:
+    提交维修服务申请
+    """
+    queryset = ServiceApply.objects.order_by('-pk')
+    serializer_class = ServiceApplySerializer
+    search_fields = ('car_number', 'car_brand')
+
+    def get_queryset(self):
+        if not self.request.user.is_staff:
+            return self.queryset.filter(created_by_id=self.request.user.id)
+        return self.queryset
+
+
+class InsuranceApplyListView(AppListCreateApi):
+    """
+    get:
+    获取保险服务申请列表，如果不是后台管理员用户，只能获取自己的申请记录。
+
+    post:
+    提交保险服务申请
+    """
+    queryset = InsuranceApply.objects.order_by('-pk')
+    serializer_class = InsuranceApplySerializer
+    search_fields = ('car_number', 'car_brand')
+
+    def get_queryset(self):
+        if not self.request.user.is_staff:
+            return self.queryset.filter(created_by_id=self.request.user.id)
+        return self.queryset
