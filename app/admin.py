@@ -52,7 +52,7 @@ class WxUserAdmin(UserAdmin):
     search_fields = [
         'username', 'openid', 'email', 'full_name', 'first_name', 'last_name', 'nick_name']
     autocomplete_fields = ['user_level']
-
+    list_filter = ('is_partner', 'is_client', 'is_manager', 'is_staff', 'is_superuser', 'groups')
     fieldsets = (
         (_('基础信息'), {'fields': ('username', 'password', 'openid')}),
         (_('个人信息'), {'fields': (
@@ -62,6 +62,7 @@ class WxUserAdmin(UserAdmin):
         (_('联络信息'), {'fields': ('mobile', 'email',)}),
         (_('地址信息'), {'fields': ('city', 'province', 'country')}),
         (_('分类信息'), {'fields': ('user_level', 'current_credits', 'is_partner', 'is_client', 'is_manager')}),
+        (_('权限管理'), {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups')}),
         (_('登录信息'), {'fields': ('last_login', 'date_joined')}),
     )
 
