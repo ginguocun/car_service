@@ -1,7 +1,7 @@
 进入指定的路径
 
 ```sh
-cd \opt\car_service
+cd /opt/car_service
 ```
 
 启动虚拟环境
