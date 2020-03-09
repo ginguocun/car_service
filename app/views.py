@@ -250,5 +250,26 @@ class InsuranceApplyListView(AppListCreateApi):
         return self.queryset
 
 
+class InsuranceApplyCreateView1(CreateView):
+    model = InsuranceApply
+    form_class = InsuranceApplyForm1
+    template_name_suffix = '/add_insuranceapply_1'
+    success_url = '/page/success/'
+
+
+class InsuranceApplyCreateView2(CreateView):
+    model = InsuranceApply
+    form_class = InsuranceApplyForm2
+    template_name_suffix = '/add_insuranceapply_2'
+    success_url = '/page/success/'
+
+
+class InsuranceApplyCreateView3(CreateView):
+    model = InsuranceApply
+    form_class = InsuranceApplyForm3
+    template_name_suffix = '/add_insuranceapply_3'
+    success_url = '/page/success/'
+
+
 class SuccessView(TemplateView):
     template_name = 'success.html'

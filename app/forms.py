@@ -33,6 +33,7 @@ class AppModelForm(ModelForm):
 
 
 class ServiceApplyForm1(AppModelForm):
+    # 上门服务
 
     class Meta:
         model = ServiceApply
@@ -43,10 +44,50 @@ class ServiceApplyForm1(AppModelForm):
 
 
 class ServiceApplyForm2(AppModelForm):
+    # 到店服务
 
     class Meta:
         model = ServiceApply
         fields = [
             'car_number', 'car_brand', 'car_model', 'name', 'mobile',
             'service_package', 'reserve_type', 'reserve_time', 'related_store'
+        ]
+
+
+class InsuranceApplyForm1(AppModelForm):
+    # 车辆续保
+
+    class Meta:
+        model = InsuranceApply
+        fields = [
+            'car_number', 'car_brand', 'car_model',
+            'name', 'mobile',
+            'service_type', 'insurance_date',
+            'notes'
+        ]
+
+
+class InsuranceApplyForm2(AppModelForm):
+    # 保险分期
+
+    class Meta:
+        model = InsuranceApply
+        fields = [
+            'car_number', 'car_brand', 'car_model',
+            'name', 'mobile',
+            'service_type',
+            'notes'
+        ]
+
+
+class InsuranceApplyForm3(AppModelForm):
+    # 购车贷款
+
+    class Meta:
+        model = InsuranceApply
+        fields = [
+            'car_number', 'car_brand', 'car_model',
+            'name', 'mobile',
+            'service_type',
+            'notes'
         ]
