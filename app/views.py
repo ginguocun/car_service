@@ -2,6 +2,7 @@ import json
 import logging
 
 from django.forms import model_to_dict
+from django.views.generic import CreateView, TemplateView
 from django_filters import rest_framework as filters
 
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
@@ -20,6 +21,7 @@ from weixin.oauth2 import OAuth2AuthExchangeError
 
 from car.utils import NormalResultsSetPagination
 from .serializers import *
+from .forms import *
 
 
 logger = logging.getLogger('django')
@@ -216,6 +218,20 @@ class ServiceApplyListView(AppListCreateApi):
         return self.queryset
 
 
+class ServiceApplyCreateView1(CreateView):
+    model = ServiceApply
+    form_class = ServiceApplyForm1
+    template_name_suffix = '/add_serviceapply_1'
+    success_url = '/page/success/'
+
+
+class ServiceApplyCreateView2(CreateView):
+    model = ServiceApply
+    form_class = ServiceApplyForm2
+    template_name_suffix = '/add_serviceapply_2'
+    success_url = '/page/success/'
+
+
 class InsuranceApplyListView(AppListCreateApi):
     """
     get:
@@ -232,3 +248,7 @@ class InsuranceApplyListView(AppListCreateApi):
         if not self.request.user.is_staff:
             return self.queryset.filter(created_by_id=self.request.user.id)
         return self.queryset
+
+
+class SuccessView(TemplateView):
+    template_name = 'success.html'

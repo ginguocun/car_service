@@ -1,0 +1,86 @@
+{% extends "app/base.html" %}
+{% load static i18n %}
+{% block title %}{% trans '到店服务预约' %}{% endblock %}
+{% block this_css %}
+<link href="{% static 'flatlab/css/bootstrap-select.min.css' %}" rel="stylesheet">
+{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-lg-12">
+        <section class="panel">
+            <header class="panel-heading">
+                {% trans "到店服务预约" %}
+                {% if form.errors %}
+                    {% if form.errors %}
+                        {% for e in form.errors.values %}<p>{{ e }}</p>{% endfor %}
+                    {% endif %}
+                {{ form.non_field_errors }}
+                {% endif %}
+            </header>
+            <div class="panel-body">
+                <form class="form-horizontal" method="post" action="{{ request.path }}?next={{ request.GET.next }}">{% csrf_token %}
+                    <input type="hidden" name="reserve_type" id="id_reserve_type" value="2">
+                    <div class="form-group">
+                        <div class="col-lg-2 control-label">{{ form.name.label_tag }}</div>
+                        <div class="col-lg-4">
+                            {{ form.name }}
+                            <p class="help-block">{{ form.name.errors }}</p>
+                        </div>
+                        <div class="col-lg-2 control-label">{{ form.mobile.label_tag }}</div>
+                        <div class="col-lg-4">
+                            {{ form.mobile }}
+                            <p class="help-block">{{ form.mobile.errors }}</p>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-lg-2 control-label">{{ form.car_number.label_tag }}</div>
+                        <div class="col-lg-4">
+                            {{ form.car_number }}
+                            <p class="help-block">{{ form.car_number.errors }}</p>
+                        </div>
+                        <div class="col-lg-2 control-label">{{ form.car_brand.label_tag }}</div>
+                        <div class="col-lg-4">
+                            {{ form.car_brand }}
+                            <p class="help-block">{{ form.car_brand.errors }}</p>
+                        </div>
+                        <div class="col-lg-2 control-label">{{ form.car_model.label_tag }}</div>
+                        <div class="col-lg-4">
+                            {{ form.car_model }}
+                            <p class="help-block">{{ form.car_model.errors }}</p>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-lg-2 control-label">{{ form.service_package.label_tag }}</div>
+                        <div class="col-lg-4">
+                            {{ form.service_package }}
+                            <p class="help-block">{{ form.service_package.errors }}</p>
+                        </div>
+                        <div class="col-lg-2 control-label">{{ form.reserve_time.label_tag }}</div>
+                        <div class="col-lg-4">
+                            {{ form.reserve_time }}
+                            <p class="help-block">{{ form.reserve_time.errors }}</p>
+                        </div>
+                        <div class="col-lg-2 control-label">{{ form.related_store.label_tag }}</div>
+                        <div class="col-lg-4">
+                            {{ form.related_store }}
+                            <p class="help-block">{{ form.related_store.errors }}</p>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-lg-12" align="right">
+                            <button type="submit" class="btn btn-primary">{% trans "Submit" %}</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}
+{% block this_js %}
+<script src="{% static 'flatlab/js/bootstrap-select.min.js' %}"></script>
+<script src="{% static 'flatlab/js/bootstrap-switch.js' %}"></script>
+<script src="{% static 'flatlab/js/datetime-auto.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,73 @@
+<!DOCTYPE html>{% load i18n static staticfiles %}
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="">
+        <meta name="author" content="Guoqun Jin">
+        <meta name="keyword" content="Car">
+        <link rel="shortcut icon" href="{% static 'flatlab/favicon.ico' %}">
+        <title>{% block title %}HitGen{% endblock %}</title>
+        <!-- Bootstrap core CSS -->
+        <link rel="stylesheet" type="text/css" href="{% static 'flatlab/css/bootstrap.min.css' %}">
+        <link rel="stylesheet" type="text/css" href="{% static 'flatlab/css/bootstrap-reset.css' %}">
+        <!--external css-->
+        <link rel="stylesheet" type="text/css" href="{% static 'flatlab/assets/font-awesome/css/font-awesome.css' %}">
+        <link rel="stylesheet" type="text/css" href="{% static 'flatlab/css/owl.carousel.css' %}">
+        <!--right slidebar-->
+        <link rel="stylesheet" type="text/css" href="{% static 'flatlab/css/slidebars.css' %}">
+        <!-- Custom styles for this template -->
+        <link rel="stylesheet" type="text/css" href="{% static 'flatlab/css/style.css' %}">
+        <link rel="stylesheet" type="text/css" href="{% static 'flatlab/css/style-responsive.css' %}">
+
+        <link rel="apple-touch-icon-precomposed" sizes="57x57" href="{% static 'logo/icon-57.png' %}">
+        <link rel="apple-touch-icon-precomposed" sizes="72x72" href="{% static 'logo/icon-72.png' %}">
+        <link rel="apple-touch-icon-precomposed" sizes="114x114" href="{% static 'logo/icon-114.png' %}">
+        <link rel="apple-touch-icon-precomposed" sizes="144x144" href="{% static 'logo/icon-144.png' %}">
+        {% block this_css %}{% endblock %}
+    </head>
+    <body class="mega-nav">
+        <section id="container" >
+            <!--header start-->
+            {% block navbartop %}{% include 'app/navbartop.html' %}{% endblock %}
+            <!--header end-->
+            <!--main content start-->
+            <section id="main-content">
+                <section class="wrapper site-min-height">
+                    {% block content %}{% endblock %}
+                </section>
+            </section>
+        </section>
+        <!-- js placed at the end of the document so the pages load faster -->
+        <script type="text/javascript" src="{% static 'flatlab/js/jquery.js' %}"></script>
+        <script type="text/javascript" src="{% static 'flatlab/js/bootstrap.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'flatlab/js/jquery.cookie.js' %}"></script>
+        <script type="text/javascript" class="include" src="{% static 'flatlab/js/jquery.dcjqaccordion.2.7.js' %}"></script>
+        <script type="text/javascript" src="{% static 'flatlab/assets/fancybox/source/jquery.fancybox.js' %}"></script>
+        <script type="text/javascript" src="{% static 'flatlab/js/jquery.scrollTo.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'flatlab/js/jquery.nicescroll.js' %}"></script>
+        <script type="text/javascript" src="{% static 'flatlab/js/owl.carousel.js' %}"></script>
+        <script type="text/javascript" src="{% static 'flatlab/js/jquery.customSelect.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'flatlab/js/respond.min.js' %}"></script>
+
+        <!--common script for all pages-->
+        <script type="text/javascript" src="{% static 'flatlab/js/common-scripts.js' %}"></script>
+
+        <!--script for this page-->
+        <script  type="text/javascript">
+            $(document).ready(function(){
+                $("#owl-demo").owlCarousel({
+                  navigation : true,
+                  slideSpeed : 300,
+                  paginationSpeed : 400,
+                  singleItem : true,
+                  autoPlay:true
+                });
+            });
+            $(function(){
+              $('select.styled').customSelect();
+            });
+        </script>
+        {% block this_js %}{% endblock %}
+    </body>
+</html>
