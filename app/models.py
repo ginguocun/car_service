@@ -232,6 +232,7 @@ class CarInfo(models.Model):
 
 class InsuranceCompany(models.Model):
     name = models.CharField(verbose_name=_('保险出单公司'), max_length=200, null=True, unique=True)
+    display = models.BooleanField(verbose_name=_('用户是否可选'), default=True)
     is_active = models.BooleanField(verbose_name=_('是否有效'), default=True)
 
     objects = models.Manager()
@@ -294,6 +295,7 @@ class InsuranceRecord(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
+        limit_choices_to={'is_active': True},
         verbose_name=_('保险公司')
     )
     tax = models.DecimalField(verbose_name=_('车船税'), max_digits=10, decimal_places=2, null=True, blank=True)
@@ -301,6 +303,76 @@ class InsuranceRecord(models.Model):
     payback_percent = models.PositiveSmallIntegerField(verbose_name=_('已返费率'), null=True, blank=True)
     payback_amount = models.DecimalField(verbose_name=_('已返金额'), max_digits=10, decimal_places=2, null=True, blank=True)
     is_payed = models.BooleanField(verbose_name=_('已支付'), default=True)
+
+    insurance_csx = models.BooleanField(
+        verbose_name=_('机动车辆损失险'),
+        help_text=_(
+            '发生保险事故时，补偿您自己车辆的损失。例如车辆发生碰撞、倾覆、火灾、爆炸，或被外界物体倒塌、坠物砸坏，'
+            '以及与别人车辆发生碰撞，造成自己的车辆受损等，保险公司将按照条款赔偿您的车辆维修费用'),
+        default=True)
+    insurance_fdjss = models.BooleanField(
+        verbose_name=_('发动机涉水损失险'),
+        help_text=_(
+            '车辆在使用过程中，因发动机进水后导致的发动机的直接损毁，保险公司将按条款规定赔偿。'),
+        default=False)
+    insurance_zrss = models.BooleanField(
+        verbose_name=_('自燃损失险'),
+        help_text=_(
+            '因本车电器、线路、油路、供油系统、供气系统、车载货物等自身发生问题，或者车辆运转摩擦引起火灾，造成本车的损失，'
+            '以及为减少本车损失所支出的必要合理的施救费用，保险公司将按条款规定赔偿。'),
+        default=False)
+    insurance_dqx = models.BooleanField(
+        verbose_name=_('盗抢险'),
+        help_text=_(
+            '如果车辆被盗窃、抢劫、抢夺，经公安机关立案证明，保险公司将按条款规定赔偿。'),
+        default=False)
+    insurance_pl = models.BooleanField(
+        verbose_name=_('玻璃单独破碎险'),
+        help_text=_(
+            '如果发生挡风玻璃或车窗玻璃单独破碎，保险公司按实际损失进行赔偿。例如被高空坠物或飞石击碎挡风玻璃或车窗玻璃。'),
+        default=False)
+    insurance_cshx = models.BooleanField(
+        verbose_name=_('车身划痕损失险'),
+        help_text=_(
+            '无明显碰撞痕迹的车身划痕损失，保险公司将按照条款规定赔偿。例如车辆停放期间，被人用尖锐物划伤。'),
+        default=False)
+    insurance_dsxr = models.CharField(
+        verbose_name=_('第三责任险'),
+        help_text=_(
+            '发生保险事故，我们可以按条款代您对第三方（人或物）受到的损失进行赔偿。'
+            '例如您不幸撞坏了别人的车或驾车致人伤亡，保险公司将按照条款规定赔偿。'),
+        choices=(('20万', '20万'), ('30万', '30万'), ('50万', '50万'), ('100万', '100万')),
+        max_length=100,
+        null=True
+    )
+    insurance_sj = models.CharField(
+        verbose_name=_('车上人员责任险-司机'),
+        help_text=_(
+            '发生意外事故，造成本车驾驶员本人的人身伤亡，如果本车负有责任，保险公司将按条款规定赔偿。'),
+        choices=(('5万', '5万'), ('20万', '20万'), ('30万', '30万'), ('50万', '50万')),
+        max_length=100,
+        null=True,
+        blank=True
+    )
+    insurance_ck = models.CharField(
+        verbose_name=_('车上人员责任险-乘客'),
+        help_text=_(
+            '发生意外事故，造成本车乘客（非驾驶员）的人身伤亡，如果本车负有责任，保险公司将按条款规定赔偿。'),
+        choices=(('5万', '5万'), ('20万', '20万'), ('30万', '30万'), ('50万', '50万')),
+        max_length=100,
+        null=True,
+        blank=True
+    )
+    insurance_hw = models.CharField(
+        verbose_name=_('车上货物责任险'),
+        help_text=_(
+            '发生意外事故，致使保险车辆所载货物遭受直接损毁，依法应由被保险人承担的经济赔偿责任，保险人负责赔偿。'),
+        choices=(('5万', '5万'), ('20万', '20万'), ('30万', '30万'), ('50万', '50万')),
+        max_length=100,
+        null=True,
+        blank=True
+    )
+
     notes = models.TextField(verbose_name=_('备注'), max_length=1000, null=True, blank=True)
     created_by = models.ForeignKey(
         "WxUser",
@@ -374,8 +446,29 @@ class ServicePackage(models.Model):
         verbose_name_plural = _('服务套餐')
 
     def __str__(self):
-        return "{}".format(
+        return "{} (￥{})".format(
             self.name,
+            self.price
+        )
+
+
+class OilPackage(models.Model):
+    name = models.CharField(verbose_name=_('名称'), max_length=200, null=True,  unique=True)
+    desc = models.CharField(verbose_name=_('介绍'), max_length=200, null=True, blank=True)
+    price = models.DecimalField(verbose_name=_('价格'), max_digits=10, decimal_places=2, null=True, blank=True)
+    is_active = models.BooleanField(verbose_name=_('是否有效'), default=True)
+
+    objects = models.Manager()
+
+    class Meta:
+        ordering = ['id']
+        verbose_name = _('机油套餐')
+        verbose_name_plural = _('机油套餐')
+
+    def __str__(self):
+        return "{} （￥ {}）".format(
+            self.name,
+            self.price
         )
 
 
@@ -383,6 +476,7 @@ class StoreInfo(models.Model):
     name = models.CharField(verbose_name=_('名称'), max_length=200, null=True, unique=True)
     contact = models.CharField(verbose_name=_('联系电话'), max_length=200, null=True, blank=True)
     address = models.TextField(verbose_name=_('地址'), max_length=1000, null=True, blank=True)
+    image = models.ImageField(verbose_name=_('照片'), upload_to='', null=True, blank=True)
     is_active = models.BooleanField(verbose_name=_('有效'), default=True)
     desc = models.TextField(verbose_name=_('介绍'), max_length=2000, null=True, blank=True)
 
@@ -497,6 +591,13 @@ class ServiceApply(models.Model):
         blank=True,
         verbose_name=_('服务套餐')
     )
+    oil_package = models.ForeignKey(
+        OilPackage,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_('机油套餐')
+    )
     reserve_type = models.IntegerField(verbose_name=_('类型'), null=True, blank=True, choices=[(1, '上门'), (2, '到店')])
     reserve_time = models.DateTimeField(verbose_name=_('服务时间'), null=True, blank=True)
     reserve_address = models.TextField(verbose_name=_('服务地点'), max_length=1000, null=True, blank=True)
@@ -597,6 +698,90 @@ class InsuranceApply(models.Model):
     service_type = models.IntegerField(
         verbose_name=_('类别'), null=True, blank=True, choices=[(1, '车辆续保'), (2, '保险分期'), (3, '购车贷款')])
     insurance_date = models.DateField(verbose_name=_('保单开始日期'), null=True, blank=True)
+    insurance_csx = models.BooleanField(
+        verbose_name=_('机动车辆损失险'),
+        help_text=_(
+            '发生保险事故时，补偿您自己车辆的损失。例如车辆发生碰撞、倾覆、火灾、爆炸，或被外界物体倒塌、坠物砸坏，'
+            '以及与别人车辆发生碰撞，造成自己的车辆受损等，保险公司将按照条款赔偿您的车辆维修费用'),
+        default=True)
+    insurance_fdjss = models.BooleanField(
+        verbose_name=_('发动机涉水损失险'),
+        help_text=_(
+            '车辆在使用过程中，因发动机进水后导致的发动机的直接损毁，保险公司将按条款规定赔偿。'),
+        default=False)
+    insurance_zrss = models.BooleanField(
+        verbose_name=_('自燃损失险'),
+        help_text=_(
+            '因本车电器、线路、油路、供油系统、供气系统、车载货物等自身发生问题，或者车辆运转摩擦引起火灾，造成本车的损失，'
+            '以及为减少本车损失所支出的必要合理的施救费用，保险公司将按条款规定赔偿。'),
+        default=False)
+    insurance_dqx = models.BooleanField(
+        verbose_name=_('盗抢险'),
+        help_text=_(
+            '如果车辆被盗窃、抢劫、抢夺，经公安机关立案证明，保险公司将按条款规定赔偿。'),
+        default=False)
+    insurance_pl = models.BooleanField(
+        verbose_name=_('玻璃单独破碎险'),
+        help_text=_(
+            '如果发生挡风玻璃或车窗玻璃单独破碎，保险公司按实际损失进行赔偿。例如被高空坠物或飞石击碎挡风玻璃或车窗玻璃。'),
+        default=False)
+    insurance_cshx = models.BooleanField(
+        verbose_name=_('车身划痕损失险'),
+        help_text=_(
+            '无明显碰撞痕迹的车身划痕损失，保险公司将按照条款规定赔偿。例如车辆停放期间，被人用尖锐物划伤。'),
+        default=False)
+    insurance_dsxr = models.CharField(
+        verbose_name=_('第三责任险'),
+        help_text=_(
+            '发生保险事故，我们可以按条款代您对第三方（人或物）受到的损失进行赔偿。'
+            '例如您不幸撞坏了别人的车或驾车致人伤亡，保险公司将按照条款规定赔偿。'),
+        choices=(('20万', '20万'), ('30万', '30万'), ('50万', '50万'), ('100万', '100万')),
+        max_length=100,
+        null=True
+    )
+    insurance_sj = models.CharField(
+        verbose_name=_('车上人员责任险-司机'),
+        help_text=_(
+            '发生意外事故，造成本车驾驶员本人的人身伤亡，如果本车负有责任，保险公司将按条款规定赔偿。'),
+        choices=(('5万', '5万'), ('20万', '20万'), ('30万', '30万'), ('50万', '50万')),
+        max_length=100,
+        null=True,
+        blank=True
+    )
+    insurance_ck = models.CharField(
+        verbose_name=_('车上人员责任险-乘客'),
+        help_text=_(
+            '发生意外事故，造成本车乘客（非驾驶员）的人身伤亡，如果本车负有责任，保险公司将按条款规定赔偿。'),
+        choices=(('5万', '5万'), ('20万', '20万'), ('30万', '30万'), ('50万', '50万')),
+        max_length=100,
+        null=True,
+        blank=True
+    )
+    insurance_hw = models.CharField(
+        verbose_name=_('车上货物责任险'),
+        help_text=_(
+            '发生意外事故，致使保险车辆所载货物遭受直接损毁，依法应由被保险人承担的经济赔偿责任，保险人负责赔偿。'),
+        choices=(('5万', '5万'), ('20万', '20万'), ('30万', '30万'), ('50万', '50万')),
+        max_length=100,
+        null=True,
+        blank=True
+    )
+    insurance_company = models.ForeignKey(
+        InsuranceCompany,
+        limit_choices_to={'display': True, 'is_active': True},
+        on_delete=models.SET_NULL,
+        related_name='insurance_apply_check_by',
+        null=True,
+        blank=True,
+        verbose_name=_('由谁联系')
+    )
+    changed_times = models.CharField(
+        verbose_name=_('过户次数'),
+        choices=(('0', '0'), ('1', '1'), ('2', '2'), ('3+', '3+')),
+        max_length=100,
+        null=True,
+        default='0'
+    )
     checked_by = models.ForeignKey(
         Superior,
         on_delete=models.SET_NULL,
