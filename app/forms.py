@@ -38,7 +38,7 @@ class ServiceApplyForm1(AppModelForm):
     class Meta:
         model = ServiceApply
         fields = [
-            'car_number', 'car_brand', 'car_model', 'name', 'mobile',
+            'car_number', 'car_brand', 'car_model', 'name', 'mobile', 'oil_package',
             'service_package', 'reserve_type', 'reserve_time', 'reserve_address'
         ]
 
@@ -49,7 +49,7 @@ class ServiceApplyForm2(AppModelForm):
     class Meta:
         model = ServiceApply
         fields = [
-            'car_number', 'car_brand', 'car_model', 'name', 'mobile',
+            'car_number', 'car_brand', 'car_model', 'name', 'mobile', 'oil_package',
             'service_package', 'reserve_type', 'reserve_time', 'related_store'
         ]
 
@@ -63,6 +63,9 @@ class InsuranceApplyForm1(AppModelForm):
             'car_number', 'car_brand', 'car_model',
             'name', 'mobile',
             'service_type', 'insurance_date',
+            'insurance_csx', 'insurance_fdjss', 'insurance_zrss', 'insurance_dqx', 'insurance_pl',
+            'insurance_cshx', 'insurance_dsxr', 'insurance_sj', 'insurance_ck', 'insurance_hw',
+            'insurance_company',
             'notes'
         ]
 

@@ -38,6 +38,8 @@
                             {{ form.car_number }}
                             <p class="help-block">{{ form.car_number.errors }}</p>
                         </div>
+                    </div>
+                    <div class="form-group">
                         <div class="col-lg-2 control-label">{{ form.car_brand.label_tag }}</div>
                         <div class="col-lg-4">
                             {{ form.car_brand }}
@@ -56,6 +58,14 @@
                             {{ form.service_package }}
                             <p class="help-block">{{ form.service_package.errors }}</p>
                         </div>
+                        <div class="col-lg-2 control-label">{{ form.oil_package.label_tag }}</div>
+                        <div class="col-lg-4">
+                            {{ form.oil_package }}
+                            <p class="help-block">{{ form.oil_package.errors }}</p>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
                         <div class="col-lg-2 control-label">{{ form.reserve_time.label_tag }}</div>
                         <div class="col-lg-4">
                             {{ form.reserve_time }}

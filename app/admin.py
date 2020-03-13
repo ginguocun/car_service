@@ -95,7 +95,7 @@ class CarInfoAdmin(AutoUpdateUserModelAdmin):
 
 @admin.register(InsuranceCompany)
 class InsuranceCompanyAdmin(admin.ModelAdmin):
-    list_display = ['pk', 'name', 'is_active']
+    list_display = ['pk', 'name', 'display', 'is_active']
     search_fields = ['name']
     list_display_links = ['pk', 'name']
     list_filter = ['is_active']
@@ -170,11 +170,13 @@ class ServiceRecordAdmin(AutoUpdateUserModelAdmin):
         'is_reversed', 'checked_by', 'served_by', 'is_checked', 'is_served', 'related_store', 'service_package']
     date_hierarchy = 'reserve_time'
     search_fields = ['car__car_number', 'car__customer__name', 'car__customer__mobile']
-    autocomplete_fields = ['car', 'checked_by', 'served_by', 'related_store', 'service_package']
+    autocomplete_fields = ['car', 'checked_by', 'served_by', 'related_store', 'service_package', 'oil_package']
     fieldsets = (
         (_('基础信息'), {'fields': ('car', 'reserve_type', 'reserve_time', 'reserve_address', 'is_reversed')}),
         (_('服务信息'), {
-            'fields': ('related_store', 'service_package', ('checked_by', 'is_checked'), ('served_by', 'is_served'))}),
+            'fields': (
+                'related_store', 'service_package', 'oil_package',
+                ('checked_by', 'is_checked'), ('served_by', 'is_served'))}),
         (_('备注'), {'fields': ('notes', 'datetime_created', 'datetime_updated')})
     )
 
@@ -190,13 +192,13 @@ class ServiceApplyAdmin(AutoUpdateUserModelAdmin):
     list_filter = ['is_checked', 'data_import', 'service_package', 'related_store', 'checked_by']
     date_hierarchy = 'datetime_created'
     search_fields = ['car_number', 'name', 'mobile']
-    autocomplete_fields = ['service_package', 'related_store', 'related_record', 'checked_by']
+    autocomplete_fields = ['service_package', 'oil_package', 'related_store', 'related_record', 'checked_by']
     fieldsets = (
         (_('车辆信息'), {'fields': ('car_number', 'car_brand', 'car_model', 'name', 'mobile')}),
         (_('审核信息'), {'fields': ('checked_by', 'is_checked', 'data_import')}),
         (_('服务信息'), {
             'fields': (
-                'related_store', 'service_package', 'reserve_type', 'reserve_time',
+                'related_store', 'service_package', 'oil_package', 'reserve_type', 'reserve_time',
                 'reserve_address', 'related_record')}),
         (_('备注'), {'fields': ('notes', 'datetime_created', 'datetime_updated')})
     )
@@ -219,3 +221,10 @@ class InsuranceApplyAdmin(AutoUpdateUserModelAdmin):
         (_('审核信息'), {'fields': ('checked_by', 'is_checked', 'data_import')}),
         (_('备注'), {'fields': ('notes', 'datetime_created', 'datetime_updated')})
     )
+
+
+@admin.register(OilPackage)
+class OilPackageAdmin(admin.ModelAdmin):
+    list_display = ['pk', 'name', 'price']
+    search_fields = ['name']
+    list_display_links = ['pk', 'name']

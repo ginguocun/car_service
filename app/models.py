@@ -427,8 +427,8 @@ class ServicePackageType(models.Model):
 
 class ServicePackage(models.Model):
     name = models.CharField(verbose_name=_('名称'), max_length=200, null=True,  unique=True)
-    desc = models.CharField(verbose_name=_('介绍'), max_length=200, null=True, blank=True)
     price = models.DecimalField(verbose_name=_('价格'), max_digits=10, decimal_places=2, null=True, blank=True)
+    desc = models.CharField(verbose_name=_('介绍'), max_length=200, null=True, blank=True)
     is_active = models.BooleanField(verbose_name=_('是否有效'), default=True)
     service_type = models.ForeignKey(
         ServicePackageType,
@@ -454,8 +454,8 @@ class ServicePackage(models.Model):
 
 class OilPackage(models.Model):
     name = models.CharField(verbose_name=_('名称'), max_length=200, null=True,  unique=True)
-    desc = models.CharField(verbose_name=_('介绍'), max_length=200, null=True, blank=True)
     price = models.DecimalField(verbose_name=_('价格'), max_digits=10, decimal_places=2, null=True, blank=True)
+    desc = models.CharField(verbose_name=_('介绍'), max_length=200, null=True, blank=True)
     is_active = models.BooleanField(verbose_name=_('是否有效'), default=True)
 
     objects = models.Manager()
@@ -507,6 +507,14 @@ class ServiceRecord(models.Model):
         null=True,
         blank=True,
         verbose_name=_('服务套餐')
+    )
+    oil_package = models.ForeignKey(
+        OilPackage,
+        on_delete=models.SET_NULL,
+        limit_choices_to={'is_active': True},
+        null=True,
+        blank=True,
+        verbose_name=_('机油套餐')
     )
     reserve_type = models.IntegerField(verbose_name=_('类型'), null=True, blank=True, choices=[(1, '上门'), (2, '到店')])
     is_reversed = models.BooleanField(verbose_name=_('是预约服务'), default=False)
@@ -587,6 +595,7 @@ class ServiceApply(models.Model):
     service_package = models.ForeignKey(
         ServicePackage,
         on_delete=models.SET_NULL,
+        limit_choices_to={'is_active': True},
         null=True,
         blank=True,
         verbose_name=_('服务套餐')
@@ -594,6 +603,7 @@ class ServiceApply(models.Model):
     oil_package = models.ForeignKey(
         OilPackage,
         on_delete=models.SET_NULL,
+        limit_choices_to={'is_active': True},
         null=True,
         blank=True,
         verbose_name=_('机油套餐')
@@ -660,7 +670,8 @@ class ServiceApply(models.Model):
             mobile = getattr(self, 'mobile').replace(' ', '')
             car_number = getattr(self, 'car_number').replace(' ', '').upper()
             # 获取或存储客户信息
-            customer, created = Customer.objects.get_or_create(name=name, mobile=mobile)
+            customer, created = Customer.objects.get_or_create(
+                mobile=mobile, defaults={'name': name})
             # 获取或存储车辆信息
             car, car_created = CarInfo.objects.get_or_create(
                 car_number=car_number,
