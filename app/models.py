@@ -784,7 +784,7 @@ class InsuranceApply(models.Model):
         related_name='insurance_apply_check_by',
         null=True,
         blank=True,
-        verbose_name=_('由谁联系')
+        verbose_name=_('保险公司')
     )
     changed_times = models.CharField(
         verbose_name=_('过户次数'),
@@ -792,6 +792,11 @@ class InsuranceApply(models.Model):
         max_length=100,
         null=True,
         default='0'
+    )
+    money_needed = models.IntegerField(
+        verbose_name=_('需求金额/元'),
+        null=True,
+        blank=True
     )
     checked_by = models.ForeignKey(
         Superior,
@@ -875,3 +880,53 @@ class InsuranceApply(models.Model):
             )
             self.related_record = related_record
         super(InsuranceApply, self).save(*args, **kwargs)
+
+
+class PartnerApply(models.Model):
+    name = models.CharField(verbose_name=_('名字'), max_length=255, null=True)
+    mobile = models.CharField(verbose_name=_('手机'), max_length=255, null=True)
+    address = models.TextField(verbose_name=_('长期居住地'), max_length=1000, null=True, blank=True)
+    professional = models.CharField(verbose_name=_('现就职业'), max_length=100, null=True, blank=True)
+    reason = models.TextField(verbose_name=_('申请理由或资源'), max_length=1000, null=True, blank=True)
+    checked_by = models.ForeignKey(
+        Superior,
+        on_delete=models.SET_NULL,
+        related_name='partner_apply_check_by',
+        null=True,
+        blank=True,
+        verbose_name=_('由谁联系')
+    )
+    is_checked = models.BooleanField(verbose_name=_('已联系/已确认'), default=False)
+    notes = models.TextField(verbose_name=_('备注'), max_length=1000, null=True, blank=True)
+    created_by = models.ForeignKey(
+        "WxUser",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='partner_apply_created_by',
+        verbose_name=_('创建人员')
+    )
+    confirmed_by = models.ForeignKey(
+        "WxUser",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='partner_apply_confirmed_by',
+        verbose_name=_('审核人员')
+    )
+    datetime_created = models.DateTimeField(verbose_name=_('记录时间'), auto_now_add=True)
+    datetime_updated = models.DateTimeField(verbose_name=_('更新时间'), auto_now=True)
+
+    objects = models.Manager()
+
+    class Meta:
+        ordering = ['-id']
+        verbose_name = _('城市合伙人')
+        verbose_name_plural = _('城市合伙人')
+
+    def __str__(self):
+        return "{} {} {}".format(
+            self.name,
+            self.mobile,
+            self.is_checked
+        )

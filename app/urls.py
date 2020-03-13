@@ -14,4 +14,5 @@ urlpatterns = [
     re_path(r'^insurance_apply_1/$', InsuranceApplyCreateView1.as_view(), name='insurance_apply_1'),  # 车辆续保
     re_path(r'^insurance_apply_2/$', InsuranceApplyCreateView2.as_view(), name='insurance_apply_2'),  # 保险分期
     re_path(r'^insurance_apply_3/$', InsuranceApplyCreateView3.as_view(), name='insurance_apply_3'),  # 购车贷款
+    re_path(r'^partner_apply/$', PartnerApplyCreateView.as_view(), name='partner_apply'),  # 购车贷款
     ]

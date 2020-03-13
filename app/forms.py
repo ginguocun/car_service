@@ -91,6 +91,16 @@ class InsuranceApplyForm3(AppModelForm):
         fields = [
             'car_number', 'car_brand', 'car_model',
             'name', 'mobile',
-            'service_type',
+            'service_type', 'changed_times', 'money_needed',
             'notes'
+        ]
+
+
+class PartnerApplyForm(AppModelForm):
+    # 车辆续保
+
+    class Meta:
+        model = PartnerApply
+        fields = [
+            'name', 'mobile', 'address', 'professional', 'reason',
         ]

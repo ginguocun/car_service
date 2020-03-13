@@ -112,6 +112,11 @@
                         </div>
                     </div>
                     <div class="form-group">
+                        <div class="col-lg-2 control-label">{{ form.insurance_company.label_tag }}</div>
+                        <div class="col-lg-4">
+                            {{ form.insurance_company }}
+                            <p class="help-block">{{ form.insurance_company.errors }}</p>
+                        </div>
                         <div class="col-lg-2 control-label">{{ form.insurance_date.label_tag }}</div>
                         <div class="col-lg-4">
                             {{ form.insurance_date }}

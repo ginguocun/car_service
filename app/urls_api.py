@@ -5,7 +5,7 @@ from rest_framework.urlpatterns import format_suffix_patterns
 
 from app.apps import AppConfig
 
-from .views import *
+from .views_api import *
 
 
 API_TITLE = 'API Documents'

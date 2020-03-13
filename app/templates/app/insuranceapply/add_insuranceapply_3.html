@@ -38,6 +38,8 @@
                             {{ form.car_number }}
                             <p class="help-block">{{ form.car_number.errors }}</p>
                         </div>
+                    </div>
+                    <div class="form-group">
                         <div class="col-lg-2 control-label">{{ form.car_brand.label_tag }}</div>
                         <div class="col-lg-4">
                             {{ form.car_brand }}
@@ -47,6 +49,18 @@
                         <div class="col-lg-4">
                             {{ form.car_model }}
                             <p class="help-block">{{ form.car_model.errors }}</p>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-lg-2 control-label">{{ form.changed_times.label_tag }}</div>
+                        <div class="col-lg-4">
+                            {{ form.changed_times }}
+                            <p class="help-block">{{ form.changed_times.errors }}</p>
+                        </div>
+                        <div class="col-lg-2 control-label">{{ form.money_needed.label_tag }}</div>
+                        <div class="col-lg-4">
+                            {{ form.money_needed }}
+                            <p class="help-block">{{ form.money_needed.errors }}</p>
                         </div>
                     </div>
                     <div class="form-group">

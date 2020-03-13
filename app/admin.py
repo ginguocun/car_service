@@ -228,3 +228,21 @@ class OilPackageAdmin(admin.ModelAdmin):
     list_display = ['pk', 'name', 'price']
     search_fields = ['name']
     list_display_links = ['pk', 'name']
+
+
+@admin.register(PartnerApply)
+class PartnerApplyAdmin(AutoUpdateUserModelAdmin):
+    readonly_fields = ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')
+    list_display = [
+        'pk', 'name', 'mobile', 'address', 'professional', 'reason', 'is_checked', 'notes'
+    ]
+    list_display_links = ['pk', 'name', 'mobile']
+    list_filter = ['is_checked', 'checked_by']
+    date_hierarchy = 'datetime_created'
+    search_fields = ['name', 'mobile', 'address']
+    autocomplete_fields = ['checked_by']
+    fieldsets = (
+        (_('基本信息'), {'fields': ('name', 'mobile', 'address', 'professional', 'reason')}),
+        (_('审核信息'), {'fields': ('checked_by', 'is_checked')}),
+        (_('备注'), {'fields': ('notes', 'datetime_created', 'datetime_updated')})
+    )
