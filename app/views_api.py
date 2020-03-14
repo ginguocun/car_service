@@ -179,13 +179,24 @@ class ServicePackageFilter(AppFilter):
 class ServicePackageListView(ListAPIView):
     """
     get:
-    获取套餐列表
+    获取保养套餐列表
     """
     pagination_class = None
     permission_classes = ()
     queryset = ServicePackage.objects.order_by('name')
     serializer_class = ServicePackageSerializer
     filterset_class = ServicePackageFilter
+
+
+class OilPackageListView(ListAPIView):
+    """
+    get:
+    获取机油套餐列表
+    """
+    pagination_class = None
+    permission_classes = ()
+    queryset = OilPackage.objects.order_by('name')
+    serializer_class = OilPackageSerializer
 
 
 class StoreInfoListView(ListAPIView):
@@ -229,6 +240,24 @@ class InsuranceApplyListView(AppListCreateApi):
     queryset = InsuranceApply.objects.order_by('-pk')
     serializer_class = InsuranceApplySerializer
     search_fields = ('car_number', 'car_brand')
+
+    def get_queryset(self):
+        if not self.request.user.is_staff:
+            return self.queryset.filter(created_by_id=self.request.user.id)
+        return self.queryset
+
+
+class PartnerApplyListView(AppListCreateApi):
+    """
+    get:
+    获取城市合伙人申请列表，如果不是后台管理员用户，只能获取自己的申请记录。
+
+    post:
+    提交城市合伙人申请
+    """
+    queryset = PartnerApply.objects.order_by('-pk')
+    serializer_class = PartnerApplySerializer
+    search_fields = ('name', 'mobile')
 
     def get_queryset(self):
         if not self.request.user.is_staff:

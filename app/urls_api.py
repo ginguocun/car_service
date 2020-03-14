@@ -21,8 +21,10 @@ urlpatterns = format_suffix_patterns([
     # 下拉筛选模块接口
     re_path(r'^service_package_types/$', ServicePackageTypeListView.as_view(), name='service_package_types'),
     re_path(r'^service_packages/$', ServicePackageListView.as_view(), name='service_packages'),
+    re_path(r'^oil_packages/$', OilPackageListView.as_view(), name='oil_packages'),
     re_path(r'^store_infos/$', StoreInfoListView.as_view(), name='store_infos'),
     # 线上提交接口
     re_path(r'^service_applies/$', ServiceApplyListView.as_view(), name='service_applies'),
     re_path(r'^insurance_applies/$', InsuranceApplyListView.as_view(), name='insurance_applies'),
+    re_path(r'^partner_applies/$', PartnerApplyListView.as_view(), name='partner_applies'),
 ])

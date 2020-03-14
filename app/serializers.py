@@ -34,6 +34,13 @@ class ServicePackageSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class OilPackageSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OilPackage
+        fields = '__all__'
+
+
 class StoreInfoSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -55,3 +62,8 @@ class InsuranceApplySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class PartnerApplySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = PartnerApply
+        fields = '__all__'
