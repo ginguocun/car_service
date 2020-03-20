@@ -20,6 +20,7 @@ class WxUserSerializer(serializers.ModelSerializer):
 
 
 class ServicePackageTypeSerializer(serializers.ModelSerializer):
+    service_packages = serializers.ListField(read_only=True)
 
     class Meta:
         model = ServicePackageType

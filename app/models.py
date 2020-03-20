@@ -4,6 +4,7 @@ import pandas as pd
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.forms import model_to_dict
 from django.utils.translation import gettext_lazy as _
 
 from car.utils import str_value, num_value, date_value
@@ -470,10 +471,19 @@ class ServicePackageType(models.Model):
     套餐归类
     """
     name = models.CharField(verbose_name=_('名称'), max_length=200, null=True, unique=True)
+    icon = models.ImageField(verbose_name=_('图片'), upload_to='service_package_type', null=True, blank=True)
     desc = models.CharField(verbose_name=_('介绍'), max_length=200, null=True, blank=True)
     is_active = models.BooleanField(verbose_name=_('是否有效'), default=True)
 
     objects = models.Manager()
+
+    @property
+    def service_packages(self):
+        res = list()
+        sps = ServicePackage.objects.filter(service_type_id=self.pk).order_by('name')
+        for sp in sps:
+            res.append(model_to_dict(sp))
+        return res
 
     class Meta:
         ordering = ['id']

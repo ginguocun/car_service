@@ -164,7 +164,7 @@ class ServicePackageTypeListView(ListAPIView):
     """
     pagination_class = None
     permission_classes = ()
-    queryset = ServicePackageType.objects.order_by('name')
+    queryset = ServicePackageType.objects.filter(is_active=True).order_by('name')
     serializer_class = ServicePackageTypeSerializer
 
 
