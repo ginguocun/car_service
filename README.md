@@ -13,6 +13,7 @@ source venv/bin/activate
 拉取最新的代码
 ```sh
 git pull
+pip install -r requirements.txt 
 python3 manage.py migrate
 ```
 
