@@ -89,3 +89,46 @@ def pbkdf2_hmac_encrypt(d_str):
     return crypto
 
 
+def str_value(string, upper=False):
+    """
+    去除文本的空格
+    :param string: 文本数据
+    :param upper: 是否要大写
+    :return: 返回格式化后的数据
+    """
+    if upper is True:
+        res = str(string).replace(' ', '').upper()
+    else:
+        res = str(string).replace(' ', '')
+    if res:
+        return res
+    else:
+        return None
+
+
+def num_value(num, decimal_places=4):
+    """
+    数字数据的处理
+    :param num: 数字数据
+    :param decimal_places: 小数点的位数
+    :return: 返回处理后的数据
+    """
+    try:
+        res = round(float(num), decimal_places)
+    except (ValueError, TypeError):
+        res = None
+    return res
+
+
+def date_value(ori_date):
+    """
+    日期数据的处理
+    :param ori_date: 原始日期数据
+    :return: 返回处理后的数据
+    """
+    from datetime import datetime
+    try:
+        res = datetime.strptime(ori_date, '%Y.%m.%d').strftime('%Y-%m-%d')
+    except ValueError:
+        res = None
+    return res

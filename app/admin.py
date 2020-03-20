@@ -102,9 +102,9 @@ class InsuranceCompanyAdmin(admin.ModelAdmin):
 
 
 @admin.register(BelongTo)
-class BelongToAdmin(admin.ModelAdmin):
-    list_display = ['pk', 'name']
-    search_fields = ['name']
+class BelongToAdmin(AutoUpdateUserModelAdmin):
+    list_display = ['pk', 'name', 'related_to', 'notes']
+    search_fields = ['name', 'notes', 'related_to__name']
     list_display_links = ['pk', 'name']
 
 
@@ -245,4 +245,26 @@ class PartnerApplyAdmin(AutoUpdateUserModelAdmin):
         (_('基本信息'), {'fields': ('name', 'mobile', 'address', 'professional', 'reason')}),
         (_('审核信息'), {'fields': ('checked_by', 'is_checked')}),
         (_('备注'), {'fields': ('notes', 'datetime_created', 'datetime_updated')})
+    )
+
+
+@admin.register(InsuranceRecordUpload)
+class InsuranceRecordUploadAdmin(AutoUpdateUserModelAdmin):
+    readonly_fields = (
+        'total_count', 'created_count', 'updated_count', 'failed_count', 'file_name',
+        'is_processed', 'created_by', 'confirmed_by',  'datetime_created', 'datetime_updated')
+    list_display = [
+        'pk', 'file_name', 'is_confirmed', 'is_processed',
+        'total_count', 'created_count', 'updated_count', 'failed_count',
+        'created_by', 'confirmed_by',
+        'datetime_created', 'datetime_updated'
+    ]
+    list_display_links = ['pk', 'file_name']
+    list_filter = ['is_confirmed', 'is_processed']
+    date_hierarchy = 'datetime_created'
+    search_fields = ['file']
+    fieldsets = (
+        (_('基本信息'), {'fields': ('file', 'is_confirmed', 'notes')}),
+        (_('导入信息'), {'fields': ('total_count', 'created_count', 'updated_count', 'failed_count', )}),
+        (_('备注'), {'fields': ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')})
     )
