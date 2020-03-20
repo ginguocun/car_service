@@ -49,8 +49,10 @@ class WxUserAdmin(UserAdmin):
         'last_login', 'date_joined',
         'nick_name', 'city', 'province', 'country', 'avatar_url'
     )
+    list_display = [
+        'username', 'full_name', 'mobile', 'is_partner', 'is_client', 'is_manager', 'is_staff', 'is_superuser']
     search_fields = [
-        'username', 'openid', 'email', 'full_name', 'first_name', 'last_name', 'nick_name']
+        'username', 'openid', 'email', 'mobile', 'full_name', 'first_name', 'last_name', 'nick_name']
     autocomplete_fields = ['user_level']
     list_filter = ('is_partner', 'is_client', 'is_manager', 'is_staff', 'is_superuser', 'groups')
     fieldsets = (
