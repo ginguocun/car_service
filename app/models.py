@@ -1059,7 +1059,7 @@ class InsuranceRecordUpload(models.Model):
 
     def __str__(self):
         return "{}".format(
-            self.file
+            self.file_name
         )
 
     def import_insurance_data_from_excel(self):
