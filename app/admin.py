@@ -114,7 +114,9 @@ class BelongToAdmin(AutoUpdateUserModelAdmin):
 class InsuranceRecordAdmin(AutoUpdateUserModelAdmin):
     list_display = [
         'pk', 'car', 'record_date', 'insurance_date', 'total_price', 'receiver', 'belong_to', 'insurance_company',
-        'tax', 'has_payback', 'payback_percent', 'payback_amount', 'is_payed', 'notes'
+        'tax', 'has_payback', 'payback_percent', 'payback_amount',
+        'ic_payback_percent', 'ic_payback_amount', 'profits',
+        'is_payed', 'notes'
     ]
     list_display_links = ['pk', 'car']
     list_filter = ['has_payback', 'belong_to', 'insurance_company']
@@ -123,7 +125,11 @@ class InsuranceRecordAdmin(AutoUpdateUserModelAdmin):
     autocomplete_fields = ['car', 'receiver', 'belong_to', 'insurance_company']
     fieldsets = (
         (_('基础'), {'fields': ('car', 'record_date', 'insurance_date')}),
-        (_('金额'), {'fields': ('total_price', 'tax', 'payback_percent', 'payback_amount', 'has_payback', 'is_payed')}),
+        (_('金额'), {'fields': (
+            'total_price', 'tax',
+            'payback_percent', 'payback_amount',
+            'ic_payback_percent', 'ic_payback_amount', 'profits',
+            'has_payback', 'is_payed')}),
         (_('人员'), {'fields': ('receiver', 'belong_to', 'insurance_company')}),
         (_('备注'), {'fields': ('notes',)})
     )
