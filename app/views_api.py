@@ -140,8 +140,10 @@ class CsrfExemptSessionAuthentication(SessionAuthentication):
 
 class AppListCreateApi(ListCreateAPIView):
 
-    authentication_classes = (JWTAuthentication, CsrfExemptSessionAuthentication, BasicAuthentication)
-    permission_classes = (IsAuthenticated, )
+    # authentication_classes = (JWTAuthentication, CsrfExemptSessionAuthentication, BasicAuthentication)
+    # permission_classes = (IsAuthenticated, )
+    authentication_classes = ()
+    permission_classes = ()
     pagination_class = NormalResultsSetPagination
 
     def create(self, request, *args, **kwargs):
