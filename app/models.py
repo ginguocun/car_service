@@ -822,7 +822,9 @@ class InsuranceApply(models.Model):
     name = models.CharField(verbose_name=_('名字'), max_length=255, null=True)
     mobile = models.CharField(verbose_name=_('手机'), max_length=255, null=True)
     service_type = models.IntegerField(
-        verbose_name=_('类别'), null=True, blank=True, choices=[(1, '车辆续保'), (2, '保险分期'), (3, '购车贷款')])
+        verbose_name=_('类别'),
+        help_text=_('1-->车辆续保, 2-->保险分期, 3-->购车贷款'),
+        null=True, blank=True, choices=[(1, '车辆续保'), (2, '保险分期'), (3, '购车贷款')])
     insurance_date = models.DateField(verbose_name=_('保单开始日期'), null=True, blank=True)
     insurance_csx = models.BooleanField(
         verbose_name=_('机动车辆损失险'),

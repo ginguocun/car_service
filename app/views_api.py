@@ -249,7 +249,7 @@ class InsuranceApplyListView(AppListCreateApi):
     获取保险服务申请列表，如果不是后台管理员用户，只能获取自己的申请记录。
 
     post:
-    提交保险服务申请
+    保险服务申请，包含车辆续保、保险分期、购车贷款等提交
     """
     queryset = InsuranceApply.objects.order_by('-pk')
     serializer_class = InsuranceApplySerializer
