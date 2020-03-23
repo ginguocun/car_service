@@ -892,14 +892,10 @@ class InsuranceApply(models.Model):
         null=True,
         blank=True
     )
-    insurance_company = models.ForeignKey(
-        InsuranceCompany,
-        limit_choices_to={'display': True, 'is_active': True},
-        on_delete=models.SET_NULL,
-        related_name='insurance_apply_check_by',
-        null=True,
-        blank=True,
-        verbose_name=_('保险公司')
+    insurance_company = models.CharField(
+        verbose_name=_('保险公司'),
+        max_length=100,
+        null=True
     )
     changed_times = models.CharField(
         verbose_name=_('过户次数'),

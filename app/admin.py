@@ -226,6 +226,9 @@ class InsuranceApplyAdmin(AutoUpdateUserModelAdmin):
     autocomplete_fields = ['checked_by']
     fieldsets = (
         (_('车辆信息'), {'fields': ('car_number', 'car_brand', 'car_model', 'name', 'mobile', 'insurance_date')}),
+        (_('保险信息'), {'fields': (
+            'insurance_csx', 'insurance_fdjss', 'insurance_zrss', 'insurance_dqx', 'insurance_pl',
+            'insurance_cshx', 'insurance_dsxr', 'insurance_sj', 'insurance_ck', 'insurance_hw')}),
         (_('审核信息'), {'fields': ('checked_by', 'is_checked', 'data_import')}),
         (_('备注'), {'fields': ('notes', 'datetime_created', 'datetime_updated')})
     )
