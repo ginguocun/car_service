@@ -20,7 +20,7 @@ python3 manage.py migrate
 重启服务
 
 ```sh
-ps auxw | grep uwsgi
+ps auxw | grep car_uwsgi
 uwsgi --reload /opt/car_service/uwsgi/uwsgi.pid
 
 
