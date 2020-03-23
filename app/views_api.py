@@ -213,6 +213,18 @@ class StoreInfoListView(ListAPIView):
     search_fields = ('name', 'address')
 
 
+class InsuranceCompanyListView(ListAPIView):
+    """
+    get:
+    获取保险公司列表
+    """
+    pagination_class = None
+    permission_classes = ()
+    queryset = InsuranceCompany.objects.filter(display=True, is_active=True).order_by('pk')
+    serializer_class = InsuranceCompanySerializer
+    search_fields = ('name',)
+
+
 class ServiceApplyListView(AppListCreateApi):
     """
     get:

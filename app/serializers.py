@@ -49,6 +49,13 @@ class StoreInfoSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class InsuranceCompanySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = InsuranceCompany
+        fields = '__all__'
+
+
 class ServiceApplySerializer(serializers.ModelSerializer):
 
     class Meta:

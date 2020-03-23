@@ -97,10 +97,10 @@ class CarInfoAdmin(AutoUpdateUserModelAdmin):
 
 @admin.register(InsuranceCompany)
 class InsuranceCompanyAdmin(admin.ModelAdmin):
-    list_display = ['pk', 'name', 'display', 'is_active']
-    search_fields = ['name']
-    list_display_links = ['pk', 'name']
-    list_filter = ['is_active']
+    list_display = ['pk', 'name', 'desc', 'display', 'is_active']
+    search_fields = ['name', 'desc']
+    list_display_links = ['pk', 'name', 'desc']
+    list_filter = ['is_active', 'display']
 
 
 @admin.register(BelongTo)

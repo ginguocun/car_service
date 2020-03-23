@@ -250,6 +250,7 @@ class InsuranceCompany(models.Model):
     保险出单公司
     """
     name = models.CharField(verbose_name=_('保险出单公司'), max_length=200, null=True, unique=True)
+    desc = models.CharField(verbose_name=_('显示名称'), max_length=200, null=True)
     display = models.BooleanField(verbose_name=_('用户是否可选'), default=True)
     is_active = models.BooleanField(verbose_name=_('是否有效'), default=True)
 
@@ -1150,7 +1151,8 @@ class InsuranceRecordUpload(models.Model):
                 )
                 # 保险出单公司
                 insurance_company, insurance_company_created = InsuranceCompany.objects.get_or_create(
-                    name=data['insurance_company__name']
+                    name=data['insurance_company__name'],
+                    defaults={'desc': data['insurance_company__name'], 'display': False, 'is_active': True}
                 )
                 for p in foreign_keys:
                     data.pop(p)
