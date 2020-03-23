@@ -14,7 +14,10 @@ def field_to_schema(field):
 
     description = ''
     if field.help_text:
-        description = force_str(field.help_text)
+        description = '{}: {}'.format(
+            force_str(field.label),
+            force_str(field.help_text)
+        )
     else:
         if field.label:
             description = force_str(field.label)
