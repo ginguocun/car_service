@@ -193,7 +193,7 @@ class ServiceRecordAdmin(AutoUpdateUserModelAdmin):
 class ServiceApplyAdmin(AutoUpdateUserModelAdmin):
     readonly_fields = ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')
     list_display = [
-        'pk', 'car_number', 'name', 'mobile', 'is_checked', 'data_import', 'service_package',
+        'pk', 'car_number', 'name', 'mobile', 'is_checked', 'data_import', 'service_package', 'service_info',
         'reserve_type', 'reserve_time', 'reserve_address', 'related_store', 'notes'
     ]
     list_display_links = ['pk', 'car_number']
@@ -206,7 +206,7 @@ class ServiceApplyAdmin(AutoUpdateUserModelAdmin):
         (_('审核信息'), {'fields': ('checked_by', 'is_checked', 'data_import')}),
         (_('服务信息'), {
             'fields': (
-                'related_store', 'service_package', 'oil_package', 'reserve_type', 'reserve_time',
+                'related_store', 'service_info', 'service_package', 'oil_package', 'reserve_type', 'reserve_time',
                 'reserve_address', 'related_record')}),
         (_('备注'), {'fields': ('notes', 'datetime_created', 'datetime_updated')})
     )

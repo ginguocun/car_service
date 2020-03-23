@@ -599,6 +599,7 @@ class ServiceRecord(models.Model):
         blank=True,
         verbose_name=_('机油套餐')
     )
+    service_info = models.TextField(verbose_name=_('服务详情'), null=True, blank=True, max_length=200)
     reserve_type = models.IntegerField(verbose_name=_('类型'), null=True, blank=True, choices=[(1, '上门'), (2, '到店')])
     is_reversed = models.BooleanField(verbose_name=_('是预约服务'), default=False)
     reserve_time = models.DateTimeField(verbose_name=_('服务时间'), null=True, blank=True)
@@ -733,6 +734,7 @@ class ServiceApply(models.Model):
         blank=True,
         verbose_name=_('机油套餐')
     )
+    service_info = models.TextField(verbose_name=_('服务详情'), null=True, blank=True,  max_length=200)
     reserve_type = models.IntegerField(verbose_name=_('类型'), null=True, blank=True, choices=[(1, '上门'), (2, '到店')])
     reserve_time = models.DateTimeField(verbose_name=_('服务时间'), null=True, blank=True)
     reserve_address = models.TextField(verbose_name=_('服务地点'), max_length=1000, null=True, blank=True)
@@ -745,7 +747,8 @@ class ServiceApply(models.Model):
         verbose_name=_('由谁联系')
     )
     is_checked = models.BooleanField(verbose_name=_('已联系/已确认'), default=False)
-    data_import = models.BooleanField(verbose_name=_('数据导入'), default=False)
+    data_import = models.BooleanField(
+        verbose_name=_('已导入服务记录'), help_text=_('勾选以后数据将会自动导入到【维修服务】列表'), default=False)
     related_record = models.ForeignKey(
         ServiceRecord,
         on_delete=models.SET_NULL,
@@ -797,6 +800,7 @@ class ServiceApply(models.Model):
                 car=car,
                 service_package=self.service_package,
                 reserve_type=self.reserve_type,
+                service_info=self.service_info,
                 is_reversed=True,
                 reserve_time=self.reserve_time,
                 reserve_address=self.reserve_address,
