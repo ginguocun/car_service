@@ -61,6 +61,22 @@ def create_or_update_user_info(openid, user_info):
     return None
 
 
+def create_or_update_user_info_gzh(openid_gzh, user_info):
+    """
+    创建或者更新用户信息
+    :param openid_gzh: 微信 openid
+    :param user_info: 微信用户信息
+    :return: 返回用户对象
+    """
+    if openid_gzh:
+        if user_info:
+            user, created = WxUser.objects.update_or_create(openid_gzh=openid_gzh, defaults=user_info)
+        else:
+            user, created = WxUser.objects.get_or_create(openid_gzh=openid_gzh)
+        return user
+    return None
+
+
 @api_view(["GET"])
 def api_root(request):
     urls = {'method': request.method, 'admin': '/admin/', 'api': '/api/'}
@@ -70,7 +86,7 @@ def api_root(request):
 class WxLoginView(APIView):
     """
     post:
-    微信登录接口
+    小程序的微信登录接口，传递参数 {'code': '', 'user_info': ''}
     """
     authentication_classes = []
     permission_classes = []
@@ -107,6 +123,62 @@ class WxLoginView(APIView):
                         for k, v in self.fields.items():
                             user_info[k] = user_info_raw.get(v)
                     user = create_or_update_user_info(openid, user_info)
+                    if user:
+                        token = AppTokenObtainPairSerializer.get_token(user).access_token
+                        return Response(
+                            {
+                                'jwt': str(token),
+                                'user': model_to_dict(
+                                    user,
+                                    fields=[
+                                        'full_name', 'mobile', 'gender', 'current_amounts', 'current_credits',
+                                        'is_partner', 'is_client', 'is_manager'
+                                    ])
+                            },
+                            status=HTTP_200_OK)
+        return Response({'jwt': None, 'user': {}}, status=HTTP_204_NO_CONTENT)
+
+
+class WxGzhLoginView(APIView):
+    """
+    post:
+    公众号登录接口，传递参数 {'code': ''}
+    """
+    authentication_classes = []
+    permission_classes = []
+    fields = {
+        'nick_name': 'nickName',
+        'gender': 'gender',
+        'language': 'language',
+        'city': 'city',
+        'province': 'province',
+        'country': 'country',
+        'avatar_url': 'avatarUrl',
+    }
+
+    def post(self, request):
+        user_info = dict()
+        code = request.data.get('code')
+        logger.info("Code: {0}".format(code))
+        user_info_raw = request.data.get('user_info', {})
+        if isinstance(user_info_raw, str):
+            user_info_raw = json.loads(user_info_raw)
+        if not isinstance(user_info_raw, dict):
+            user_info_raw = {}
+        logger.info("user_info: {0}".format(user_info_raw))
+        if code:
+            api = WXAPPAPI(appid=settings.WX_GZH_APP_ID, app_secret=settings.WX_GZH_APP_SECRET)
+            try:
+                session_info = api.exchange_code_for_session_key(code=code)
+            except OAuth2AuthExchangeError:
+                session_info = None
+            if session_info:
+                openid_gzh = session_info.get('openid', None)
+                if openid_gzh:
+                    if user_info_raw:
+                        for k, v in self.fields.items():
+                            user_info[k] = user_info_raw.get(v)
+                    user = create_or_update_user_info_gzh(openid_gzh, user_info)
                     if user:
                         token = AppTokenObtainPairSerializer.get_token(user).access_token
                         return Response(
@@ -297,11 +369,11 @@ class AmountChangeRecordListView(AppListApi):
     """
     queryset = AmountChangeRecord.objects.order_by('-pk')
     serializer_class = AmountChangeRecordSerializer
-    search_fields = ('user__mobile', 'user__nick_name', 'user__full_name')
+    search_fields = ('customer__mobile', 'customer__name')
 
     def get_queryset(self):
         if self.request.user.id:
-            return self.queryset.filter(user_id=self.request.user.id)
+            return self.queryset.filter(customer__related_user_id=self.request.user.id)
         return self.queryset.none()
 
 
@@ -312,11 +384,11 @@ class CreditChangeRecordListView(AppListApi):
     """
     queryset = CreditChangeRecord.objects.order_by('-pk')
     serializer_class = CreditChangeRecordSerializer
-    search_fields = ('user__mobile', 'user__nick_name', 'user__full_name')
+    search_fields = ('customer__mobile', 'customer__name')
 
     def get_queryset(self):
         if self.request.user.id:
-            return self.queryset.filter(user_id=self.request.user.id)
+            return self.queryset.filter(customer__related_user_id=self.request.user.id)
         return self.queryset.none()
 
 
@@ -333,27 +405,36 @@ class UserInfoView(AppApi):
                 res['user'] = model_to_dict(
                     user,
                     fields=[
-                        'full_name', 'mobile', 'gender', 'current_amounts', 'current_credits',
+                        'nick_name', 'full_name', 'mobile', 'gender',
+                        'current_amounts', 'current_credits',
                         'is_partner', 'is_client', 'is_manager'
                     ])
-                amount_records_q = AmountChangeRecord.objects.filter(user=user).order_by('-pk')
+                amount_records_q = AmountChangeRecord.objects.filter(
+                    customer__related_user=user
+                ).order_by('-pk').values('pk', 'customer__name', 'amounts', 'current_amounts', 'datetime_created')
                 for ar in amount_records_q:
                     res['amount_records'].append(
                         {
-                            'pk': ar.pk,
-                            'amounts': ar.amounts,
-                            'notes': ar.notes,
-                            'datetime_created': ar.datetime_created,
+                            'pk': ar.get('pk'),
+                            'name': ar.get('customer__name'),
+                            'amounts': ar.get('amounts'),
+                            'current_amounts': ar.get('current_amounts'),
+                            'notes': ar.get('notes'),
+                            'datetime_created': ar.get('datetime_created'),
                         }
                     )
-                credit_records_q = CreditChangeRecord.objects.filter(user=user).order_by('-pk')
+                credit_records_q = CreditChangeRecord.objects.filter(
+                    customer__related_user=user
+                ).order_by('-pk').values('pk', 'customer__name', 'credits', 'current_credits', 'datetime_created')
                 for cr in credit_records_q:
                     res['credit_records'].append(
                         {
-                            'pk': cr.pk,
-                            'credits': cr.credits,
-                            'notes': cr.notes,
-                            'datetime_created': cr.datetime_created,
+                            'pk': cr.get('pk'),
+                            'name': cr.get('customer__name'),
+                            'credits': cr.get('credits'),
+                            'current_credits': cr.get('current_credits'),
+                            'notes': cr.get('notes'),
+                            'datetime_created': cr.get('datetime_created')
                         }
                     )
             return Response(res, status=HTTP_200_OK)

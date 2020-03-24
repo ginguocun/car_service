@@ -47,11 +47,9 @@ class SuperiorAdmin(AutoUpdateUserModelAdmin):
 class WxUserAdmin(UserAdmin):
     readonly_fields = (
         'last_login', 'date_joined', 'nick_name', 'city', 'province', 'country', 'avatar_url',
-        'current_amounts', 'current_credits'
     )
     list_display = [
         'username', 'full_name', 'mobile',
-        'current_amounts', 'current_credits',
         'is_partner', 'is_client', 'is_manager',
         'is_staff', 'is_superuser']
     search_fields = [
@@ -66,7 +64,6 @@ class WxUserAdmin(UserAdmin):
         (_('联络信息'), {'fields': ('mobile', 'email',)}),
         (_('地址信息'), {'fields': ('city', 'province', 'country')}),
         (_('分类信息'), {'fields': ('user_level', 'is_partner', 'is_client', 'is_manager')}),
-        (_('余额/积分'), {'fields': ('current_amounts', 'current_credits')}),
         (_('权限管理'), {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups')}),
         (_('登录信息'), {'fields': ('last_login', 'date_joined')}),
     )
@@ -76,13 +73,13 @@ class WxUserAdmin(UserAdmin):
 class AmountChangeRecordAdmin(AutoUpdateUserModelAdmin):
     readonly_fields = ['current_amounts', 'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated']
     list_display = [
-        'pk', 'user', 'amounts', 'current_amounts', 'notes',
+        'pk', 'customer', 'amounts', 'current_amounts', 'notes',
         'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated']
-    list_display_links = ['pk', 'user', 'amounts', 'current_amounts', 'notes']
-    search_fields = ['user__full_name', 'user__mobile', 'user__customer_related_user__name']
-    autocomplete_fields = ['user']
+    list_display_links = ['pk', 'customer', 'amounts', 'current_amounts', 'notes']
+    search_fields = ['customer__name', 'customer__mobile']
+    autocomplete_fields = ['customer']
     fieldsets = (
-        (_('基础信息'), {'fields': ('user', 'amounts', 'current_amounts', 'notes')}),
+        (_('基础信息'), {'fields': ('customer', 'amounts', 'current_amounts', 'notes')}),
         (_('操作记录'), {'fields': ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')})
     )
 
@@ -91,24 +88,30 @@ class AmountChangeRecordAdmin(AutoUpdateUserModelAdmin):
 class CreditChangeRecordAdmin(AutoUpdateUserModelAdmin):
     readonly_fields = ['current_credits', 'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated']
     list_display = [
-        'pk', 'user', 'credits', 'current_credits', 'notes',
+        'pk', 'customer', 'credits', 'current_credits', 'notes',
         'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated']
-    list_display_links = ['pk', 'user', 'credits', 'current_credits', 'notes']
-    search_fields = ['user__full_name', 'user__mobile', 'user__customer_related_user__name']
-    autocomplete_fields = ['user']
+    list_display_links = ['pk', 'customer', 'credits', 'current_credits', 'notes']
+    search_fields = ['customer__name', 'customer__mobile']
+    autocomplete_fields = ['customer']
     fieldsets = (
-        (_('基础信息'), {'fields': ('user', 'credits', 'current_credits', 'notes')}),
+        (_('基础信息'), {'fields': ('customer', 'credits', 'current_credits', 'notes')}),
         (_('操作记录'), {'fields': ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')})
     )
 
 
 @admin.register(Customer)
 class CustomerAdmin(AutoUpdateUserModelAdmin):
-    list_display = ['pk', 'name', 'mobile', 'related_superior', 'related_user']
-    list_display_links = ['pk', 'name']
+    readonly_fields = ['current_amounts', 'current_credits', 'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated']
+    list_display = ['pk', 'name', 'mobile', 'current_amounts', 'current_credits', 'related_superior', 'related_user']
+    list_display_links = ['pk', 'name', 'mobile']
     search_fields = ['name', 'mobile']
     list_filter = ['related_superior']
     autocomplete_fields = ['related_superior', 'related_user']
+    fieldsets = (
+        (_('基础信息'), {'fields': ('name', 'mobile', 'related_superior')}),
+        (_('余额/积分'), {'fields': ('current_amounts', 'current_credits')}),
+        (_('操作记录'), {'fields': ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')})
+    )
 
 
 @admin.register(CarInfo)
