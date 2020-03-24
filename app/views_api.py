@@ -131,7 +131,7 @@ class WxLoginView(APIView):
                                 'user': model_to_dict(
                                     user,
                                     fields=[
-                                        'full_name', 'mobile', 'gender', 'current_amounts', 'current_credits',
+                                        'full_name', 'mobile', 'gender',
                                         'is_partner', 'is_client', 'is_manager'
                                     ])
                             },
@@ -187,7 +187,7 @@ class WxGzhLoginView(APIView):
                                 'user': model_to_dict(
                                     user,
                                     fields=[
-                                        'full_name', 'mobile', 'gender', 'current_amounts', 'current_credits',
+                                        'full_name', 'mobile', 'gender',
                                         'is_partner', 'is_client', 'is_manager'
                                     ])
                             },
