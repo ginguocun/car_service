@@ -46,11 +46,14 @@ class SuperiorAdmin(AutoUpdateUserModelAdmin):
 @admin.register(WxUser)
 class WxUserAdmin(UserAdmin):
     readonly_fields = (
-        'last_login', 'date_joined',
-        'nick_name', 'city', 'province', 'country', 'avatar_url'
+        'last_login', 'date_joined', 'nick_name', 'city', 'province', 'country', 'avatar_url',
+        'current_amounts', 'current_credits'
     )
     list_display = [
-        'username', 'full_name', 'mobile', 'is_partner', 'is_client', 'is_manager', 'is_staff', 'is_superuser']
+        'username', 'full_name', 'mobile',
+        'current_amounts', 'current_credits',
+        'is_partner', 'is_client', 'is_manager',
+        'is_staff', 'is_superuser']
     search_fields = [
         'username', 'openid', 'email', 'mobile', 'full_name', 'first_name', 'last_name', 'nick_name']
     autocomplete_fields = ['user_level']
@@ -58,14 +61,40 @@ class WxUserAdmin(UserAdmin):
     fieldsets = (
         (_('基础信息'), {'fields': ('username', 'password', 'openid')}),
         (_('个人信息'), {'fields': (
-            'nick_name', 'first_name', 'last_name', 'full_name', 'avatar_url',
-            'gender', 'date_of_birth', 'desc'
+            'nick_name', 'first_name', 'last_name', 'full_name', 'avatar_url', 'gender', 'date_of_birth', 'desc'
         )}),
         (_('联络信息'), {'fields': ('mobile', 'email',)}),
         (_('地址信息'), {'fields': ('city', 'province', 'country')}),
-        (_('分类信息'), {'fields': ('user_level', 'current_credits', 'is_partner', 'is_client', 'is_manager')}),
+        (_('分类信息'), {'fields': ('user_level', 'is_partner', 'is_client', 'is_manager')}),
+        (_('余额/积分'), {'fields': ('current_amounts', 'current_credits')}),
         (_('权限管理'), {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups')}),
         (_('登录信息'), {'fields': ('last_login', 'date_joined')}),
+    )
+
+
+@admin.register(AmountChangeRecord)
+class AmountChangeRecordAdmin(AutoUpdateUserModelAdmin):
+    readonly_fields = ['current_amounts', 'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated']
+    list_display = ['pk', 'user', 'amounts', 'current_amounts', 'notes']
+    list_display_links = ['pk', 'user', 'amounts', 'current_amounts', 'notes']
+    search_fields = ['user__full_name', 'user__mobile', 'user__customer_related_user__name']
+    autocomplete_fields = ['user']
+    fieldsets = (
+        (_('基础信息'), {'fields': ('user', 'amounts', 'current_amounts', 'notes')}),
+        (_('操作记录'), {'fields': ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')})
+    )
+
+
+@admin.register(CreditChangeRecord)
+class CreditChangeRecordAdmin(AutoUpdateUserModelAdmin):
+    readonly_fields = ['current_credits', 'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated']
+    list_display = ['pk', 'user', 'credits', 'current_credits', 'notes']
+    list_display_links = ['pk', 'user', 'credits', 'current_credits', 'notes']
+    search_fields = ['user__full_name', 'user__mobile', 'user__customer_related_user__name']
+    autocomplete_fields = ['user']
+    fieldsets = (
+        (_('基础信息'), {'fields': ('user', 'credits', 'current_credits', 'notes')}),
+        (_('操作记录'), {'fields': ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')})
     )
 
 

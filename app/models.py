@@ -43,7 +43,8 @@ class WxUser(AbstractUser):
     avatar_url = models.URLField(verbose_name=_('头像'), null=True, blank=True)
     nick_name = models.CharField(verbose_name=_('昵称'), max_length=100, null=True, blank=True, unique=True)
     gender = models.SmallIntegerField(
-        verbose_name=_('性别'), choices=((1, '男'), (2, '女'), (0, '未知')), null=True, blank=True)
+        verbose_name=_('性别'), help_text=_('0-->未知, 1-->男, 2-->女'),
+        choices=((1, '男'), (2, '女'), (0, '未知')), null=True, blank=True)
     language = models.CharField(verbose_name=_('语言'), max_length=100, null=True, blank=True)
     city = models.CharField(verbose_name=_('城市'), max_length=200, null=True, blank=True)
     province = models.CharField(verbose_name=_('省份'), max_length=200, null=True, blank=True)
@@ -60,7 +61,14 @@ class WxUser(AbstractUser):
         on_delete=models.SET_NULL,
         verbose_name=_('用户等级')
     )
-    current_credits = models.BigIntegerField(verbose_name=_('当前积分'), null=True, blank=True, default=0)
+    current_amounts = models.DecimalField(
+        verbose_name=_('当前余额'),
+        help_text=_('请到[积分/余额-->余额变更]添加记录'),
+        max_digits=10, decimal_places=2, null=True, blank=True, default=0)
+    current_credits = models.BigIntegerField(
+        verbose_name=_('当前积分'),
+        help_text=_('请到[积分/余额-->积分变更]添加记录'),
+        null=True, blank=True, default=0)
     is_partner = models.BooleanField(verbose_name=_('是合伙人'), default=False)
     is_client = models.BooleanField(verbose_name=_('是客户'), default=True)
     is_manager = models.BooleanField(verbose_name=_('是管理员'), default=False)
@@ -75,12 +83,16 @@ class WxUser(AbstractUser):
             res = self.nick_name
         else:
             res = self.username
-        return "[{0}] {1}".format(
+        return "[{0}] {1} {2}".format(
             self.pk,
-            res
+            res,
+            self.mobile
         )
 
     def create_username_password(self):
+        """
+        创建初始的用户名和密码
+        """
         if not self.username and not self.password and self.openid:
             key = settings.SECRET_KEY
             self.username = hashlib.pbkdf2_hmac(
@@ -88,9 +100,147 @@ class WxUser(AbstractUser):
             self.password = hashlib.pbkdf2_hmac(
                 "sha256", self.username.encode(), getattr(self, 'openid').encode(encoding='utf-8'), 10).hex()
 
+    def update_related_customers(self):
+        """
+        如果用户填写了手机号，自动将手机号相同的客户关联到此账号
+        """
+        if self.mobile:
+            Customer.objects.filter(mobile=self.mobile, related_user__isnull=True).update(related_user_id=self.pk)
+
     def save(self, *args, **kwargs):
         self.create_username_password()
         super().save(*args, **kwargs)
+        self.update_related_customers()
+
+
+class AmountChangeRecord(models.Model):
+    """
+    余额变更记录
+    """
+    user = models.ForeignKey(
+        "WxUser",
+        null=True,
+        on_delete=models.CASCADE,
+        verbose_name=_('关联账号')
+    )
+    amounts = models.DecimalField(
+        verbose_name=_('金额变更'), max_digits=10, decimal_places=2, null=True)
+    current_amounts = models.DecimalField(
+        verbose_name=_('变更后余额'), max_digits=10, decimal_places=2, null=True, blank=True)
+    notes = models.TextField(verbose_name=_('备注'), max_length=1000, null=True, blank=True)
+    created_by = models.ForeignKey(
+        "WxUser",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='amount_change_record_created_by',
+        verbose_name=_('创建人员')
+    )
+    confirmed_by = models.ForeignKey(
+        "WxUser",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='amount_change_record_confirmed_by',
+        verbose_name=_('审核人员')
+    )
+    datetime_created = models.DateTimeField(verbose_name=_('记录时间'), auto_now_add=True)
+    datetime_updated = models.DateTimeField(verbose_name=_('更新时间'), auto_now=True)
+
+    objects = models.Manager()
+
+    class Meta:
+        ordering = ['-id']
+        verbose_name = _('余额变更记录')
+        verbose_name_plural = _('余额变更记录')
+
+    def update_user_amount(self):
+        current_amounts = 0
+        current_amounts_all = 0
+        all_records = AmountChangeRecord.objects.filter(user=self.user)
+        for r in all_records.values('amounts'):
+            current_amounts_all += float(r['amounts'])
+        WxUser.objects.filter(pk=getattr(self, 'user').id).update(current_amounts=round(current_amounts_all, 2))
+        pre_records = all_records.filter(pk__lte=self.pk)
+        for r in pre_records.values('amounts'):
+            current_amounts += float(r['amounts'])
+        return round(current_amounts, 2)
+
+    def save(self, *args, **kwargs):
+        super(AmountChangeRecord, self).save(*args, **kwargs)
+        self.current_amounts = self.update_user_amount()
+        super(AmountChangeRecord, self).save(update_fields=['current_amounts'])
+
+    def __str__(self):
+        return "{0} {1} {2}".format(
+            self.user,
+            self.amounts,
+            self.notes,
+        )
+
+
+class CreditChangeRecord(models.Model):
+    """
+    积分变更记录
+    """
+    user = models.ForeignKey(
+        "WxUser",
+        null=True,
+        on_delete=models.CASCADE,
+        verbose_name=_('关联账号')
+    )
+    credits = models.BigIntegerField(verbose_name=_('积分变更'), null=True)
+    current_credits = models.BigIntegerField(verbose_name=_('变更后积分'), null=True, blank=True)
+    notes = models.TextField(verbose_name=_('备注'), max_length=1000, null=True, blank=True)
+    created_by = models.ForeignKey(
+        "WxUser",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='credit_change_record_created_by',
+        verbose_name=_('创建人员')
+    )
+    confirmed_by = models.ForeignKey(
+        "WxUser",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='credit_change_record_confirmed_by',
+        verbose_name=_('审核人员')
+    )
+    datetime_created = models.DateTimeField(verbose_name=_('记录时间'), auto_now_add=True)
+    datetime_updated = models.DateTimeField(verbose_name=_('更新时间'), auto_now=True)
+
+    objects = models.Manager()
+
+    class Meta:
+        ordering = ['-id']
+        verbose_name = _('积分变更记录')
+        verbose_name_plural = _('积分变更记录')
+
+    def update_user_credit(self):
+        current_credits = 0
+        current_credits_all = 0
+        all_records = CreditChangeRecord.objects.filter(user=self.user)
+        for r in all_records.values('credits'):
+            current_credits_all += int(r['credits'])
+        WxUser.objects.filter(pk=getattr(self, 'user').id).update(current_credits=current_credits_all)
+        pre_records = all_records.filter(pk__lte=self.pk)
+        for r in pre_records.values('credits'):
+            current_credits += int(r['credits'])
+        return current_credits
+
+    def save(self, *args, **kwargs):
+        super(CreditChangeRecord, self).save(*args, **kwargs)
+        self.current_credits = self.update_user_credit()
+        super(CreditChangeRecord, self).save(update_fields=['current_credits'])
+
+    def __str__(self):
+        return "{0} {1} {2}".format(
+            self.user,
+            self.credits,
+            self.notes,
+        )
 
 
 class Superior(models.Model):

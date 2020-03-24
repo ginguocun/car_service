@@ -117,8 +117,8 @@ class WxLoginView(APIView):
                                 'user': model_to_dict(
                                     user,
                                     fields=[
-                                        'company', 'restaurant', 'current_role',
-                                        'is_owner', 'is_client', 'is_manager'
+                                        'full_name', 'mobile', 'gender', 'current_amounts', 'current_credits',
+                                        'is_partner', 'is_client', 'is_manager'
                                     ])
                             },
                             status=HTTP_200_OK)
