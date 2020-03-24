@@ -357,4 +357,5 @@ class UserInfoView(AppApi):
                         }
                     )
             return Response(res, status=HTTP_200_OK)
-        return Response({'user': {}}, status=HTTP_204_NO_CONTENT)
+        return Response(
+            {'user': dict(), 'amount_records': list(), 'credit_records': list()}, status=HTTP_401_UNAUTHORIZED)
