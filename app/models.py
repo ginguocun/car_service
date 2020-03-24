@@ -403,7 +403,8 @@ class InsuranceRecord(models.Model):
             '例如您不幸撞坏了别人的车或驾车致人伤亡，保险公司将按照条款规定赔偿。'),
         choices=(('20万', '20万'), ('30万', '30万'), ('50万', '50万'), ('100万', '100万')),
         max_length=100,
-        null=True
+        null=True,
+        blank=True
     )
     insurance_sj = models.CharField(
         verbose_name=_('车上人员责任险-司机'),
@@ -749,7 +750,7 @@ class ServiceApply(models.Model):
     )
     is_checked = models.BooleanField(verbose_name=_('已联系/已确认'), default=False)
     data_import = models.BooleanField(
-        verbose_name=_('已导入服务记录'), help_text=_('勾选以后数据将会自动导入到【维修服务】列表'), default=False)
+        verbose_name=_('已导入维修服务'), help_text=_('勾选以后数据将会自动导入到【维修服务】列表'), default=False)
     related_record = models.ForeignKey(
         ServiceRecord,
         on_delete=models.SET_NULL,
@@ -814,7 +815,7 @@ class ServiceApply(models.Model):
 
 class InsuranceApply(models.Model):
     """
-    保险申请
+    保险申请，包括车辆续保
     """
     car_number = models.CharField(verbose_name=_('车牌'), max_length=100, null=True)
     car_brand = models.CharField(verbose_name=_('汽车品牌'), max_length=255, null=True, blank=True)
@@ -823,8 +824,8 @@ class InsuranceApply(models.Model):
     mobile = models.CharField(verbose_name=_('手机'), max_length=255, null=True)
     service_type = models.IntegerField(
         verbose_name=_('类别'),
-        help_text=_('1-->车辆续保, 2-->保险分期, 3-->购车贷款'),
-        null=True, blank=True, choices=[(1, '车辆续保'), (2, '保险分期'), (3, '购车贷款')])
+        help_text=_('1-->车辆续保, 2-->保险分期, 3-->车辆贷款'),
+        null=True, blank=True, choices=[(1, '车辆续保'), (2, '保险分期'), (3, '车辆贷款')])
     insurance_date = models.DateField(verbose_name=_('保单开始日期'), null=True, blank=True)
     insurance_csx = models.BooleanField(
         verbose_name=_('机动车辆损失险'),
@@ -865,7 +866,8 @@ class InsuranceApply(models.Model):
             '例如您不幸撞坏了别人的车或驾车致人伤亡，保险公司将按照条款规定赔偿。'),
         choices=(('20万', '20万'), ('30万', '30万'), ('50万', '50万'), ('100万', '100万')),
         max_length=100,
-        null=True
+        null=True,
+        blank=True
     )
     insurance_sj = models.CharField(
         verbose_name=_('车上人员责任险-司机'),
@@ -897,13 +899,15 @@ class InsuranceApply(models.Model):
     insurance_company = models.CharField(
         verbose_name=_('保险公司'),
         max_length=100,
-        null=True
+        null=True,
+        blank=True
     )
     changed_times = models.CharField(
         verbose_name=_('过户次数'),
         choices=(('0', '0'), ('1', '1'), ('2', '2'), ('3+', '3+')),
         max_length=100,
         null=True,
+        blank=True,
         default='0'
     )
     money_needed = models.IntegerField(
@@ -920,7 +924,8 @@ class InsuranceApply(models.Model):
         verbose_name=_('由谁联系')
     )
     is_checked = models.BooleanField(verbose_name=_('已联系/已确认'), default=False)
-    data_import = models.BooleanField(verbose_name=_('数据导入'), default=False)
+    data_import = models.BooleanField(
+        verbose_name=_('已导入投保记录'), help_text=_('勾选以后数据将会自动导入到【投保记录】列表'), default=False)
     related_record = models.ForeignKey(
         InsuranceRecord,
         on_delete=models.SET_NULL,
@@ -964,15 +969,23 @@ class InsuranceApply(models.Model):
         )
 
     def save(self, *args, **kwargs):
-        if self.data_import:
+        if self.data_import and self.service_type == 1:
             # 数据格式化
             car = get_car_info(self)
             # 添加保险记录
+            fields = [
+                'insurance_csx', 'insurance_fdjss', 'insurance_zrss', 'insurance_dqx', 'insurance_pl',
+                'insurance_cshx', 'insurance_dsxr', 'insurance_sj', 'insurance_ck', 'insurance_hw',
+                'created_by', 'insurance_date'
+            ]
+            data = {}
+            for v in fields:
+                data[v] = getattr(self, v)
+
             related_record, created = InsuranceRecord.objects.get_or_create(
                 car=car,
-                insurance_date=self.insurance_date,
-                created_by=self.created_by,
-                is_payed=False
+                is_payed=False,
+                **data
             )
             self.related_record = related_record
         super(InsuranceApply, self).save(*args, **kwargs)

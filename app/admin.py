@@ -197,17 +197,18 @@ class ServiceApplyAdmin(AutoUpdateUserModelAdmin):
         'reserve_type', 'reserve_time', 'reserve_address', 'related_store', 'notes'
     ]
     list_display_links = ['pk', 'car_number']
-    list_filter = ['is_checked', 'data_import', 'service_package', 'related_store', 'checked_by']
+    list_filter = ['is_checked', 'reserve_type', 'data_import', 'service_package', 'related_store', 'checked_by']
     date_hierarchy = 'datetime_created'
     search_fields = ['car_number', 'name', 'mobile']
     autocomplete_fields = ['service_package', 'oil_package', 'related_store', 'related_record', 'checked_by']
     fieldsets = (
         (_('车辆信息'), {'fields': ('car_number', 'car_brand', 'car_model', 'name', 'mobile')}),
         (_('审核信息'), {'fields': ('checked_by', 'is_checked', 'data_import')}),
+        (_('服务类型'), {'fields': ('reserve_type', )}),
         (_('服务信息'), {
             'fields': (
-                'related_store', 'service_info', 'service_package', 'oil_package', 'reserve_type', 'reserve_time',
-                'reserve_address', 'related_record')}),
+                'related_store', 'service_info', 'service_package', 'oil_package',
+                'reserve_time', 'reserve_address', 'related_record')}),
         (_('备注'), {'fields': ('notes', 'datetime_created', 'datetime_updated')})
     )
 
@@ -216,7 +217,7 @@ class ServiceApplyAdmin(AutoUpdateUserModelAdmin):
 class InsuranceApplyAdmin(AutoUpdateUserModelAdmin):
     readonly_fields = ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')
     list_display = [
-        'pk', 'car_number', 'name', 'mobile',  'is_checked', 'data_import', 'checked_by',
+        'pk', 'car_number', 'name', 'mobile', 'service_type', 'is_checked', 'data_import', 'checked_by',
         'insurance_date',  'related_record', 'notes'
     ]
     list_display_links = ['pk', 'car_number']
@@ -225,11 +226,14 @@ class InsuranceApplyAdmin(AutoUpdateUserModelAdmin):
     search_fields = ['car_number', 'name', 'mobile']
     autocomplete_fields = ['checked_by']
     fieldsets = (
-        (_('车辆信息'), {'fields': ('car_number', 'car_brand', 'car_model', 'name', 'mobile', 'insurance_date')}),
+        (_('车辆信息'), {'fields': (
+            'car_number', 'car_brand', 'car_model', 'name', 'mobile', 'insurance_date')}),
+        (_('服务类型'), {'fields': ('service_type',)}),
         (_('保险信息'), {'fields': (
             'insurance_csx', 'insurance_fdjss', 'insurance_zrss', 'insurance_dqx', 'insurance_pl',
             'insurance_cshx', 'insurance_dsxr', 'insurance_sj', 'insurance_ck', 'insurance_hw')}),
-        (_('审核信息'), {'fields': ('checked_by', 'is_checked', 'data_import')}),
+        (_('贷款信息'), {'fields': ('changed_times', 'money_needed')}),
+        (_('审核信息'), {'fields': ('checked_by', 'is_checked', 'data_import', 'related_record')}),
         (_('备注'), {'fields': ('notes', 'datetime_created', 'datetime_updated')})
     )
 
