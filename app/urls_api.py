@@ -28,4 +28,7 @@ urlpatterns = format_suffix_patterns([
     re_path(r'^service_applies/$', ServiceApplyListView.as_view(), name='service_applies'),
     re_path(r'^insurance_applies/$', InsuranceApplyListView.as_view(), name='insurance_applies'),
     re_path(r'^partner_applies/$', PartnerApplyListView.as_view(), name='partner_applies'),
+    # 积分和余额记录
+    re_path(r'^amount_change_records/$', AmountChangeRecordListView.as_view(), name='amount_change_records'),
+    re_path(r'^credit_change_records/$', CreditChangeRecordListView.as_view(), name='credit_change_records'),
 ])

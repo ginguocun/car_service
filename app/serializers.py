@@ -19,6 +19,20 @@ class WxUserSerializer(serializers.ModelSerializer):
         fields = ['id', 'nick_name', 'avatar_url', 'gender']
 
 
+class AmountChangeRecordSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = AmountChangeRecord
+        fields = '__all__'
+
+
+class CreditChangeRecordSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = CreditChangeRecord
+        fields = '__all__'
+
+
 class ServicePackageTypeSerializer(serializers.ModelSerializer):
     service_packages = serializers.ListField(read_only=True)
 

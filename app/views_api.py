@@ -1,8 +1,6 @@
 import json
 import logging
 
-from django.forms import model_to_dict
-
 from django_filters import rest_framework as filters
 
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
@@ -159,6 +157,13 @@ class AppListCreateApi(ListCreateAPIView):
         return Response(serializer.data, status=HTTP_201_CREATED, headers=headers)
 
 
+class AppListApi(ListAPIView):
+
+    authentication_classes = (JWTAuthentication, CsrfExemptSessionAuthentication, BasicAuthentication)
+    permission_classes = (IsAuthenticated, )
+    pagination_class = NormalResultsSetPagination
+
+
 class ServicePackageTypeListView(ListAPIView):
     """
     get:
@@ -277,3 +282,33 @@ class PartnerApplyListView(AppListCreateApi):
         if not self.request.user.is_staff:
             return self.queryset.filter(created_by_id=self.request.user.id)
         return self.queryset
+
+
+class AmountChangeRecordListView(AppListApi):
+    """
+    get:
+    获取自己的余额变更记录，主要获取 amounts、notes 和 datetime_created 字段的数据。amounts-->金额， notes-->备注, datetime_created-->创建日期
+    """
+    queryset = AmountChangeRecord.objects.order_by('-pk')
+    serializer_class = AmountChangeRecordSerializer
+    search_fields = ('user__mobile', 'user__nick_name', 'user__full_name')
+
+    def get_queryset(self):
+        if self.request.user.id:
+            return self.queryset.filter(user_id=self.request.user.id)
+        return self.queryset.none()
+
+
+class CreditChangeRecordListView(AppListApi):
+    """
+    get:
+    获取自己的积分变更记录，主要获取 credits、notes 和 datetime_created 字段的数据。credits-->积分， notes-->备注, datetime_created-->创建日期
+    """
+    queryset = CreditChangeRecord.objects.order_by('-pk')
+    serializer_class = CreditChangeRecordSerializer
+    search_fields = ('user__mobile', 'user__nick_name', 'user__full_name')
+
+    def get_queryset(self):
+        if self.request.user.id:
+            return self.queryset.filter(user_id=self.request.user.id)
+        return self.queryset.none()
