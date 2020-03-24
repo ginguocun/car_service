@@ -2,7 +2,9 @@
 
 快速执行
 ```sh
-cd /opt/car_service  && source venv/bin/activate && git pull && python3 manage.py migrate && ps auxw | grep car_uwsgi
+cd /opt/car_service  && source venv/bin/activate && git pull 
+python3 manage.py migrate
+ps auxw | grep car_uwsgi
 uwsgi --reload /opt/car_service/uwsgi/uwsgi.pid
 ps auxw | grep car_uwsgi
 ```

@@ -31,4 +31,6 @@ urlpatterns = format_suffix_patterns([
     # 积分和余额记录
     re_path(r'^amount_change_records/$', AmountChangeRecordListView.as_view(), name='amount_change_records'),
     re_path(r'^credit_change_records/$', CreditChangeRecordListView.as_view(), name='credit_change_records'),
+    # 用户个人信息
+    re_path(r'^user_info/$', UserInfoView.as_view(), name='user_info'),
 ])

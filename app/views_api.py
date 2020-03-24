@@ -164,6 +164,12 @@ class AppListApi(ListAPIView):
     pagination_class = NormalResultsSetPagination
 
 
+class AppApi(APIView):
+
+    authentication_classes = (JWTAuthentication, CsrfExemptSessionAuthentication, BasicAuthentication)
+    permission_classes = (IsAuthenticated, )
+
+
 class ServicePackageTypeListView(ListAPIView):
     """
     get:
@@ -312,3 +318,43 @@ class CreditChangeRecordListView(AppListApi):
         if self.request.user.id:
             return self.queryset.filter(user_id=self.request.user.id)
         return self.queryset.none()
+
+
+class UserInfoView(AppApi):
+    """
+    get:
+    获取自己的用户信息
+    """
+    def get(self, request):
+        res = {'user': dict(), 'amount_records': list(), 'credit_records': list()}
+        if request.user.id:
+            user = WxUser.objects.filter(pk=request.user.id).first()
+            if user:
+                res['user'] = model_to_dict(
+                    user,
+                    fields=[
+                        'full_name', 'mobile', 'gender', 'current_amounts', 'current_credits',
+                        'is_partner', 'is_client', 'is_manager'
+                    ])
+                amount_records_q = AmountChangeRecord.objects.filter(user=user).order_by('-pk')
+                for ar in amount_records_q:
+                    res['amount_records'].append(
+                        {
+                            'pk': ar.pk,
+                            'amounts': ar.amounts,
+                            'notes': ar.notes,
+                            'datetime_created': ar.datetime_created,
+                        }
+                    )
+                credit_records_q = CreditChangeRecord.objects.filter(user=user).order_by('-pk')
+                for cr in credit_records_q:
+                    res['credit_records'].append(
+                        {
+                            'pk': cr.pk,
+                            'credits': cr.credits,
+                            'notes': cr.notes,
+                            'datetime_created': cr.datetime_created,
+                        }
+                    )
+            return Response(res, status=HTTP_200_OK)
+        return Response({'user': {}}, status=HTTP_204_NO_CONTENT)
