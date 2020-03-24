@@ -75,7 +75,9 @@ class WxUserAdmin(UserAdmin):
 @admin.register(AmountChangeRecord)
 class AmountChangeRecordAdmin(AutoUpdateUserModelAdmin):
     readonly_fields = ['current_amounts', 'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated']
-    list_display = ['pk', 'user', 'amounts', 'current_amounts', 'notes']
+    list_display = [
+        'pk', 'user', 'amounts', 'current_amounts', 'notes',
+        'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated']
     list_display_links = ['pk', 'user', 'amounts', 'current_amounts', 'notes']
     search_fields = ['user__full_name', 'user__mobile', 'user__customer_related_user__name']
     autocomplete_fields = ['user']
@@ -88,7 +90,9 @@ class AmountChangeRecordAdmin(AutoUpdateUserModelAdmin):
 @admin.register(CreditChangeRecord)
 class CreditChangeRecordAdmin(AutoUpdateUserModelAdmin):
     readonly_fields = ['current_credits', 'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated']
-    list_display = ['pk', 'user', 'credits', 'current_credits', 'notes']
+    list_display = [
+        'pk', 'user', 'credits', 'current_credits', 'notes',
+        'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated']
     list_display_links = ['pk', 'user', 'credits', 'current_credits', 'notes']
     search_fields = ['user__full_name', 'user__mobile', 'user__customer_related_user__name']
     autocomplete_fields = ['user']

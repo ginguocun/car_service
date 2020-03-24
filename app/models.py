@@ -170,6 +170,9 @@ class AmountChangeRecord(models.Model):
         super(AmountChangeRecord, self).save(*args, **kwargs)
         self.current_amounts = self.update_user_amount()
         super(AmountChangeRecord, self).save(update_fields=['current_amounts'])
+        record_after = AmountChangeRecord.objects.filter(user=self.user, pk__gt=self.pk).order_by('pk').first()
+        if record_after:
+            record_after.save()
 
     def __str__(self):
         return "{0} {1} {2}".format(
@@ -234,6 +237,9 @@ class CreditChangeRecord(models.Model):
         super(CreditChangeRecord, self).save(*args, **kwargs)
         self.current_credits = self.update_user_credit()
         super(CreditChangeRecord, self).save(update_fields=['current_credits'])
+        record_after = CreditChangeRecord.objects.filter(user=self.user, pk__gt=self.pk).order_by('pk').first()
+        if record_after:
+            record_after.save()
 
     def __str__(self):
         return "{0} {1} {2}".format(
