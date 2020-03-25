@@ -113,6 +113,7 @@ class WxUser(AbstractUser):
                         u.delete()
                         self.openid_gzh = openid_gzh
             # 账号合并后对客户进行关联
+            Customer.objects.filter(related_user_id=self.pk).update(related_user_id=None)
             Customer.objects.filter(mobile=self.mobile, related_user__isnull=True).update(related_user_id=self.pk)
 
     def save(self, *args, **kwargs):
