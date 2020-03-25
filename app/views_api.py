@@ -228,7 +228,7 @@ class WxGzhLoginView(APIView):
                     openid_gzh = user_info_raw.get('openid')
                 else:
                     if user_info_raw.get(v):
-                        user_info[k] = user_info_raw.get(v)
+                        user_info[k] = user_info_raw.get(v).encode('iso-8859-1').decode('utf-8')
             if openid_gzh:
                 user = create_or_update_user_info_gzh(openid_gzh, user_info)
                 if user:
@@ -239,7 +239,7 @@ class WxGzhLoginView(APIView):
                             'user': model_to_dict(
                                 user,
                                 fields=[
-                                    'full_name', 'mobile', 'gender',
+                                    'nick_name', 'full_name', 'mobile', 'gender', 'avatar_url',
                                     'is_partner', 'is_client', 'is_manager'
                                 ])
                         },
@@ -450,7 +450,13 @@ class UserInfoView(AppApi):
     获取自己的用户信息
     """
     def get(self, request):
-        res = {'user': dict(), 'amount_records': list(), 'credit_records': list()}
+        res = {
+                  'user': dict(),
+                  'amount_records': list(),
+                  'credit_records': list(),
+                  'current_amounts': None,
+                  'current_credits': None
+            }
         if request.user.id:
             user = WxUser.objects.filter(pk=request.user.id).first()
             if user:
@@ -458,13 +464,14 @@ class UserInfoView(AppApi):
                     user,
                     fields=[
                         'nick_name', 'full_name', 'mobile', 'gender',
-                        'current_amounts', 'current_credits',
                         'is_partner', 'is_client', 'is_manager'
                     ])
                 amount_records_q = AmountChangeRecord.objects.filter(
                     customer__related_user=user
                 ).order_by('-pk').values('pk', 'customer__name', 'amounts', 'current_amounts', 'datetime_created')
                 for ar in amount_records_q:
+                    if res['current_amounts'] is None:
+                        res['current_amounts'] = ar.get('current_amounts', 0)
                     res['amount_records'].append(
                         {
                             'pk': ar.get('pk'),
@@ -479,6 +486,8 @@ class UserInfoView(AppApi):
                     customer__related_user=user
                 ).order_by('-pk').values('pk', 'customer__name', 'credits', 'current_credits', 'datetime_created')
                 for cr in credit_records_q:
+                    if res['current_credits'] is None:
+                        res['current_credits'] = cr.get('current_credits', 0)
                     res['credit_records'].append(
                         {
                             'pk': cr.get('pk'),
