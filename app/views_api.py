@@ -227,8 +227,11 @@ class WxGzhLoginView(APIView):
                 if k == 'openid':
                     openid_gzh = user_info_raw.get('openid')
                 else:
-                    if user_info_raw.get(v):
-                        user_info[k] = user_info_raw.get(v).encode('iso-8859-1').decode('utf-8')
+                    current_v = user_info_raw.get(v)
+                    if current_v:
+                        if isinstance(current_v, str):
+                            current_v = current_v.encode('iso-8859-1').decode('utf-8')
+                        user_info[k] = current_v
             if openid_gzh:
                 user = create_or_update_user_info_gzh(openid_gzh, user_info)
                 if user:
