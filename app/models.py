@@ -93,6 +93,12 @@ class WxUser(AbstractUser):
                 "sha256", getattr(self, 'openid').encode(encoding='utf-8'), key.encode(encoding='utf-8'), 10).hex()
             self.password = hashlib.pbkdf2_hmac(
                 "sha256", self.username.encode(), getattr(self, 'openid').encode(encoding='utf-8'), 10).hex()
+        if not self.username and not self.password and self.openid_gzh:
+            key = settings.SECRET_KEY
+            self.username = hashlib.pbkdf2_hmac(
+                "sha256", getattr(self, 'openid_gzh').encode(encoding='utf-8'), key.encode(encoding='utf-8'), 10).hex()
+            self.password = hashlib.pbkdf2_hmac(
+                "sha256", self.username.encode(), getattr(self, 'openid_gzh').encode(encoding='utf-8'), 10).hex()
 
     def update_related_customers(self):
         """
