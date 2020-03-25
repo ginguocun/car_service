@@ -70,6 +70,7 @@ class WxUser(AbstractUser):
 
     class Meta(AbstractUser.Meta):
         swappable = 'AUTH_USER_MODEL'
+        ordering = ['-id']
 
     def __str__(self):
         if self.nick_name:

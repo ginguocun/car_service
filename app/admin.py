@@ -49,13 +49,13 @@ class WxUserAdmin(UserAdmin):
         'last_login', 'date_joined', 'nick_name', 'city', 'province', 'country', 'avatar_url',
     )
     list_display = [
-        'username', 'full_name', 'mobile',
-        'is_partner', 'is_client', 'is_manager',
-        'is_staff', 'is_superuser']
+        'pk', 'username', 'full_name', 'nick_name', 'mobile',
+        'is_staff', 'is_superuser', 'date_joined', 'last_login']
+    list_display_links = ['pk', 'username', 'full_name', 'nick_name', 'mobile']
     search_fields = [
         'username', 'openid', 'email', 'mobile', 'full_name', 'first_name', 'last_name', 'nick_name']
     autocomplete_fields = ['user_level']
-    list_filter = ('is_partner', 'is_client', 'is_manager', 'is_staff', 'is_superuser', 'groups')
+    list_filter = ('is_staff', 'is_superuser', 'groups')
     fieldsets = (
         (_('基础信息'), {'fields': ('username', 'password', 'openid')}),
         (_('个人信息'), {'fields': (
@@ -239,12 +239,13 @@ class ServiceApplyAdmin(AutoUpdateUserModelAdmin):
     autocomplete_fields = ['service_package', 'oil_package', 'related_store', 'related_record', 'checked_by']
     fieldsets = (
         (_('车辆信息'), {'fields': ('car_number', 'car_brand', 'car_model', 'name', 'mobile')}),
-        (_('审核信息'), {'fields': ('checked_by', 'is_checked', 'data_import')}),
+
         (_('服务类型'), {'fields': ('reserve_type', )}),
         (_('服务信息'), {
             'fields': (
                 'related_store', 'service_info', 'service_package', 'oil_package',
-                'reserve_time', 'reserve_address', 'related_record')}),
+                'reserve_time', 'reserve_address')}),
+        (_('审核信息'), {'fields': ('checked_by', 'is_checked', 'data_import', 'related_record')}),
         (_('备注'), {'fields': ('notes', 'datetime_created', 'datetime_updated')})
     )
 
@@ -260,7 +261,7 @@ class InsuranceApplyAdmin(AutoUpdateUserModelAdmin):
     list_filter = ['is_checked', 'data_import', 'service_type', 'checked_by']
     date_hierarchy = 'datetime_created'
     search_fields = ['car_number', 'name', 'mobile']
-    autocomplete_fields = ['checked_by']
+    autocomplete_fields = ['checked_by', 'related_record']
     fieldsets = (
         (_('车辆信息'), {'fields': (
             'car_number', 'car_brand', 'car_model', 'name', 'mobile', 'insurance_date')}),
