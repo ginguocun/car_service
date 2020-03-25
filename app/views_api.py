@@ -1,6 +1,7 @@
 import json
 import logging
 
+import requests
 from django_filters import rest_framework as filters
 
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
@@ -139,6 +140,58 @@ class WxLoginView(APIView):
         return Response({'jwt': None, 'user': {}}, status=HTTP_204_NO_CONTENT)
 
 
+def get_access_token(code):
+    """
+    公众号微信授权，通过 code 获取 access_token
+    :param code: 前端获取的 code
+    :return: 返回 {"access_token":"","expires_in":7200,"refresh_token":"","openid":"","scope":"snsapi_userinfo"}
+    """
+    data = dict()
+    if code:
+        res = requests.get(
+            url='https://api.weixin.qq.com/sns/oauth2/access_token?'
+                'appid={0}&'
+                'secret={1}&'
+                'code={2}&'
+                'grant_type=authorization_code'.format(
+                    settings.WX_GZH_APP_ID,
+                    settings.WX_GZH_APP_SECRET,
+                    code))
+        if res.status_code == 200:
+            data = res.json()
+    return data
+
+
+def get_wx_gzh_user_info(code):
+    """
+    公众号微信授权，通过 code 获取用户信息
+    :param code: 前端获取的 code
+    :return: {
+          "openid":" OPENID",
+          "nickname": NICKNAME,
+          "sex":"1",
+          "province":"PROVINCE",
+          "city":"CITY",
+          "country":"COUNTRY",
+          "headimgurl": "",
+          "privilege":[ "PRIVILEGE1" "PRIVILEGE2"],
+          "unionid": ""
+        }
+    """
+    data = get_access_token(code)
+    user_info = dict()
+    access_token = data.get('access_token')
+    openid = data.get('openid')
+    if access_token and openid:
+        res = requests.get(
+            url='https://api.weixin.qq.com/sns/userinfo?access_token={0}&openid={1}&lang=zh_CN'.format(
+                access_token,
+                openid))
+        if res.status_code == 200:
+            user_info = res.json()
+    return user_info
+
+
 class WxGzhLoginView(APIView):
     """
     post:
@@ -147,51 +200,50 @@ class WxGzhLoginView(APIView):
     authentication_classes = []
     permission_classes = []
     fields = {
-        'nick_name': 'nickName',
-        'gender': 'gender',
+        'openid': 'openid',
+        'nick_name': 'nickname',
         'language': 'language',
+        'gender': 'sex',
         'city': 'city',
         'province': 'province',
         'country': 'country',
-        'avatar_url': 'avatarUrl',
+        'avatar_url': 'headimgurl',
     }
 
     def post(self, request):
         user_info = dict()
         code = request.data.get('code')
         logger.info("Code: {0}".format(code))
-        user_info_raw = request.data.get('user_info', {})
+        # 通过 code 获取用户信息
+        user_info_raw = get_wx_gzh_user_info(code)
         if isinstance(user_info_raw, str):
             user_info_raw = json.loads(user_info_raw)
         if not isinstance(user_info_raw, dict):
             user_info_raw = {}
         logger.info("user_info: {0}".format(user_info_raw))
-        if code:
-            api = WXAPPAPI(appid=settings.WX_GZH_APP_ID, app_secret=settings.WX_GZH_APP_SECRET)
-            try:
-                session_info = api.exchange_code_for_session_key(code=code)
-            except OAuth2AuthExchangeError:
-                session_info = None
-            if session_info:
-                openid_gzh = session_info.get('openid', None)
-                if openid_gzh:
-                    if user_info_raw:
-                        for k, v in self.fields.items():
-                            user_info[k] = user_info_raw.get(v)
-                    user = create_or_update_user_info_gzh(openid_gzh, user_info)
-                    if user:
-                        token = AppTokenObtainPairSerializer.get_token(user).access_token
-                        return Response(
-                            {
-                                'jwt': str(token),
-                                'user': model_to_dict(
-                                    user,
-                                    fields=[
-                                        'full_name', 'mobile', 'gender',
-                                        'is_partner', 'is_client', 'is_manager'
-                                    ])
-                            },
-                            status=HTTP_200_OK)
+        if user_info_raw:
+            openid_gzh = None
+            for k, v in self.fields.items():
+                if k == 'openid':
+                    openid_gzh = user_info_raw.get('openid')
+                else:
+                    if user_info_raw.get(v):
+                        user_info[k] = user_info_raw.get(v)
+            if openid_gzh:
+                user = create_or_update_user_info_gzh(openid_gzh, user_info)
+                if user:
+                    token = AppTokenObtainPairSerializer.get_token(user).access_token
+                    return Response(
+                        {
+                            'jwt': str(token),
+                            'user': model_to_dict(
+                                user,
+                                fields=[
+                                    'full_name', 'mobile', 'gender',
+                                    'is_partner', 'is_client', 'is_manager'
+                                ])
+                        },
+                        status=HTTP_200_OK)
         return Response({'jwt': None, 'user': {}}, status=HTTP_204_NO_CONTENT)
 
 
