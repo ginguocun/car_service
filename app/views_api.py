@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 
 import requests
 from django_filters import rest_framework as filters
@@ -376,9 +377,12 @@ class ServiceApplyListView(AppListCreateApi):
     search_fields = ('car_number', 'car_brand')
 
     def get_queryset(self):
-        if not self.request.user.is_staff:
-            return self.queryset.filter(created_by_id=self.request.user.id)
-        return self.queryset
+        if self.request.user.id:
+            if not self.request.user.is_staff:
+                return self.queryset.filter(created_by_id=self.request.user.id)
+            return self.queryset
+        else:
+            return self.queryset.none()
 
 
 class InsuranceApplyListView(AppListCreateApi):
@@ -394,9 +398,12 @@ class InsuranceApplyListView(AppListCreateApi):
     search_fields = ('car_number', 'car_brand')
 
     def get_queryset(self):
-        if not self.request.user.is_staff:
-            return self.queryset.filter(created_by_id=self.request.user.id)
-        return self.queryset
+        if self.request.user.id:
+            if not self.request.user.is_staff:
+                return self.queryset.filter(created_by_id=self.request.user.id)
+            return self.queryset
+        else:
+            return self.queryset.none()
 
 
 class PartnerApplyListView(AppListCreateApi):
@@ -412,9 +419,12 @@ class PartnerApplyListView(AppListCreateApi):
     search_fields = ('name', 'mobile')
 
     def get_queryset(self):
-        if not self.request.user.is_staff:
-            return self.queryset.filter(created_by_id=self.request.user.id)
-        return self.queryset
+        if self.request.user.id:
+            if not self.request.user.is_staff:
+                return self.queryset.filter(created_by_id=self.request.user.id)
+            return self.queryset
+        else:
+            return self.queryset.none()
 
 
 class AmountChangeRecordListView(AppListApi):
@@ -447,60 +457,88 @@ class CreditChangeRecordListView(AppListApi):
         return self.queryset.none()
 
 
+def get_user_detail(user):
+    """
+    获取用户的信息
+    :param user: 用户对象
+    :return: 返回用户信息
+    """
+    res = {
+        'user': dict(),
+        'amount_records': list(),
+        'credit_records': list(),
+        'current_amounts': None,
+        'current_credits': None
+    }
+    if user:
+        res['user'] = model_to_dict(
+            user,
+            fields=[
+                'nick_name', 'full_name', 'mobile', 'gender',
+                'is_partner', 'is_client', 'is_manager'
+            ])
+        amount_records_q = AmountChangeRecord.objects.filter(
+            customer__related_user=user
+        ).order_by('-pk').values('pk', 'customer__name', 'amounts', 'current_amounts', 'datetime_created')
+        for ar in amount_records_q:
+            if res['current_amounts'] is None:
+                res['current_amounts'] = ar.get('current_amounts', 0)
+            res['amount_records'].append(
+                {
+                    'pk': ar.get('pk'),
+                    'name': ar.get('customer__name'),
+                    'amounts': ar.get('amounts'),
+                    'current_amounts': ar.get('current_amounts'),
+                    'notes': ar.get('notes'),
+                    'datetime_created': ar.get('datetime_created'),
+                }
+            )
+        credit_records_q = CreditChangeRecord.objects.filter(
+            customer__related_user=user
+        ).order_by('-pk').values('pk', 'customer__name', 'credits', 'current_credits', 'datetime_created')
+        for cr in credit_records_q:
+            if res['current_credits'] is None:
+                res['current_credits'] = cr.get('current_credits', 0)
+            res['credit_records'].append(
+                {
+                    'pk': cr.get('pk'),
+                    'name': cr.get('customer__name'),
+                    'credits': cr.get('credits'),
+                    'current_credits': cr.get('current_credits'),
+                    'notes': cr.get('notes'),
+                    'datetime_created': cr.get('datetime_created')
+                }
+            )
+    return res
+
+
 class UserInfoView(AppApi):
     """
     get:
     获取自己的用户信息
     """
     def get(self, request):
-        res = {
-                  'user': dict(),
-                  'amount_records': list(),
-                  'credit_records': list(),
-                  'current_amounts': None,
-                  'current_credits': None
-            }
         if request.user.id:
             user = WxUser.objects.filter(pk=request.user.id).first()
             if user:
-                res['user'] = model_to_dict(
-                    user,
-                    fields=[
-                        'nick_name', 'full_name', 'mobile', 'gender',
-                        'is_partner', 'is_client', 'is_manager'
-                    ])
-                amount_records_q = AmountChangeRecord.objects.filter(
-                    customer__related_user=user
-                ).order_by('-pk').values('pk', 'customer__name', 'amounts', 'current_amounts', 'datetime_created')
-                for ar in amount_records_q:
-                    if res['current_amounts'] is None:
-                        res['current_amounts'] = ar.get('current_amounts', 0)
-                    res['amount_records'].append(
-                        {
-                            'pk': ar.get('pk'),
-                            'name': ar.get('customer__name'),
-                            'amounts': ar.get('amounts'),
-                            'current_amounts': ar.get('current_amounts'),
-                            'notes': ar.get('notes'),
-                            'datetime_created': ar.get('datetime_created'),
-                        }
-                    )
-                credit_records_q = CreditChangeRecord.objects.filter(
-                    customer__related_user=user
-                ).order_by('-pk').values('pk', 'customer__name', 'credits', 'current_credits', 'datetime_created')
-                for cr in credit_records_q:
-                    if res['current_credits'] is None:
-                        res['current_credits'] = cr.get('current_credits', 0)
-                    res['credit_records'].append(
-                        {
-                            'pk': cr.get('pk'),
-                            'name': cr.get('customer__name'),
-                            'credits': cr.get('credits'),
-                            'current_credits': cr.get('current_credits'),
-                            'notes': cr.get('notes'),
-                            'datetime_created': cr.get('datetime_created')
-                        }
-                    )
-            return Response(res, status=HTTP_200_OK)
-        return Response(
-            {'user': dict(), 'amount_records': list(), 'credit_records': list()}, status=HTTP_401_UNAUTHORIZED)
+                res = get_user_detail(user)
+                return Response(res, status=HTTP_200_OK)
+        return Response({'detail': '请登录'}, status=HTTP_401_UNAUTHORIZED)
+
+
+class UpdateMobileView(AppApi):
+    """
+    get:
+    获取自己的用户信息
+    """
+    def post(self, request):
+        if request.user.id:
+            user = WxUser.objects.filter(pk=request.user.id).first()
+            mobile = request.data.get('mobile')
+            if re.match(r"^1[35678]\d{9}$", mobile):
+                user.mobile = mobile
+                user.save()
+                res = get_user_detail(user)
+                return Response(res, status=HTTP_200_OK)
+            return Response({'detail': '手机号格式有误'}, status=HTTP_400_BAD_REQUEST)
+        return Response({'detail': '请登录'}, status=HTTP_401_UNAUTHORIZED)
