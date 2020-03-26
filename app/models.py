@@ -107,21 +107,28 @@ class WxUser(AbstractUser):
         if self.mobile:
             # 理论上用户可以有多个账号，同一个微信号可以注册公众号和小程序的账号，填写手机号后，将公众号和小程序注册的账号进行合并
             related_users = WxUser.objects.filter(mobile=self.mobile).exclude(pk=self.pk, is_staff=True)
+            # 自动进行账号合并
             if self.openid_gzh and not self.openid:
                 for u in related_users:
                     if u.openid:
                         openid = u.openid
                         u.delete()
                         self.openid = openid
-            if self.openid and not self.openid_gzh:
+            elif self.openid and not self.openid_gzh:
                 for u in related_users:
                     if u.openid_gzh:
                         openid_gzh = u.openid_gzh
                         u.delete()
                         self.openid_gzh = openid_gzh
-            # 账号合并后对客户进行关联
-            Customer.objects.filter(related_user_id=self.pk).update(related_user_id=None)
-            Customer.objects.filter(mobile=self.mobile, related_user__isnull=True).update(related_user_id=self.pk)
+            # 手机号更新以后，删除之前关联的客户关系
+            related_customers = Customer.objects.filter(related_user=self.pk)
+            for rc in related_customers:
+                rc.related_user.remove(self.pk)
+                rc.save()
+            # 根据新的手机号重新关联客户
+            customer = Customer.objects.filter(mobile=self.mobile).first()
+            if customer:
+                customer.related_user.add(self.pk)
 
     def save(self, *args, **kwargs):
         self.create_username_password()
@@ -199,11 +206,9 @@ class Customer(models.Model):
         blank=True,
         verbose_name=_('客户归属')
     )
-    related_user = models.ForeignKey(
+    related_user = models.ManyToManyField(
         WxUser,
-        null=True,
         blank=True,
-        on_delete=models.SET_NULL,
         related_name='customer_related_user',
         verbose_name=_('关联用户')
     )

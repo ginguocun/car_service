@@ -101,14 +101,16 @@ class CreditChangeRecordAdmin(AutoUpdateUserModelAdmin):
 
 @admin.register(Customer)
 class CustomerAdmin(AutoUpdateUserModelAdmin):
-    readonly_fields = ['current_amounts', 'current_credits', 'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated']
-    list_display = ['pk', 'name', 'mobile', 'current_amounts', 'current_credits', 'related_superior', 'related_user']
+    readonly_fields = [
+        'current_amounts', 'current_credits', 'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated']
+    list_display = ['pk', 'name', 'mobile', 'current_amounts', 'current_credits', 'related_superior']
     list_display_links = ['pk', 'name', 'mobile']
     search_fields = ['name', 'mobile']
     list_filter = ['related_superior']
-    autocomplete_fields = ['related_superior', 'related_user']
+    autocomplete_fields = ['related_superior']
+    filter_horizontal = ['related_user']
     fieldsets = (
-        (_('基础信息'), {'fields': ('name', 'mobile', 'related_superior')}),
+        (_('基础信息'), {'fields': ('name', 'mobile', 'related_superior', 'related_user')}),
         (_('余额/积分'), {'fields': ('current_amounts', 'current_credits')}),
         (_('操作记录'), {'fields': ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')})
     )
