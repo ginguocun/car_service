@@ -8,4 +8,5 @@ class MiddlewareHead(MiddlewareMixin):
         if request:
             response['Access-Control-Allow-Origin'] = '*'
             response['Access-Control-Allow-Headers'] = '*'
+            response['X-Frame-Options'] = '*'
         return response

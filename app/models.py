@@ -140,13 +140,13 @@ class Superior(models.Model):
     desc = models.TextField(verbose_name=_('描述'), max_length=1000, null=True, blank=True)
     is_active = models.BooleanField(verbose_name=_('是否有效'), default=True)
     user = models.ForeignKey(
-        "WxUser",
+        WxUser,
         null=True,
         on_delete=models.SET_NULL,
         verbose_name=_('关联账号')
     )
     created_by = models.ForeignKey(
-        "WxUser",
+        WxUser,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -154,7 +154,7 @@ class Superior(models.Model):
         verbose_name=_('创建人员')
     )
     confirmed_by = models.ForeignKey(
-        "WxUser",
+        WxUser,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -200,7 +200,7 @@ class Customer(models.Model):
         verbose_name=_('客户归属')
     )
     related_user = models.ForeignKey(
-        "WxUser",
+        WxUser,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -208,7 +208,7 @@ class Customer(models.Model):
         verbose_name=_('关联用户')
     )
     created_by = models.ForeignKey(
-        "WxUser",
+        WxUser,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -216,7 +216,7 @@ class Customer(models.Model):
         verbose_name=_('创建人员')
     )
     confirmed_by = models.ForeignKey(
-        "WxUser",
+        WxUser,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -256,7 +256,7 @@ class AmountChangeRecord(models.Model):
         verbose_name=_('变更后余额'), max_digits=10, decimal_places=2, null=True, blank=True)
     notes = models.TextField(verbose_name=_('备注'), max_length=1000, null=True, blank=True)
     created_by = models.ForeignKey(
-        "WxUser",
+        WxUser,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -264,7 +264,7 @@ class AmountChangeRecord(models.Model):
         verbose_name=_('创建人员')
     )
     confirmed_by = models.ForeignKey(
-        "WxUser",
+        WxUser,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -323,7 +323,7 @@ class CreditChangeRecord(models.Model):
     current_credits = models.BigIntegerField(verbose_name=_('变更后积分'), null=True, blank=True)
     notes = models.TextField(verbose_name=_('备注'), max_length=1000, null=True, blank=True)
     created_by = models.ForeignKey(
-        "WxUser",
+        WxUser,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -331,7 +331,7 @@ class CreditChangeRecord(models.Model):
         verbose_name=_('创建人员')
     )
     confirmed_by = models.ForeignKey(
-        "WxUser",
+        WxUser,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -395,7 +395,7 @@ class CarInfo(models.Model):
         verbose_name=_('客户')
     )
     created_by = models.ForeignKey(
-        "WxUser",
+        WxUser,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -403,7 +403,7 @@ class CarInfo(models.Model):
         verbose_name=_('创建人员')
     )
     confirmed_by = models.ForeignKey(
-        "WxUser",
+        WxUser,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -465,7 +465,7 @@ class BelongTo(models.Model):
     )
     notes = models.TextField(verbose_name=_('备注'), max_length=1000, null=True, blank=True)
     created_by = models.ForeignKey(
-        "WxUser",
+        WxUser,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -473,7 +473,7 @@ class BelongTo(models.Model):
         verbose_name=_('创建人员')
     )
     confirmed_by = models.ForeignKey(
-        "WxUser",
+        WxUser,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -618,7 +618,7 @@ class InsuranceRecord(models.Model):
 
     notes = models.TextField(verbose_name=_('备注'), max_length=1000, null=True, blank=True)
     created_by = models.ForeignKey(
-        "WxUser",
+        WxUser,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -626,7 +626,7 @@ class InsuranceRecord(models.Model):
         verbose_name=_('创建人员')
     )
     confirmed_by = models.ForeignKey(
-        "WxUser",
+        WxUser,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -815,7 +815,7 @@ class ServiceRecord(models.Model):
     is_served = models.BooleanField(verbose_name=_('服务已完成'), default=False)
     notes = models.TextField(verbose_name=_('备注'), max_length=1000, null=True, blank=True)
     created_by = models.ForeignKey(
-        "WxUser",
+        WxUser,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -823,7 +823,7 @@ class ServiceRecord(models.Model):
         verbose_name=_('创建人员')
     )
     confirmed_by = models.ForeignKey(
-        "WxUser",
+        WxUser,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -942,7 +942,7 @@ class ServiceApply(models.Model):
     )
     notes = models.TextField(verbose_name=_('备注'), max_length=1000, null=True, blank=True)
     created_by = models.ForeignKey(
-        "WxUser",
+        WxUser,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -950,7 +950,7 @@ class ServiceApply(models.Model):
         verbose_name=_('创建人员')
     )
     confirmed_by = models.ForeignKey(
-        "WxUser",
+        WxUser,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -1117,7 +1117,7 @@ class InsuranceApply(models.Model):
     )
     notes = models.TextField(verbose_name=_('备注'), max_length=1000, null=True, blank=True)
     created_by = models.ForeignKey(
-        "WxUser",
+        WxUser,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -1125,7 +1125,7 @@ class InsuranceApply(models.Model):
         verbose_name=_('创建人员')
     )
     confirmed_by = models.ForeignKey(
-        "WxUser",
+        WxUser,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -1193,7 +1193,7 @@ class PartnerApply(models.Model):
     is_checked = models.BooleanField(verbose_name=_('已联系/已确认'), default=False)
     notes = models.TextField(verbose_name=_('备注'), max_length=1000, null=True, blank=True)
     created_by = models.ForeignKey(
-        "WxUser",
+        WxUser,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -1201,7 +1201,7 @@ class PartnerApply(models.Model):
         verbose_name=_('创建人员')
     )
     confirmed_by = models.ForeignKey(
-        "WxUser",
+        WxUser,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -1240,7 +1240,7 @@ class InsuranceRecordUpload(models.Model):
     is_processed = models.BooleanField(verbose_name=_('已执行'), default=False)
     notes = models.TextField(verbose_name=_('备注'), max_length=1000, null=True, blank=True)
     created_by = models.ForeignKey(
-        "WxUser",
+        WxUser,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -1248,7 +1248,7 @@ class InsuranceRecordUpload(models.Model):
         verbose_name=_('创建人员')
     )
     confirmed_by = models.ForeignKey(
-        "WxUser",
+        WxUser,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -1373,3 +1373,43 @@ class InsuranceRecordUpload(models.Model):
             super(InsuranceRecordUpload, self).save(
                 update_fields=[
                     'file_name', 'is_processed', 'total_count', 'created_count', 'updated_count', 'failed_count'])
+
+
+class ReportMake(models.Model):
+    report_type = models.CharField(
+        verbose_name=_('报告类型'),
+        choices=(('归属统计', '归属统计'),),
+        null=True, blank=True, max_length=255)
+    file = models.FileField(_('报告文件'), null=True, blank=True, upload_to='report', editable=False)
+    is_processed = models.BooleanField(verbose_name=_('已执行'), default=False)
+    date_start = models.DateField(_('开始日期'), null=True, blank=True)
+    date_end = models.DateField(_('结束日期'), null=True, blank=True)
+    notes = models.TextField(verbose_name=_('备注'), max_length=1000, null=True, blank=True)
+    created_by = models.ForeignKey(
+        WxUser,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='report_make_created_by',
+        verbose_name=_('创建人员')
+    )
+    confirmed_by = models.ForeignKey(
+        WxUser,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='report_make_confirmed_by',
+        verbose_name=_('审核人员')
+    )
+    datetime_created = models.DateTimeField(verbose_name=_('记录时间'), auto_now_add=True)
+    datetime_updated = models.DateTimeField(verbose_name=_('更新时间'), auto_now=True)
+
+    class Meta:
+        ordering = ['-id']
+        verbose_name = _('报告生成')
+        verbose_name_plural = _('报告生成')
+
+    def __str__(self):
+        return "{}".format(
+            self.pk
+        )

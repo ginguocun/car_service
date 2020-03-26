@@ -320,3 +320,10 @@ class InsuranceRecordUploadAdmin(AutoUpdateUserModelAdmin):
         (_('导入信息'), {'fields': ('total_count', 'created_count', 'updated_count', 'failed_count', )}),
         (_('备注'), {'fields': ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')})
     )
+
+
+@admin.register(ReportMake)
+class ReportMakeAdmin(admin.ModelAdmin):
+    list_display = ['pk', 'report_type', 'file', 'date_start', 'date_end', 'notes', 'created_by', 'datetime_created']
+    list_display_links = ['pk', 'report_type']
+    list_filter = ['report_type']
