@@ -474,7 +474,7 @@ def get_user_detail(user):
         res['user'] = model_to_dict(
             user,
             fields=[
-                'id', 'nick_name', 'full_name', 'mobile', 'gender',
+                'id', 'nick_name', 'full_name', 'mobile', 'gender', 'avatar_url',
                 'is_partner', 'is_client', 'is_manager'
             ])
         amount_records_q = AmountChangeRecord.objects.filter(
