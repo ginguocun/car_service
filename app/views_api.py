@@ -479,7 +479,7 @@ def get_user_detail(user):
             ])
         amount_records_q = AmountChangeRecord.objects.filter(
             customer__related_user=user
-        ).order_by('-pk').values('pk', 'customer__name', 'amounts', 'current_amounts', 'datetime_created')
+        ).order_by('-pk').values('pk', 'customer__name', 'amounts', 'current_amounts', 'datetime_created', 'notes')
         for ar in amount_records_q:
             if res['current_amounts'] is None:
                 res['current_amounts'] = ar.get('current_amounts', 0)
@@ -495,7 +495,7 @@ def get_user_detail(user):
             )
         credit_records_q = CreditChangeRecord.objects.filter(
             customer__related_user=user
-        ).order_by('-pk').values('pk', 'customer__name', 'credits', 'current_credits', 'datetime_created')
+        ).order_by('-pk').values('pk', 'customer__name', 'credits', 'current_credits', 'datetime_created', 'notes')
         for cr in credit_records_q:
             if res['current_credits'] is None:
                 res['current_credits'] = cr.get('current_credits', 0)
