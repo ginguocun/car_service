@@ -535,7 +535,7 @@ class UpdateMobileView(AppApi):
         if request.user.id:
             user = WxUser.objects.filter(pk=request.user.id).first()
             mobile = request.data.get('mobile', '')
-            if re.match(r"^1[35678]\d{9}$", mobile):
+            if re.match(r"^1[23456789]\d{9}$", mobile):
                 user.mobile = mobile
                 user.save()
                 res = get_user_detail(user)
