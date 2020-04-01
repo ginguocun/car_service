@@ -128,7 +128,10 @@ class CarInfoAdmin(AutoUpdateUserModelAdmin):
     fieldsets = (
         (_('基础'), {
             'fields': ('car_number', 'customer', 'desc')}),
-        (_('车辆详情'), {'fields': ('car_brand', 'car_model', 'car_price', 'bought_date', )}),
+        (_('车辆详情'), {
+            'fields': ('car_brand', 'car_model', 'car_price', )}),
+        (_('保险详情'), {
+            'fields': ('insurance_company', 'insurance_date', 'bought_date', 'annual_inspection_date',)}),
         (_('状态'), {'fields': ('is_confirmed', 'is_active')})
     )
 
@@ -204,11 +207,50 @@ class StoreInfoAdmin(admin.ModelAdmin):
     list_filter = ['is_active']
 
 
+class ServiceItemInline(admin.TabularInline):
+    model = ServiceItem
+    extra = 1
+    fields = ['name', 'price', 'notes']
+
+
+class ServiceFeedbackInline(admin.TabularInline):
+    model = ServiceFeedback
+    extra = 1
+    fields = ['feedback_date', 'feedback_by', 'notes']
+    autocomplete_fields = ['feedback_by']
+
+
+@admin.register(ServiceItem)
+class ServiceItemAdmin(AutoUpdateUserModelAdmin):
+    readonly_fields = ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated', 'related_service_record')
+    list_display = ['pk', 'related_service_record', 'name', 'price', 'cost', 'notes']
+    search_fields = ['name']
+    list_display_links = ['pk', 'related_service_record', 'name']
+    fieldsets = (
+        (_('基础信息'), {'fields': ('related_service_record', 'name', 'price', 'cost', 'notes')}),
+        (_('操作记录'), {'fields': ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')}),
+    )
+
+
+@admin.register(ServiceFeedback)
+class ServiceFeedbackAdmin(AutoUpdateUserModelAdmin):
+    readonly_fields = ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated', 'related_service_record')
+    list_display = ['pk', 'related_service_record', 'feedback_date', 'feedback_by', 'notes']
+    search_fields = ['notes']
+    list_display_links = ['pk', 'related_service_record', 'feedback_date']
+    fieldsets = (
+        (_('基础信息'), {'fields': ('related_service_record', 'feedback_date', 'feedback_by', 'notes')}),
+        (_('操作记录'), {'fields': ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')}),
+    )
+    autocomplete_fields = ['feedback_by']
+
+
 @admin.register(ServiceRecord)
 class ServiceRecordAdmin(AutoUpdateUserModelAdmin):
-    readonly_fields = ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')
+    readonly_fields = ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated', 'total_price', 'total_cost')
     list_display = [
         'pk', 'car', 'reserve_type', 'is_reversed', 'reserve_time', 'reserve_address', 'related_store',
+        'total_price', 'total_payed',
         'checked_by', 'is_checked', 'served_by', 'is_served', 'notes'
     ]
     list_display_links = ['pk', 'car']
@@ -218,13 +260,22 @@ class ServiceRecordAdmin(AutoUpdateUserModelAdmin):
     search_fields = ['car__car_number', 'car__customer__name', 'car__customer__mobile']
     autocomplete_fields = ['car', 'checked_by', 'served_by', 'related_store', 'service_package', 'oil_package']
     fieldsets = (
-        (_('基础信息'), {'fields': ('car', 'reserve_type', 'reserve_time', 'reserve_address', 'is_reversed')}),
+        (_('基础信息'), {'fields': (
+            'reserve_type', 'car', 'reserve_time', 'finish_time', 'reserve_address', 'vehicle_mileage')}),
         (_('服务信息'), {
+            'fields': ('related_store',  'total_price', 'total_payed', ('served_by', 'is_served'))}),
+        (_('预约信息'), {
             'fields': (
-                'related_store', 'service_package', 'oil_package',
-                ('checked_by', 'is_checked'), ('served_by', 'is_served'))}),
-        (_('备注'), {'fields': ('notes', 'datetime_created', 'datetime_updated')})
+                'is_reversed', 'service_package', 'oil_package', ('checked_by', 'is_checked')),
+            'classes': ('collapse',)
+        }),
+        (_('备注'), {
+            'fields': ('total_cost', 'notes', 'datetime_created', 'datetime_updated'),
+            'classes': ('collapse',)
+        })
     )
+
+    inlines = [ServiceItemInline, ServiceFeedbackInline]
 
 
 @admin.register(ServiceApply)

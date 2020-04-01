@@ -14,11 +14,11 @@ class UserLevel(models.Model):
     """
     用户等级
     """
-    level_code = models.SmallIntegerField(verbose_name=_('等级编号'), null=True, unique=True)
-    level_name = models.CharField(verbose_name=_('等级名称'), max_length=100, null=True, unique=True)
-    desc = models.TextField(verbose_name=_('等级描述'), max_length=1000, null=True, blank=True)
-    datetime_created = models.DateTimeField(verbose_name=_('记录时间'), auto_now_add=True)
-    datetime_updated = models.DateTimeField(verbose_name=_('更新时间'), auto_now=True)
+    level_code = models.SmallIntegerField(_('等级编号'), null=True, unique=True)
+    level_name = models.CharField(_('等级名称'), max_length=100, null=True, unique=True)
+    desc = models.TextField(_('等级描述'), max_length=1000, null=True, blank=True)
+    datetime_created = models.DateTimeField(_('记录时间'), auto_now_add=True)
+    datetime_updated = models.DateTimeField(_('更新时间'), auto_now=True)
 
     objects = models.Manager()
 
@@ -39,22 +39,22 @@ class WxUser(AbstractUser):
     用户列表
     """
     # 微信同步的用户信息
-    openid = models.CharField(verbose_name=_('微信小程序OpenID'), max_length=100, unique=True, null=True, blank=True)
-    openid_gzh = models.CharField(verbose_name=_('微信公众号OpenID'), max_length=100, unique=True, null=True, blank=True)
-    avatar_url = models.URLField(verbose_name=_('头像'), null=True, blank=True)
-    nick_name = models.CharField(verbose_name=_('昵称'), max_length=100, null=True, blank=True, unique=True)
+    openid = models.CharField(_('微信小程序OpenID'), max_length=100, unique=True, null=True, blank=True)
+    openid_gzh = models.CharField(_('微信公众号OpenID'), max_length=100, unique=True, null=True, blank=True)
+    avatar_url = models.URLField(_('头像'), null=True, blank=True)
+    nick_name = models.CharField(_('昵称'), max_length=100, null=True, blank=True, unique=True)
     gender = models.SmallIntegerField(
         verbose_name=_('性别'), help_text=_('0-->未知, 1-->男, 2-->女'),
         choices=((1, '男'), (2, '女'), (0, '未知')), null=True, blank=True)
-    language = models.CharField(verbose_name=_('语言'), max_length=100, null=True, blank=True)
-    city = models.CharField(verbose_name=_('城市'), max_length=200, null=True, blank=True)
-    province = models.CharField(verbose_name=_('省份'), max_length=200, null=True, blank=True)
-    country = models.CharField(verbose_name=_('国家'), max_length=200, null=True, blank=True)
+    language = models.CharField(_('语言'), max_length=100, null=True, blank=True)
+    city = models.CharField(_('城市'), max_length=200, null=True, blank=True)
+    province = models.CharField(_('省份'), max_length=200, null=True, blank=True)
+    country = models.CharField(_('国家'), max_length=200, null=True, blank=True)
     # 附加信息
-    full_name = models.CharField(verbose_name=_('真实姓名'), max_length=100, null=True, blank=True)
-    date_of_birth = models.DateField(verbose_name=_('出生日期'), null=True, blank=True)
-    desc = models.TextField(verbose_name=_('描述'), max_length=2000, null=True, blank=True)
-    mobile = models.CharField(verbose_name=_('手机号'), max_length=100, null=True, blank=True)
+    full_name = models.CharField(_('真实姓名'), max_length=100, null=True, blank=True)
+    date_of_birth = models.DateField(_('出生日期'), null=True, blank=True)
+    desc = models.TextField(_('描述'), max_length=2000, null=True, blank=True)
+    mobile = models.CharField(_('手机号'), max_length=100, null=True, blank=True)
     user_level = models.ForeignKey(
         UserLevel,
         null=True,
@@ -62,11 +62,11 @@ class WxUser(AbstractUser):
         on_delete=models.SET_NULL,
         verbose_name=_('用户等级')
     )
-    is_partner = models.BooleanField(verbose_name=_('是合伙人'), default=False)
-    is_client = models.BooleanField(verbose_name=_('是客户'), default=True)
-    is_manager = models.BooleanField(verbose_name=_('是管理员'), default=False)
-    datetime_created = models.DateTimeField(verbose_name=_('记录时间'), auto_now_add=True)
-    datetime_updated = models.DateTimeField(verbose_name=_('更新时间'), auto_now=True)
+    is_partner = models.BooleanField(_('是合伙人'), default=False)
+    is_client = models.BooleanField(_('是客户'), default=True)
+    is_manager = models.BooleanField(_('是管理员'), default=False)
+    datetime_created = models.DateTimeField(_('记录时间'), auto_now_add=True)
+    datetime_updated = models.DateTimeField(_('更新时间'), auto_now=True)
 
     class Meta(AbstractUser.Meta):
         swappable = 'AUTH_USER_MODEL'
@@ -142,10 +142,10 @@ class Superior(models.Model):
     """
     工作人员
     """
-    name = models.CharField(verbose_name=_('名字'), max_length=100, unique=True, null=True)
-    mobile = models.CharField(verbose_name=_('手机号'), max_length=100, null=True, blank=True, unique=True)
-    desc = models.TextField(verbose_name=_('描述'), max_length=1000, null=True, blank=True)
-    is_active = models.BooleanField(verbose_name=_('是否有效'), default=True)
+    name = models.CharField(_('名字'), max_length=100, unique=True, null=True)
+    mobile = models.CharField(_('手机号'), max_length=100, null=True, blank=True, unique=True)
+    desc = models.TextField(_('描述'), max_length=1000, null=True, blank=True)
+    is_active = models.BooleanField(_('是否有效'), default=True)
     user = models.ForeignKey(
         WxUser,
         null=True,
@@ -168,8 +168,8 @@ class Superior(models.Model):
         related_name='superior_confirmed_by',
         verbose_name=_('审核人员')
     )
-    datetime_created = models.DateTimeField(verbose_name=_('记录时间'), auto_now_add=True)
-    datetime_updated = models.DateTimeField(verbose_name=_('更新时间'), auto_now=True)
+    datetime_created = models.DateTimeField(_('记录时间'), auto_now_add=True)
+    datetime_updated = models.DateTimeField(_('更新时间'), auto_now=True)
 
     objects = models.Manager()
 
@@ -189,8 +189,8 @@ class Customer(models.Model):
     """
     客户，手机号作为唯一标识
     """
-    name = models.CharField(verbose_name=_('名字'), max_length=255, null=True)
-    mobile = models.CharField(verbose_name=_('手机'), max_length=255, null=True, unique=True)
+    name = models.CharField(_('名字'), max_length=255, null=True)
+    mobile = models.CharField(_('手机'), max_length=255, null=True, unique=True)
     current_amounts = models.DecimalField(
         verbose_name=_('当前余额'),
         help_text=_('请到[积分/余额-->余额变更]添加记录'),
@@ -228,8 +228,8 @@ class Customer(models.Model):
         related_name='customer_confirmed_by',
         verbose_name=_('审核人员')
     )
-    datetime_created = models.DateTimeField(verbose_name=_('记录时间'), auto_now_add=True)
-    datetime_updated = models.DateTimeField(verbose_name=_('更新时间'), auto_now=True)
+    datetime_created = models.DateTimeField(_('记录时间'), auto_now_add=True)
+    datetime_updated = models.DateTimeField(_('更新时间'), auto_now=True)
 
     objects = models.Manager()
 
@@ -259,7 +259,7 @@ class AmountChangeRecord(models.Model):
         verbose_name=_('金额变更'), max_digits=10, decimal_places=2, null=True)
     current_amounts = models.DecimalField(
         verbose_name=_('变更后余额'), max_digits=10, decimal_places=2, null=True, blank=True)
-    notes = models.TextField(verbose_name=_('备注'), max_length=1000, null=True, blank=True)
+    notes = models.TextField(_('备注'), max_length=1000, null=True, blank=True)
     created_by = models.ForeignKey(
         WxUser,
         null=True,
@@ -276,8 +276,8 @@ class AmountChangeRecord(models.Model):
         related_name='amount_change_record_confirmed_by',
         verbose_name=_('审核人员')
     )
-    datetime_created = models.DateTimeField(verbose_name=_('记录时间'), auto_now_add=True)
-    datetime_updated = models.DateTimeField(verbose_name=_('更新时间'), auto_now=True)
+    datetime_created = models.DateTimeField(_('记录时间'), auto_now_add=True)
+    datetime_updated = models.DateTimeField(_('更新时间'), auto_now=True)
 
     objects = models.Manager()
 
@@ -324,9 +324,9 @@ class CreditChangeRecord(models.Model):
         on_delete=models.CASCADE,
         verbose_name=_('关联客户')
     )
-    credits = models.BigIntegerField(verbose_name=_('积分变更'), null=True)
-    current_credits = models.BigIntegerField(verbose_name=_('变更后积分'), null=True, blank=True)
-    notes = models.TextField(verbose_name=_('备注'), max_length=1000, null=True, blank=True)
+    credits = models.BigIntegerField(_('积分变更'), null=True)
+    current_credits = models.BigIntegerField(_('变更后积分'), null=True, blank=True)
+    notes = models.TextField(_('备注'), max_length=1000, null=True, blank=True)
     created_by = models.ForeignKey(
         WxUser,
         null=True,
@@ -343,8 +343,8 @@ class CreditChangeRecord(models.Model):
         related_name='credit_change_record_confirmed_by',
         verbose_name=_('审核人员')
     )
-    datetime_created = models.DateTimeField(verbose_name=_('记录时间'), auto_now_add=True)
-    datetime_updated = models.DateTimeField(verbose_name=_('更新时间'), auto_now=True)
+    datetime_created = models.DateTimeField(_('记录时间'), auto_now_add=True)
+    datetime_updated = models.DateTimeField(_('更新时间'), auto_now=True)
 
     objects = models.Manager()
 
@@ -385,14 +385,17 @@ class CarInfo(models.Model):
     """
     车辆信息
     """
-    car_number = models.CharField(verbose_name=_('车牌'), max_length=100, null=True,  blank=True, unique=True)
-    car_brand = models.CharField(verbose_name=_('汽车品牌'), max_length=255, null=True, blank=True)
-    car_model = models.CharField(verbose_name=_('汽车型号'), max_length=255, null=True, blank=True)
-    car_price = models.IntegerField(verbose_name=_('购买价格/万'), null=True, blank=True)
-    bought_date = models.DateField(verbose_name=_('购买日期'), null=True, blank=True)
-    desc = models.TextField(verbose_name=_('描述'), max_length=1000, null=True, blank=True)
-    is_confirmed = models.BooleanField(verbose_name=_('已审核'), default=False)
-    is_active = models.BooleanField(verbose_name=_('有效'), default=True)
+    car_number = models.CharField(_('车牌'), max_length=100, null=True,  blank=True, unique=True)
+    car_brand = models.CharField(_('汽车品牌'), max_length=255, null=True, blank=True)
+    car_model = models.CharField(_('汽车型号'), max_length=255, null=True, blank=True)
+    car_price = models.IntegerField(_('购买价格/万'), null=True, blank=True)
+    bought_date = models.DateField(_('购买日期'), null=True, blank=True)
+    annual_inspection_date = models.DateField(_('车辆年检日期'), null=True, blank=True)
+    insurance_date = models.DateField(_('交强险到期日'), null=True, blank=True)
+    insurance_company = models.CharField(_('保险公司'), max_length=255, null=True, blank=True)
+    desc = models.TextField(_('描述'), max_length=1000, null=True, blank=True)
+    is_confirmed = models.BooleanField(_('已审核'), default=False)
+    is_active = models.BooleanField(_('有效'), default=True)
     customer = models.ForeignKey(
         Customer,
         null=True,
@@ -415,8 +418,8 @@ class CarInfo(models.Model):
         related_name='car_info_confirmed_by',
         verbose_name=_('审核人员')
     )
-    datetime_created = models.DateTimeField(verbose_name=_('记录时间'), auto_now_add=True)
-    datetime_updated = models.DateTimeField(verbose_name=_('更新时间'), auto_now=True)
+    datetime_created = models.DateTimeField(_('记录时间'), auto_now_add=True)
+    datetime_updated = models.DateTimeField(_('更新时间'), auto_now=True)
 
     objects = models.Manager()
 
@@ -436,10 +439,10 @@ class InsuranceCompany(models.Model):
     """
     保险出单公司
     """
-    name = models.CharField(verbose_name=_('保险出单公司'), max_length=200, null=True, unique=True)
-    desc = models.CharField(verbose_name=_('显示名称'), max_length=200, null=True)
-    display = models.BooleanField(verbose_name=_('用户是否可选'), default=True)
-    is_active = models.BooleanField(verbose_name=_('是否有效'), default=True)
+    name = models.CharField(_('保险出单公司'), max_length=200, null=True, unique=True)
+    desc = models.CharField(_('显示名称'), max_length=200, null=True)
+    display = models.BooleanField(_('用户是否可选'), default=True)
+    is_active = models.BooleanField(_('是否有效'), default=True)
 
     objects = models.Manager()
 
@@ -468,7 +471,7 @@ class BelongTo(models.Model):
         blank=True,
         verbose_name=_('相同渠道')
     )
-    notes = models.TextField(verbose_name=_('备注'), max_length=1000, null=True, blank=True)
+    notes = models.TextField(_('备注'), max_length=1000, null=True, blank=True)
     created_by = models.ForeignKey(
         WxUser,
         null=True,
@@ -485,8 +488,8 @@ class BelongTo(models.Model):
         related_name='belong_to_confirmed_by',
         verbose_name=_('审核人员')
     )
-    datetime_created = models.DateTimeField(verbose_name=_('记录时间'), auto_now_add=True)
-    datetime_updated = models.DateTimeField(verbose_name=_('更新时间'), auto_now=True)
+    datetime_created = models.DateTimeField(_('记录时间'), auto_now_add=True)
+    datetime_updated = models.DateTimeField(_('更新时间'), auto_now=True)
     objects = models.Manager()
 
     class Meta:
@@ -511,8 +514,8 @@ class InsuranceRecord(models.Model):
         blank=True,
         verbose_name=_('车辆信息')
     )
-    record_date = models.DateField(verbose_name=_('签单日期'), null=True)
-    insurance_date = models.DateField(verbose_name=_('保单开始日期'), null=True, blank=True)
+    record_date = models.DateField(_('签单日期'), null=True)
+    insurance_date = models.DateField(_('保单开始日期'), null=True, blank=True)
     total_price = models.DecimalField(
         verbose_name=_('含税总保费'), max_digits=10, decimal_places=2, null=True, blank=True)
     receiver = models.ForeignKey(
@@ -537,8 +540,8 @@ class InsuranceRecord(models.Model):
         limit_choices_to={'is_active': True},
         verbose_name=_('保险公司')
     )
-    tax = models.DecimalField(verbose_name=_('车船税'), max_digits=10, decimal_places=2, null=True, blank=True)
-    has_payback = models.BooleanField(verbose_name=_('是否已返费'), default=False)
+    tax = models.DecimalField(_('车船税'), max_digits=10, decimal_places=2, null=True, blank=True)
+    has_payback = models.BooleanField(_('是否已返费'), default=False)
     payback_percent = models.DecimalField(
         verbose_name=_('已返费率'), max_digits=7, decimal_places=4, null=True, blank=True)
     payback_amount = models.DecimalField(
@@ -549,7 +552,7 @@ class InsuranceRecord(models.Model):
         verbose_name=_('返费金额'), max_digits=10, decimal_places=2, null=True, blank=True)
     profits = models.DecimalField(
         verbose_name=_('利润'), max_digits=10, decimal_places=2, null=True, blank=True)
-    is_payed = models.BooleanField(verbose_name=_('已支付'), default=True)
+    is_payed = models.BooleanField(_('已支付'), default=True)
 
     insurance_csx = models.BooleanField(
         verbose_name=_('机动车辆损失险'),
@@ -621,7 +624,7 @@ class InsuranceRecord(models.Model):
         blank=True
     )
 
-    notes = models.TextField(verbose_name=_('备注'), max_length=1000, null=True, blank=True)
+    notes = models.TextField(_('备注'), max_length=1000, null=True, blank=True)
     created_by = models.ForeignKey(
         WxUser,
         null=True,
@@ -638,8 +641,8 @@ class InsuranceRecord(models.Model):
         related_name='insurance_record_confirmed_by',
         verbose_name=_('审核人员')
     )
-    datetime_created = models.DateTimeField(verbose_name=_('记录时间'), auto_now_add=True)
-    datetime_updated = models.DateTimeField(verbose_name=_('更新时间'), auto_now=True)
+    datetime_created = models.DateTimeField(_('记录时间'), auto_now_add=True)
+    datetime_updated = models.DateTimeField(_('更新时间'), auto_now=True)
 
     objects = models.Manager()
 
@@ -659,10 +662,10 @@ class ServicePackageType(models.Model):
     """
     套餐归类
     """
-    name = models.CharField(verbose_name=_('名称'), max_length=200, null=True, unique=True)
-    icon = models.ImageField(verbose_name=_('图片'), upload_to='service_package_type', null=True, blank=True)
-    desc = models.CharField(verbose_name=_('介绍'), max_length=200, null=True, blank=True)
-    is_active = models.BooleanField(verbose_name=_('是否有效'), default=True)
+    name = models.CharField(_('名称'), max_length=200, null=True, unique=True)
+    icon = models.ImageField(_('图片'), upload_to='service_package_type', null=True, blank=True)
+    desc = models.CharField(_('介绍'), max_length=200, null=True, blank=True)
+    is_active = models.BooleanField(_('是否有效'), default=True)
 
     objects = models.Manager()
 
@@ -689,10 +692,10 @@ class ServicePackage(models.Model):
     """
     服务套餐
     """
-    name = models.CharField(verbose_name=_('名称'), max_length=200, null=True,  unique=True)
-    price = models.DecimalField(verbose_name=_('价格'), max_digits=10, decimal_places=2, null=True, blank=True)
-    desc = models.CharField(verbose_name=_('介绍'), max_length=200, null=True, blank=True)
-    is_active = models.BooleanField(verbose_name=_('是否有效'), default=True)
+    name = models.CharField(_('名称'), max_length=200, null=True,  unique=True)
+    price = models.DecimalField(_('价格'), max_digits=10, decimal_places=2, null=True, blank=True)
+    desc = models.CharField(_('介绍'), max_length=200, null=True, blank=True)
+    is_active = models.BooleanField(_('是否有效'), default=True)
     service_type = models.ForeignKey(
         ServicePackageType,
         on_delete=models.CASCADE,
@@ -719,10 +722,10 @@ class OilPackage(models.Model):
     """
     机油套餐
     """
-    name = models.CharField(verbose_name=_('名称'), max_length=200, null=True,  unique=True)
-    price = models.DecimalField(verbose_name=_('价格'), max_digits=10, decimal_places=2, null=True, blank=True)
-    desc = models.CharField(verbose_name=_('介绍'), max_length=200, null=True, blank=True)
-    is_active = models.BooleanField(verbose_name=_('是否有效'), default=True)
+    name = models.CharField(_('名称'), max_length=200, null=True,  unique=True)
+    price = models.DecimalField(_('价格'), max_digits=10, decimal_places=2, null=True, blank=True)
+    desc = models.CharField(_('介绍'), max_length=200, null=True, blank=True)
+    is_active = models.BooleanField(_('是否有效'), default=True)
 
     objects = models.Manager()
 
@@ -742,12 +745,12 @@ class StoreInfo(models.Model):
     """
     门店信息
     """
-    name = models.CharField(verbose_name=_('名称'), max_length=200, null=True, unique=True)
-    contact = models.CharField(verbose_name=_('联系电话'), max_length=200, null=True, blank=True)
-    address = models.TextField(verbose_name=_('地址'), max_length=1000, null=True, blank=True)
-    image = models.ImageField(verbose_name=_('照片'), upload_to='', null=True, blank=True)
-    is_active = models.BooleanField(verbose_name=_('有效'), default=True)
-    desc = models.TextField(verbose_name=_('介绍'), max_length=2000, null=True, blank=True)
+    name = models.CharField(_('名称'), max_length=200, null=True, unique=True)
+    contact = models.CharField(_('联系电话'), max_length=200, null=True, blank=True)
+    address = models.TextField(_('地址'), max_length=1000, null=True, blank=True)
+    image = models.ImageField(_('照片'), upload_to='', null=True, blank=True)
+    is_active = models.BooleanField(_('有效'), default=True)
+    desc = models.TextField(_('介绍'), max_length=2000, null=True, blank=True)
 
     objects = models.Manager()
 
@@ -788,18 +791,16 @@ class ServiceRecord(models.Model):
         blank=True,
         verbose_name=_('机油套餐')
     )
-    service_info = models.TextField(verbose_name=_('服务详情'), null=True, blank=True, max_length=200)
-    reserve_type = models.IntegerField(verbose_name=_('类型'), null=True, blank=True, choices=[(1, '上门'), (2, '到店')])
-    is_reversed = models.BooleanField(verbose_name=_('是预约服务'), default=False)
-    reserve_time = models.DateTimeField(verbose_name=_('服务时间'), null=True, blank=True)
-    reserve_address = models.TextField(verbose_name=_('服务地点'), max_length=1000, null=True, blank=True)
-    related_store = models.ForeignKey(
-        StoreInfo,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        verbose_name=_('门店')
-    )
+    service_info = models.TextField(_('服务详情'), null=True, blank=True, max_length=200)
+    reserve_type = models.IntegerField(_('服务类型'), null=True, blank=True, choices=[(1, '上门'), (2, '到店')])
+    is_reversed = models.BooleanField(_('是预约服务'), default=False)
+    reserve_time = models.DateTimeField(_('进厂时间'), null=True, blank=True)
+    finish_time = models.DateTimeField(_('预计出厂时间'), null=True, blank=True)
+    reserve_address = models.TextField(_('服务地点'), max_length=1000, null=True, blank=True)
+    vehicle_mileage = models.IntegerField(_('当前行驶公里数'), null=True, blank=True)
+    total_price = models.DecimalField(_('应收金额'), default=0, decimal_places=2, max_digits=10)
+    total_payed = models.DecimalField(_('实收金额'), default=0, decimal_places=2, max_digits=10)
+    total_cost = models.DecimalField(_('总成本'), default=0, decimal_places=2, max_digits=10)
     checked_by = models.ForeignKey(
         Superior,
         on_delete=models.SET_NULL,
@@ -808,17 +809,24 @@ class ServiceRecord(models.Model):
         blank=True,
         verbose_name=_('由谁联系')
     )
-    is_checked = models.BooleanField(verbose_name=_('已联系/已确认'), default=False)
+    is_checked = models.BooleanField(_('已联系/已确认'), default=False)
+    related_store = models.ForeignKey(
+        StoreInfo,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_('维修门店')
+    )
     served_by = models.ForeignKey(
         Superior,
         on_delete=models.SET_NULL,
         related_name='service_record_served_by',
         null=True,
         blank=True,
-        verbose_name=_('由谁服务')
+        verbose_name=_('维修人员')
     )
-    is_served = models.BooleanField(verbose_name=_('服务已完成'), default=False)
-    notes = models.TextField(verbose_name=_('备注'), max_length=1000, null=True, blank=True)
+    is_served = models.BooleanField(_('服务已完成'), default=False)
+    notes = models.TextField(_('备注'), max_length=1000, null=True, blank=True)
     created_by = models.ForeignKey(
         WxUser,
         null=True,
@@ -835,8 +843,8 @@ class ServiceRecord(models.Model):
         related_name='service_record_confirmed_by',
         verbose_name=_('审核人员')
     )
-    datetime_created = models.DateTimeField(verbose_name=_('记录时间'), auto_now_add=True)
-    datetime_updated = models.DateTimeField(verbose_name=_('更新时间'), auto_now=True)
+    datetime_created = models.DateTimeField(_('记录时间'), auto_now_add=True)
+    datetime_updated = models.DateTimeField(_('更新时间'), auto_now=True)
 
     objects = models.Manager()
 
@@ -849,6 +857,98 @@ class ServiceRecord(models.Model):
         return "{} {}".format(
             self.car,
             self.reserve_time,
+        )
+
+
+class ServiceItem(models.Model):
+    related_service_record = models.ForeignKey(
+        ServiceRecord,
+        null=True,
+        on_delete=models.CASCADE,
+        verbose_name=_('维修服务')
+    )
+    name = models.CharField(_('项目名称'), max_length=255, null=True, blank=True)
+    price = models.DecimalField(_('售价'), null=True, blank=True, decimal_places=2, max_digits=10)
+    cost = models.DecimalField(_('成本'), null=True, blank=True, decimal_places=2, max_digits=10)
+    notes = models.CharField(_('备注'), max_length=255, null=True, blank=True)
+    created_by = models.ForeignKey(
+        WxUser,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='service_item_created_by',
+        verbose_name=_('创建人员')
+    )
+    confirmed_by = models.ForeignKey(
+        WxUser,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='service_item_confirmed_by',
+        verbose_name=_('审核人员')
+    )
+    datetime_created = models.DateTimeField(_('记录时间'), auto_now_add=True)
+    datetime_updated = models.DateTimeField(_('更新时间'), auto_now=True)
+
+    objects = models.Manager()
+
+    class Meta:
+        ordering = ['-id']
+        verbose_name = _('维修项目')
+        verbose_name_plural = _('维修项目')
+
+    def __str__(self):
+        return "{} {}".format(
+            self.name,
+            self.price,
+        )
+
+
+class ServiceFeedback(models.Model):
+    related_service_record = models.ForeignKey(
+        ServiceRecord,
+        null=True,
+        on_delete=models.SET_NULL,
+        verbose_name=_('维修服务')
+    )
+    feedback_date = models.DateField(_('回访日期'), null=True, blank=True)
+    feedback_by = models.ForeignKey(
+        Superior,
+        null=True,
+        on_delete=models.SET_NULL,
+        verbose_name=_('回访人员')
+    )
+    notes = models.CharField(_('备注'), max_length=255, null=True, blank=True)
+    created_by = models.ForeignKey(
+        WxUser,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='service_feedback_created_by',
+        verbose_name=_('创建人员')
+    )
+    confirmed_by = models.ForeignKey(
+        WxUser,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='service_feedback_confirmed_by',
+        verbose_name=_('审核人员')
+    )
+    datetime_created = models.DateTimeField(_('记录时间'), auto_now_add=True)
+    datetime_updated = models.DateTimeField(_('更新时间'), auto_now=True)
+
+    objects = models.Manager()
+
+    class Meta:
+        ordering = ['-id']
+        verbose_name = _('回访记录')
+        verbose_name_plural = _('回访记录')
+
+    def __str__(self):
+        return "{} {}".format(
+            self.related_service_record,
+            self.feedback_by,
         )
 
 
@@ -895,11 +995,11 @@ class ServiceApply(models.Model):
     """
     服务申请
     """
-    car_number = models.CharField(verbose_name=_('车牌'), max_length=100, null=True)
-    car_brand = models.CharField(verbose_name=_('汽车品牌'), max_length=255, null=True, blank=True)
-    car_model = models.CharField(verbose_name=_('汽车型号'), max_length=255, null=True, blank=True)
-    name = models.CharField(verbose_name=_('名字'), max_length=255, null=True)
-    mobile = models.CharField(verbose_name=_('手机'), max_length=255, null=True)
+    car_number = models.CharField(_('车牌'), max_length=100, null=True)
+    car_brand = models.CharField(_('汽车品牌'), max_length=255, null=True, blank=True)
+    car_model = models.CharField(_('汽车型号'), max_length=255, null=True, blank=True)
+    name = models.CharField(_('名字'), max_length=255, null=True)
+    mobile = models.CharField(_('手机'), max_length=255, null=True)
     related_store = models.ForeignKey(
         StoreInfo,
         on_delete=models.SET_NULL,
@@ -923,10 +1023,10 @@ class ServiceApply(models.Model):
         blank=True,
         verbose_name=_('机油套餐')
     )
-    service_info = models.TextField(verbose_name=_('服务详情'), null=True, blank=True,  max_length=200)
-    reserve_type = models.IntegerField(verbose_name=_('类型'), null=True, blank=True, choices=[(1, '上门'), (2, '到店')])
-    reserve_time = models.DateTimeField(verbose_name=_('服务时间'), null=True, blank=True)
-    reserve_address = models.TextField(verbose_name=_('服务地点'), max_length=1000, null=True, blank=True)
+    service_info = models.TextField(_('服务详情'), null=True, blank=True,  max_length=200)
+    reserve_type = models.IntegerField(_('类型'), null=True, blank=True, choices=[(1, '上门'), (2, '到店')])
+    reserve_time = models.DateTimeField(_('服务时间'), null=True, blank=True)
+    reserve_address = models.TextField(_('服务地点'), max_length=1000, null=True, blank=True)
     checked_by = models.ForeignKey(
         Superior,
         on_delete=models.SET_NULL,
@@ -935,7 +1035,7 @@ class ServiceApply(models.Model):
         blank=True,
         verbose_name=_('由谁联系')
     )
-    is_checked = models.BooleanField(verbose_name=_('已联系/已确认'), default=False)
+    is_checked = models.BooleanField(_('已联系/已确认'), default=False)
     data_import = models.BooleanField(
         verbose_name=_('已导入维修服务'), help_text=_('勾选以后数据将会自动导入到【维修服务】列表'), default=False)
     related_record = models.ForeignKey(
@@ -945,7 +1045,7 @@ class ServiceApply(models.Model):
         blank=True,
         verbose_name=_('关联记录')
     )
-    notes = models.TextField(verbose_name=_('备注'), max_length=1000, null=True, blank=True)
+    notes = models.TextField(_('备注'), max_length=1000, null=True, blank=True)
     created_by = models.ForeignKey(
         WxUser,
         null=True,
@@ -962,8 +1062,8 @@ class ServiceApply(models.Model):
         related_name='service_apply_confirmed_by',
         verbose_name=_('审核人员')
     )
-    datetime_created = models.DateTimeField(verbose_name=_('记录时间'), auto_now_add=True)
-    datetime_updated = models.DateTimeField(verbose_name=_('更新时间'), auto_now=True)
+    datetime_created = models.DateTimeField(_('记录时间'), auto_now_add=True)
+    datetime_updated = models.DateTimeField(_('更新时间'), auto_now=True)
 
     objects = models.Manager()
 
@@ -1004,16 +1104,16 @@ class InsuranceApply(models.Model):
     """
     保险申请，包括车辆续保
     """
-    car_number = models.CharField(verbose_name=_('车牌'), max_length=100, null=True)
-    car_brand = models.CharField(verbose_name=_('汽车品牌'), max_length=255, null=True, blank=True)
-    car_model = models.CharField(verbose_name=_('汽车型号'), max_length=255, null=True, blank=True)
-    name = models.CharField(verbose_name=_('名字'), max_length=255, null=True)
-    mobile = models.CharField(verbose_name=_('手机'), max_length=255, null=True)
+    car_number = models.CharField(_('车牌'), max_length=100, null=True)
+    car_brand = models.CharField(_('汽车品牌'), max_length=255, null=True, blank=True)
+    car_model = models.CharField(_('汽车型号'), max_length=255, null=True, blank=True)
+    name = models.CharField(_('名字'), max_length=255, null=True)
+    mobile = models.CharField(_('手机'), max_length=255, null=True)
     service_type = models.IntegerField(
         verbose_name=_('类别'),
         help_text=_('1-->车辆续保, 2-->保险分期, 3-->车辆贷款'),
         null=True, blank=True, choices=[(1, '车辆续保'), (2, '保险分期'), (3, '车辆贷款')])
-    insurance_date = models.DateField(verbose_name=_('保单开始日期'), null=True, blank=True)
+    insurance_date = models.DateField(_('保单开始日期'), null=True, blank=True)
     insurance_csx = models.BooleanField(
         verbose_name=_('机动车辆损失险'),
         help_text=_(
@@ -1110,7 +1210,7 @@ class InsuranceApply(models.Model):
         blank=True,
         verbose_name=_('由谁联系')
     )
-    is_checked = models.BooleanField(verbose_name=_('已联系/已确认'), default=False)
+    is_checked = models.BooleanField(_('已联系/已确认'), default=False)
     data_import = models.BooleanField(
         verbose_name=_('已导入投保记录'), help_text=_('勾选以后数据将会自动导入到【投保记录】列表'), default=False)
     related_record = models.ForeignKey(
@@ -1120,7 +1220,7 @@ class InsuranceApply(models.Model):
         blank=True,
         verbose_name=_('关联记录')
     )
-    notes = models.TextField(verbose_name=_('备注'), max_length=1000, null=True, blank=True)
+    notes = models.TextField(_('备注'), max_length=1000, null=True, blank=True)
     created_by = models.ForeignKey(
         WxUser,
         null=True,
@@ -1137,8 +1237,8 @@ class InsuranceApply(models.Model):
         related_name='insurance_apply_confirmed_by',
         verbose_name=_('审核人员')
     )
-    datetime_created = models.DateTimeField(verbose_name=_('记录时间'), auto_now_add=True)
-    datetime_updated = models.DateTimeField(verbose_name=_('更新时间'), auto_now=True)
+    datetime_created = models.DateTimeField(_('记录时间'), auto_now_add=True)
+    datetime_updated = models.DateTimeField(_('更新时间'), auto_now=True)
 
     objects = models.Manager()
 
@@ -1182,11 +1282,11 @@ class PartnerApply(models.Model):
     """
     城市合伙人申请
     """
-    name = models.CharField(verbose_name=_('名字'), max_length=255, null=True)
-    mobile = models.CharField(verbose_name=_('手机'), max_length=255, null=True)
-    address = models.TextField(verbose_name=_('长期居住地'), max_length=1000, null=True, blank=True)
-    professional = models.CharField(verbose_name=_('现就职业'), max_length=100, null=True, blank=True)
-    reason = models.TextField(verbose_name=_('申请理由或资源'), max_length=1000, null=True, blank=True)
+    name = models.CharField(_('名字'), max_length=255, null=True)
+    mobile = models.CharField(_('手机'), max_length=255, null=True)
+    address = models.TextField(_('长期居住地'), max_length=1000, null=True, blank=True)
+    professional = models.CharField(_('现就职业'), max_length=100, null=True, blank=True)
+    reason = models.TextField(_('申请理由或资源'), max_length=1000, null=True, blank=True)
     checked_by = models.ForeignKey(
         Superior,
         on_delete=models.SET_NULL,
@@ -1195,8 +1295,8 @@ class PartnerApply(models.Model):
         blank=True,
         verbose_name=_('由谁联系')
     )
-    is_checked = models.BooleanField(verbose_name=_('已联系/已确认'), default=False)
-    notes = models.TextField(verbose_name=_('备注'), max_length=1000, null=True, blank=True)
+    is_checked = models.BooleanField(_('已联系/已确认'), default=False)
+    notes = models.TextField(_('备注'), max_length=1000, null=True, blank=True)
     created_by = models.ForeignKey(
         WxUser,
         null=True,
@@ -1213,8 +1313,8 @@ class PartnerApply(models.Model):
         related_name='partner_apply_confirmed_by',
         verbose_name=_('审核人员')
     )
-    datetime_created = models.DateTimeField(verbose_name=_('记录时间'), auto_now_add=True)
-    datetime_updated = models.DateTimeField(verbose_name=_('更新时间'), auto_now=True)
+    datetime_created = models.DateTimeField(_('记录时间'), auto_now_add=True)
+    datetime_updated = models.DateTimeField(_('更新时间'), auto_now=True)
 
     objects = models.Manager()
 
@@ -1235,15 +1335,15 @@ class InsuranceRecordUpload(models.Model):
     """
     保险业绩数据导入
     """
-    file = models.FileField(verbose_name=_('文件'), null=True, blank=True)
-    file_name = models.CharField(verbose_name=_('文件名'), null=True, blank=True, max_length=255)
-    total_count = models.IntegerField(verbose_name=_('总条数'), null=True, blank=True)
-    created_count = models.IntegerField(verbose_name=_('添加条数'), null=True, blank=True)
-    updated_count = models.IntegerField(verbose_name=_('更新条数'), null=True, blank=True)
-    failed_count = models.IntegerField(verbose_name=_('失败条数'), null=True, blank=True)
-    is_confirmed = models.BooleanField(verbose_name=_('已确认'), default=True)
-    is_processed = models.BooleanField(verbose_name=_('已执行'), default=False)
-    notes = models.TextField(verbose_name=_('备注'), max_length=1000, null=True, blank=True)
+    file = models.FileField(_('文件'), null=True, blank=True)
+    file_name = models.CharField(_('文件名'), null=True, blank=True, max_length=255)
+    total_count = models.IntegerField(_('总条数'), null=True, blank=True)
+    created_count = models.IntegerField(_('添加条数'), null=True, blank=True)
+    updated_count = models.IntegerField(_('更新条数'), null=True, blank=True)
+    failed_count = models.IntegerField(_('失败条数'), null=True, blank=True)
+    is_confirmed = models.BooleanField(_('已确认'), default=True)
+    is_processed = models.BooleanField(_('已执行'), default=False)
+    notes = models.TextField(_('备注'), max_length=1000, null=True, blank=True)
     created_by = models.ForeignKey(
         WxUser,
         null=True,
@@ -1260,8 +1360,8 @@ class InsuranceRecordUpload(models.Model):
         related_name='insurance_record_upload_confirmed_by',
         verbose_name=_('审核人员')
     )
-    datetime_created = models.DateTimeField(verbose_name=_('记录时间'), auto_now_add=True)
-    datetime_updated = models.DateTimeField(verbose_name=_('更新时间'), auto_now=True)
+    datetime_created = models.DateTimeField(_('记录时间'), auto_now_add=True)
+    datetime_updated = models.DateTimeField(_('更新时间'), auto_now=True)
 
     objects = models.Manager()
 
@@ -1386,10 +1486,10 @@ class ReportMake(models.Model):
         choices=(('归属统计', '归属统计'),),
         null=True, blank=True, max_length=255)
     file = models.FileField(_('报告文件'), null=True, blank=True, upload_to='report', editable=False)
-    is_processed = models.BooleanField(verbose_name=_('已执行'), default=False)
+    is_processed = models.BooleanField(_('已执行'), default=False)
     date_start = models.DateField(_('开始日期'), null=True, blank=True)
     date_end = models.DateField(_('结束日期'), null=True, blank=True)
-    notes = models.TextField(verbose_name=_('备注'), max_length=1000, null=True, blank=True)
+    notes = models.TextField(_('备注'), max_length=1000, null=True, blank=True)
     created_by = models.ForeignKey(
         WxUser,
         null=True,
@@ -1406,8 +1506,8 @@ class ReportMake(models.Model):
         related_name='report_make_confirmed_by',
         verbose_name=_('审核人员')
     )
-    datetime_created = models.DateTimeField(verbose_name=_('记录时间'), auto_now_add=True)
-    datetime_updated = models.DateTimeField(verbose_name=_('更新时间'), auto_now=True)
+    datetime_created = models.DateTimeField(_('记录时间'), auto_now_add=True)
+    datetime_updated = models.DateTimeField(_('更新时间'), auto_now=True)
 
     class Meta:
         ordering = ['-id']
