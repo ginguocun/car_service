@@ -903,6 +903,37 @@ class ServiceItem(models.Model):
             self.price,
         )
 
+    def update_related_service_record(self):
+        # 更新服务记录的 total_price 和 total_cost
+        total_price = 0
+        total_cost = 0
+        if self.related_service_record:
+            items = ServiceItem.objects.filter(
+                related_service_record_id=getattr(self, 'related_service_record_id')
+            ).values('price', 'cost')
+            for it in items:
+                # price 计算
+                price = it.get('price', 0)
+                if price:
+                    price = float(price)
+                else:
+                    price = 0
+                total_price = total_price + price
+                # cost 计算
+                cost = it.get('cost', 0)
+                if cost:
+                    cost = float(cost)
+                else:
+                    cost = 0
+                total_cost = total_cost + cost
+            ServiceRecord.objects.filter(
+                pk=getattr(self, 'related_service_record_id')
+            ).update(total_price=total_price, total_cost=total_cost)
+
+    def save(self, *args, **kwargs):
+        super(ServiceItem, self).save(*args, **kwargs)
+        self.update_related_service_record()
+
 
 class ServiceFeedback(models.Model):
     related_service_record = models.ForeignKey(

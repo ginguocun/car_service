@@ -270,7 +270,7 @@ class ServiceRecordAdmin(AutoUpdateUserModelAdmin):
             'classes': ('collapse',)
         }),
         (_('备注'), {
-            'fields': ('total_cost', 'notes', 'datetime_created', 'datetime_updated'),
+            'fields': ('notes', 'datetime_created', 'datetime_updated'),
             'classes': ('collapse',)
         })
     )
