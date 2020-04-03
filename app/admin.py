@@ -171,6 +171,9 @@ class InsuranceRecordAdmin(AutoUpdateUserModelAdmin):
             'payback_percent', 'payback_amount',
             'ic_payback_percent', 'ic_payback_amount', 'profits',
             'has_payback', 'is_payed')}),
+        (_('保险详情'), {'fields': (
+            'insurance_jqx', 'insurance_csx', 'insurance_fdjss', 'insurance_zrss', 'insurance_dqx', 'insurance_pl',
+            'insurance_cshx', 'insurance_dsxr', 'insurance_sj', 'insurance_ck', 'insurance_hw')}),
         (_('人员'), {'fields': ('receiver', 'belong_to', 'insurance_company')}),
         (_('备注'), {'fields': ('notes',)})
     )
@@ -319,10 +322,11 @@ class InsuranceApplyAdmin(AutoUpdateUserModelAdmin):
         (_('车辆信息'), {'fields': (
             'car_number', 'car_brand', 'car_model', 'name', 'mobile', 'insurance_date')}),
         (_('服务类型'), {'fields': ('service_type',)}),
-        (_('保险信息'), {'fields': (
-            'insurance_csx', 'insurance_fdjss', 'insurance_zrss', 'insurance_dqx', 'insurance_pl',
+        (_('车辆续保'), {'fields': (
+            'insurance_jqx', 'insurance_csx', 'insurance_fdjss', 'insurance_zrss', 'insurance_dqx', 'insurance_pl',
             'insurance_cshx', 'insurance_dsxr', 'insurance_sj', 'insurance_ck', 'insurance_hw')}),
-        (_('贷款信息'), {'fields': ('changed_times', 'money_needed')}),
+        (_('车辆贷款'), {'fields': ('changed_times', 'money_needed')}),
+        (_('保险分期'), {'fields': ('money_jqx', 'money_ccs', 'money_syx', 'stages', 'down_payment', 'stage_payment')}),
         (_('审核信息'), {'fields': ('checked_by', 'is_checked', 'data_import', 'related_record')}),
         (_('备注'), {'fields': ('notes', 'datetime_created', 'datetime_updated')})
     )

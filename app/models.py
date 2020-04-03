@@ -554,6 +554,12 @@ class InsuranceRecord(models.Model):
         verbose_name=_('利润'), max_digits=10, decimal_places=2, null=True, blank=True)
     is_payed = models.BooleanField(_('已支付'), default=True)
 
+    insurance_jqx = models.BooleanField(
+        verbose_name=_('交强险'),
+        help_text=_(
+            '中国首个由国家法律规定实行的强制保险制度。'
+            '其保费是实行全国统一收费标准的，由国家统一规定的，但是不同的汽车型号的交强险价格也不同，主要影响因素是“汽车座位数”'),
+        default=True)
     insurance_csx = models.BooleanField(
         verbose_name=_('机动车辆损失险'),
         help_text=_(
@@ -1145,6 +1151,13 @@ class InsuranceApply(models.Model):
         help_text=_('1-->车辆续保, 2-->保险分期, 3-->车辆贷款'),
         null=True, blank=True, choices=[(1, '车辆续保'), (2, '保险分期'), (3, '车辆贷款')])
     insurance_date = models.DateField(_('保单开始日期'), null=True, blank=True)
+
+    insurance_jqx = models.BooleanField(
+        verbose_name=_('交强险'),
+        help_text=_(
+            '中国首个由国家法律规定实行的强制保险制度。'
+            '其保费是实行全国统一收费标准的，由国家统一规定的，但是不同的汽车型号的交强险价格也不同，主要影响因素是“汽车座位数”'),
+        default=True)
     insurance_csx = models.BooleanField(
         verbose_name=_('机动车辆损失险'),
         help_text=_(
@@ -1228,11 +1241,15 @@ class InsuranceApply(models.Model):
         blank=True,
         default='0'
     )
-    money_needed = models.IntegerField(
-        verbose_name=_('需求金额/元'),
-        null=True,
-        blank=True
-    )
+    money_needed = models.IntegerField(_('需求金额/元'), null=True, blank=True)
+
+    money_jqx = models.DecimalField(_('交强险金额/元'), max_digits=10, decimal_places=2, null=True, blank=True)
+    money_ccs = models.DecimalField(_('车船税金额/元'), max_digits=10, decimal_places=2, null=True, blank=True)
+    money_syx = models.DecimalField(_('商业险金额/元'), max_digits=10, decimal_places=2, null=True, blank=True)
+    stages = models.IntegerField(_('分期数'), null=True, blank=True, choices=[(3, 3), (6, 6), (9, 9)])
+    down_payment = models.DecimalField(_('首付/元'), max_digits=10, decimal_places=2, null=True, blank=True)
+    stage_payment = models.DecimalField(_('每期/元'), max_digits=10, decimal_places=2, null=True, blank=True)
+
     checked_by = models.ForeignKey(
         Superior,
         on_delete=models.SET_NULL,
@@ -1292,7 +1309,7 @@ class InsuranceApply(models.Model):
             car = get_car_info(self)
             # 添加保险记录
             fields = [
-                'insurance_csx', 'insurance_fdjss', 'insurance_zrss', 'insurance_dqx', 'insurance_pl',
+                'insurance_jqx', 'insurance_csx', 'insurance_fdjss', 'insurance_zrss', 'insurance_dqx', 'insurance_pl',
                 'insurance_cshx', 'insurance_dsxr', 'insurance_sj', 'insurance_ck', 'insurance_hw',
                 'created_by', 'insurance_date'
             ]
