@@ -4,6 +4,8 @@ import pandas as pd
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
 from django.forms import model_to_dict
 from django.utils.translation import gettext_lazy as _
 
@@ -941,6 +943,35 @@ class ServiceItem(models.Model):
         self.update_related_service_record()
 
 
+@receiver(pre_delete, sender=ServiceItem)
+def before_delete_service_item(sender, instance, **kwargs):
+    total_price = 0
+    total_cost = 0
+    items = ServiceItem.objects.filter(
+        related_service_record_id=getattr(instance, 'related_service_record_id')
+    ).exclude(
+        pk=getattr(instance, 'pk')
+    ).values('price', 'cost')
+    for it in items:
+        # price 计算
+        price = it.get('price', 0)
+        if price:
+            price = float(price)
+        else:
+            price = 0
+        total_price = total_price + price
+        # cost 计算
+        cost = it.get('cost', 0)
+        if cost:
+            cost = float(cost)
+        else:
+            cost = 0
+        total_cost = total_cost + cost
+    ServiceRecord.objects.filter(
+        pk=getattr(instance, 'related_service_record_id')
+    ).update(total_price=total_price, total_cost=total_cost)
+
+
 class ServiceFeedback(models.Model):
     related_service_record = models.ForeignKey(
         ServiceRecord,
@@ -1122,7 +1153,7 @@ class ServiceApply(models.Model):
             # 获取或存储客户信息
             car = get_car_info(self)
             # 添加服务记录
-            related_record, created = ServiceRecord.objects.update_or_create(
+            related_record, created = ServiceRecord.objects.get_or_create(
                 car=car,
                 service_package=self.service_package,
                 reserve_type=self.reserve_type,
@@ -1311,7 +1342,7 @@ class InsuranceApply(models.Model):
             fields = [
                 'insurance_jqx', 'insurance_csx', 'insurance_fdjss', 'insurance_zrss', 'insurance_dqx', 'insurance_pl',
                 'insurance_cshx', 'insurance_dsxr', 'insurance_sj', 'insurance_ck', 'insurance_hw',
-                'created_by', 'insurance_date'
+                'created_by'
             ]
             data = {}
             for v in fields:
@@ -1319,6 +1350,7 @@ class InsuranceApply(models.Model):
 
             related_record, created = InsuranceRecord.objects.get_or_create(
                 car=car,
+                insurance_date=self.insurance_date,
                 is_payed=False,
                 **data
             )
