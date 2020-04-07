@@ -384,3 +384,13 @@ class ReportMakeAdmin(admin.ModelAdmin):
     list_display = ['pk', 'report_type', 'file', 'date_start', 'date_end', 'notes', 'created_by', 'datetime_created']
     list_display_links = ['pk', 'report_type']
     list_filter = ['report_type']
+
+
+@admin.register(MsgSendRecord)
+class MsgSendRecordAdmin(AutoUpdateUserModelAdmin):
+    readonly_fields = (
+        'mobile', 'code', 'paras', 'msg_type', 'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')
+    list_display = ['pk', 'mobile', 'code', 'paras', 'msg_type', 'notes']
+    search_fields = ['mobile', 'code', 'paras']
+    list_display_links = ['pk', 'mobile', 'paras']
+    list_filter = ['msg_type']

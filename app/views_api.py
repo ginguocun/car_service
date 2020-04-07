@@ -1,6 +1,8 @@
 import json
 import logging
+import random
 import re
+from datetime import datetime
 
 import requests
 from django_filters import rest_framework as filters
@@ -19,6 +21,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from weixin import WXAPPAPI
 from weixin.oauth2 import OAuth2AuthExchangeError
 
+from car.sms_aliyun import sms_code
 from car.utils import NormalResultsSetPagination
 
 from .serializers import *
@@ -528,17 +531,71 @@ class UserInfoView(AppApi):
 
 class UpdateMobileView(AppApi):
     """
-    get:
-    获取自己的用户信息
+    post:
+    更新手机号
     """
     def post(self, request):
         if request.user.id:
             user = WxUser.objects.filter(pk=request.user.id).first()
             mobile = request.data.get('mobile', '')
-            if re.match(r"^1[23456789]\d{9}$", mobile):
-                user.mobile = mobile
-                user.save()
-                res = get_user_detail(user)
-                return Response(res, status=HTTP_200_OK)
+            code = request.data.get('code', '')
+            if re.match(r"^1[2-9]\d{9}$", mobile):
+                if code:
+                    code_msg = MsgSendRecord.objects.filter(
+                        mobile=str(mobile), msg_type=1, code=str(code)
+                    ).order_by('-pk').first()
+                    if code_msg:
+                        if (datetime.now() - code_msg.datetime_created).seconds < 300:
+                            user.mobile = mobile
+                            user.save()
+                            res = get_user_detail(user)
+                            return Response(res, status=HTTP_200_OK)
+                        return Response({'detail': '验证码过期'}, status=HTTP_400_BAD_REQUEST)
+                    return Response({'detail': '验证失败'}, status=HTTP_400_BAD_REQUEST)
+                else:
+                    # todo 待更新
+                    # return Response({'detail': 'code 未提供'}, status=HTTP_400_BAD_REQUEST)
+                    user.mobile = mobile
+                    user.save()
+                    res = get_user_detail(user)
+                    return Response(res, status=HTTP_200_OK)
             return Response({'detail': '手机号格式有误'}, status=HTTP_400_BAD_REQUEST)
         return Response({'detail': '请登录'}, status=HTTP_401_UNAUTHORIZED)
+
+
+class GetCodeView(APIView):
+    """
+    get:
+    获取验证码
+    """
+    def get(self, request):
+        if self.request.user.id:
+            # 校验参数
+            mobile = request.query_params.get('mobile')
+            if not mobile:
+                return Response('手机号未提供', status=HTTP_400_BAD_REQUEST)
+            res = re.match(r'^1[2-9]\d{9}$', mobile)
+            if res:
+                # 查看之前的发送记录
+                pre_send = MsgSendRecord.objects.filter(mobile=mobile).order_by('-pk').first()
+                if pre_send:
+                    if (datetime.now() - pre_send.datetime_created).seconds < 300:
+                        return Response('操作过于频繁，请在5分钟后重新申请', status=HTTP_400_BAD_REQUEST)
+                # 保存短信验证码
+                code = random.randint(1000, 9999)
+                record = MsgSendRecord.objects.create(
+                    mobile=mobile, code=code, paras=str({'code': code}), msg_type=1,
+                    created_by_id=self.request.user.id
+                )
+                # 发送短信
+                sms = sms_code(mobile=mobile, code=code)
+                record.notes = sms.text
+                record.save()
+                if sms.status_code == 200:
+                    return Response('发送成功', status=HTTP_200_OK)
+                else:
+                    return Response(sms.text, status=HTTP_400_BAD_REQUEST)
+            else:
+                return Response('手机号不符合规则', status=HTTP_400_BAD_REQUEST)
+        else:
+            return Response('请先登录', status=HTTP_401_UNAUTHORIZED)

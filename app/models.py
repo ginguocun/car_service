@@ -1589,6 +1589,8 @@ class ReportMake(models.Model):
     datetime_created = models.DateTimeField(_('记录时间'), auto_now_add=True)
     datetime_updated = models.DateTimeField(_('更新时间'), auto_now=True)
 
+    objects = models.Manager()
+
     class Meta:
         ordering = ['-id']
         verbose_name = _('报告生成')
@@ -1597,4 +1599,43 @@ class ReportMake(models.Model):
     def __str__(self):
         return "{}".format(
             self.pk
+        )
+
+
+class MsgSendRecord(models.Model):
+    mobile = models.CharField(_('手机'), max_length=20, null=True)
+    code = models.CharField(_('验证码'), max_length=20, null=True, blank=True)
+    paras = models.CharField(_('数据'), max_length=200, null=True, blank=True)
+    msg_type = models.IntegerField(_('短信类型'), null=True, choices=[(1, '验证码'), (2, '支付记录')])
+    notes = models.TextField(_('备注'), max_length=1000, null=True, blank=True)
+    created_by = models.ForeignKey(
+        WxUser,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='msg_send_record_created_by',
+        verbose_name=_('创建人员')
+    )
+    confirmed_by = models.ForeignKey(
+        WxUser,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='msg_send_record_confirmed_by',
+        verbose_name=_('审核人员')
+    )
+    datetime_created = models.DateTimeField(_('记录时间'), auto_now_add=True)
+    datetime_updated = models.DateTimeField(_('更新时间'), auto_now=True)
+
+    objects = models.Manager()
+
+    class Meta:
+        ordering = ['-id']
+        verbose_name = _('短信发送记录')
+        verbose_name_plural = _('短信发送记录')
+
+    def __str__(self):
+        return "{} {}".format(
+            self.mobile,
+            self.paras
         )
