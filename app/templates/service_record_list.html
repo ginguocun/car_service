@@ -28,8 +28,8 @@
                     <tbody>
                     {% for object in object_list %}
                         <tr>
-                            <th scope="row">{{ object.pk }}</th>
-                            <td><a href="{% url 'page:service_record_detail' object.pk %}">{{ object.car.car_number }}</a></td>
+                            <th scope="row"><a href="{% url 'page:service_record_detail' object.pk %}">{{ object.pk }}</a></th>
+                            <td><a href="{% url 'page:service_record_detail' object.pk %}">{{ object.car.car_number|default_if_none:'----' }}</a></td>
                             <td>{{ object.car.customer.name }}</td>
                             <td>{{ object.car.customer.mobile }}</td>
                             <td>{{ object.get_reserve_type_display }}</td>

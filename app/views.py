@@ -153,6 +153,7 @@ class ServiceRecordDetailView(AppView):
         obj = get_object_or_404(ServiceRecord, pk=pk)
         model_formset_cls = modelformset_factory(model=ServiceItem, form=ServiceItemForm, extra=0)
         queryset = ServiceItem.objects.filter(related_service_record_id=pk)
+        min_pk = ServiceRecord.objects.values('pk').order_by('pk').first()
         max_pk = ServiceRecord.objects.values('pk').order_by('-pk').first()
         next_url = None
         has_next = False
@@ -163,10 +164,11 @@ class ServiceRecordDetailView(AppView):
                 next_pk = str(int(pk) + 1)
                 next_url = reverse('page:service_record_detail', args=[next_pk])
                 has_next = True
-        if int(pk) > 6:
-            prev_pk = str(int(pk) - 1)
-            prev_url = reverse('page:service_record_detail', args=[prev_pk])
-            has_prev = True
+        if min_pk:
+            if int(pk) > int(min_pk['pk']):
+                prev_pk = str(int(pk) - 1)
+                prev_url = reverse('page:service_record_detail', args=[prev_pk])
+                has_prev = True
         formset = model_formset_cls(queryset=queryset)
         if len(formset) > 0:
             has_data = True
