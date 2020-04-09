@@ -273,7 +273,7 @@ class ServiceItemAdmin(AutoUpdateUserModelAdmin):
 
 @admin.register(ServiceFeedback)
 class ServiceFeedbackAdmin(AutoUpdateUserModelAdmin):
-    readonly_fields = ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')
+    readonly_fields = ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated', 'related_service_record')
     list_display = ['pk', 'related_service_record', 'feedback_date', 'feedback_by', 'notes']
     search_fields = ['notes']
     list_display_links = ['pk', 'related_service_record', 'feedback_date']
