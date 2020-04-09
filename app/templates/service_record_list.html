@@ -1,0 +1,53 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+{% block content %}
+    <style>
+        body, #container {
+            background: #FFF;
+        }
+    </style>
+    <div id="content-main">
+        <div class="module">
+
+            {% if object_list %}
+                <table id="change-history" class="layui-table">
+                    <thead>
+                    <tr>
+                        <th scope="col">{% trans 'ID' %}</th>
+                        <th scope="col">{% trans '车牌号' %}</th>
+                        <th scope="col">{% trans '客户姓名' %}</th>
+                        <th scope="col">{% trans '手机号' %}</th>
+                        <th scope="col">{% trans '服务类型' %}</th>
+                        <th scope="col">{% trans '进厂时间' %}</th>
+                        <th scope="col">{% trans '预计出厂时间' %}</th>
+                        <th scope="col">{% trans '应收金额' %}</th>
+                        <th scope="col">{% trans '实收金额' %}</th>
+                        <th scope="col">{% trans '总成本' %}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for object in object_list %}
+                        <tr>
+                            <th scope="row">{{ object.pk }}</th>
+                            <td><a href="{% url 'page:service_record_detail' object.pk %}">{{ object.car.car_number }}</a></td>
+                            <td>{{ object.car.customer.name }}</td>
+                            <td>{{ object.car.customer.mobile }}</td>
+                            <td>{{ object.get_reserve_type_display }}</td>
+                            <td>{{ object.reserve_time|date:"DATETIME_FORMAT" }}</td>
+                            <td>{{ object.finish_time|date:"DATETIME_FORMAT" }}</td>
+                            <td>{{ object.total_price }}</td>
+                            <td>{{ object.total_payed }}</td>
+                            <td>{{ object.total_cost }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>{% trans "无记录" %}</p>
+            {% endif %}
+            {% block pagination %}
+                {% include "pagination.html" %}
+            {% endblock %}
+        </div>
+    </div>
+{% endblock %}

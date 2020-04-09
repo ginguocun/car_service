@@ -1,0 +1,82 @@
+{% load i18n static staticfiles %}
+{% if is_paginated %}
+<div id="pagination">
+    <div class="el-pagination is-background">
+        <span class="el-pagination__total">共 {{ total_count }} 条</span>
+        <ul class="el-pager">
+            <li><a class="page_url" href="?page=1">«</a></li>
+            {% if page_obj.has_previous %}
+                <a class="page_url" href="?page={{ page_obj.previous_page_number }}">
+                    <button type="button" class="btn-prev">
+                        <i class="el-icon el-icon-arrow-left"></i>
+                    </button>
+                </a>
+            {% else %}
+                <button type="button" disabled="disabled" class="btn-prev">
+                    <i class="el-icon el-icon-arrow-left"></i>
+                </button>
+            {% endif %}
+            {% for page in page_obj.paginator.page_range %}
+                {% ifequal page page_obj.number %}
+                    <li  class="number active">
+                        {{ page }}
+                    </li>
+                {% else %}
+                    <li class="number">
+                        <a class="page_url" href="?page={{ page }}">{{ page }}</a>
+                    </li>
+                {% endifequal %}
+            {% endfor %}
+            {% if page_obj.has_next %}
+                <a class="page_url" href="?page={{ page_obj.next_page_number }}">
+                    <button type="button" class="btn-next">
+                        <i class="el-icon el-icon-arrow-right"></i>
+                    </button>
+                </a>
+            {% else %}
+                <button type="button" disabled="disabled" class="btn-next">
+                    <i class="el-icon el-icon-arrow-right"></i>
+                </button>
+            {% endif %}
+            <li><a class="page_url" href="?page=last">»</a></li>
+        </ul>
+    </div>
+</div>
+{% endif %}
+
+<script>
+    query_params = location.search.split('?')[1]
+    q = []
+    q_v = ''
+    domain_path = location.origin + location.pathname
+
+    function getKeyValue(item){
+        k_v = item.split('=');
+        if( k_v[1] !== "" & k_v[0] !== "" & k_v[0] !== "page") q.push([k_v[0], k_v[1]])
+    }
+
+    function makeUrl(item){
+        if (q_v !== '') q_v += '&'
+        q_v = q_v + item[0] + '=' +  item[1]
+    }
+
+    function refreshUrl(item){
+        if (q_v !== ''){
+            item.href = current_url + '&' + item.search.split('?')[1]
+        } else {
+            item.href = current_url + item.search.split('?')[1]
+        }
+    }
+
+    if (query_params) {
+        k_v_list = query_params.split('&')
+        k_v_list.forEach(getKeyValue)
+    }
+
+    if (q){
+        q.forEach(makeUrl)
+    }
+
+    current_url = domain_path + '?' + q_v
+    document.querySelectorAll('.page_url').forEach(refreshUrl)
+</script>

@@ -104,3 +104,27 @@ class PartnerApplyForm(AppModelForm):
         fields = [
             'name', 'mobile', 'address', 'professional', 'reason',
         ]
+
+
+class ServiceRecordForm(AppModelForm):
+    # 服务记录
+
+    class Meta:
+        model = ServiceRecord
+        fields = [
+            'car', 'reserve_type', 'reserve_time', 'finish_time', 'total_price',
+            'total_payed', 'total_cost']
+
+
+class ServiceItemForm(AppModelForm):
+    # 服务记录明细
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['name'].widget.attrs.update({'readonly': 'readonly'})
+        self.fields['price'].widget.attrs.update({'readonly': 'readonly'})
+        self.fields['confirmed_by'].widget.attrs.update({'type': 'hidden'})
+
+    class Meta:
+        model = ServiceItem
+        fields = ['name', 'price', 'cost', 'notes', 'confirmed_by']

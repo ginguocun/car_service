@@ -1,0 +1,106 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static admin_modify %}
+
+{% block title %}服务记录审核{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static 'admin/css/forms.css' %}">
+{% endblock %}
+
+{% block content %}
+<style>
+    body, #container {
+        background: #FFF;
+    }
+</style>
+<div id="content-main">
+    <div class="module">
+        <form>
+            <fieldset class="module aligned ">
+
+                <h2>基础信息</h2>
+                <div class="form-row">
+                    <div>
+                        <label for="id_id">ID:</label>
+                        <p id="id_id">{{ object.pk }}</p>
+                    </div>
+                    <div>
+                        <label for="id_car_number">车牌号:</label>
+                        <p id="id_car_number">{{ object.car.car_number }}</p>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div>
+                        <label for="id_car_customer_name">客户姓名:</label>
+                        <p id="id_car_customer_name">{{ object.car.customer.name }}</p>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div>
+                        <label for="id_car_customer_mobile">客户手机:</label>
+                        <p id="id_car_customer_mobile">{{ object.car.customer.mobile }}</p>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div>
+                        <label for="id_total_price">应收金额:</label>
+                        <p id="id_total_price">￥ {{ object.total_price }}</p>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div>
+                        <label for="id_total_payed">实收金额:</label>
+                        <p id="id_total_payed">￥ {{ object.total_payed }}</p>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div>
+                        <label for="id_total_cost">总成本:</label>
+                        <p id="id_total_cost">￥ {{ object.total_cost }}</p>
+                    </div>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+    <div class="module">
+        <fieldset class="module aligned ">
+            <h2>服务条目</h2>
+            <form method="post" action="{{ request.path }}">
+                {{ formset.management_form }}
+                <table>
+                    {% if has_data %}
+                    <thead>
+                    <tr>
+                        <th class="original">No.</th>
+                        <th class="column-name">项目名称</th>
+                        <th class="column-price">售价</th>
+                        <th class="column-price">成本</th>
+                        <th class="column-notes">备注</th>
+                    </tr>
+                    </thead>
+                    {% endif %}
+                    <tbody>
+                    {% for form in formset %}
+                    <tr>
+                        {{ form.id }}
+                        <td>{{ forloop.counter }}<input type="hidden" name="form-{{ forloop.counter0 }}-confirmed_by" value="{{ request.user.id }}"></td>
+                        <td>{{ form.name }}</td>
+                        <td>{{ form.price }}</td>
+                        <td>{{ form.cost }}</td>
+                        <td>{{ form.notes }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                <div class="submit-row">
+                    <a href="{{ back }}"><button type="button" class="el-button el-button--button" style="float: left; margin-right: 10px; margin-bottom: 10px;"><i class="el-icon-arrow-left"></i><span><span>返回</span></span></button></a>
+                    {% if has_prev %}<a href="{{ prev_url }}"><span style="margin-right: 10px;">上一条</span></a>{% endif %}
+                    {% if has_next %}<a href="{{ next_url }}"><span style="margin-right: 10px;">下一条</span></a>{% endif %}
+                    {% if has_data %}<input type="submit" value="保存" name="_save" class="el-button el-button--primary">{% endif %}
+                </div>
+            </form>
+        </fieldset>
+    </div>
+</div>
+{% endblock %}

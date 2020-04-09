@@ -9,6 +9,9 @@ app_name = AppConfig.name
 
 urlpatterns = [
     re_path(r'^success/$', SuccessView.as_view(), name='success'),
+    re_path(r'^service_records/$', ServiceRecordView.as_view(), name='service_records'),
+    re_path(r'^service_records/(?P<pk>\d+)/$', ServiceRecordDetailView.as_view(), name='service_record_detail'),
+    #
     re_path(r'^service_apply_1/$', ServiceApplyCreateView1.as_view(), name='service_apply_1'),  # 上门服务预约
     re_path(r'^service_apply_2/$', ServiceApplyCreateView2.as_view(), name='service_apply_2'),  # 到店服务预约
     re_path(r'^insurance_apply_1/$', InsuranceApplyCreateView1.as_view(), name='insurance_apply_1'),  # 车辆续保

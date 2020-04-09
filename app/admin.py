@@ -1,19 +1,28 @@
+import datetime
+
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import gettext_lazy as _
 
 from app.models import *
+from car.utils import export_excel
 
 admin.site.site_header = '24h车服务后台管理系统'
 admin.site.site_title = '24h车服务'
 admin.site.index_title = '24h车服务后台管理系统'
 
 
+class SimpleModelAdmin(admin.ModelAdmin):
+    view_on_site = False
+
+
 class GeneralModelAdmin(admin.ModelAdmin):
+    view_on_site = False
     date_hierarchy = 'datetime_created'
 
 
 class AutoUpdateUserModelAdmin(admin.ModelAdmin):
+    view_on_site = False
     readonly_fields = ('created_by', 'confirmed_by')
     date_hierarchy = 'datetime_created'
 
@@ -29,7 +38,7 @@ class AutoUpdateUserModelAdmin(admin.ModelAdmin):
 
 
 @admin.register(UserLevel)
-class UserLevelAdmin(admin.ModelAdmin):
+class UserLevelAdmin(SimpleModelAdmin):
     list_display = ['pk', 'level_code', 'level_name', 'desc']
     list_display_links = ['pk', 'level_code']
     search_fields = ['level_code', 'level_name', 'desc']
@@ -83,6 +92,19 @@ class AmountChangeRecordAdmin(AutoUpdateUserModelAdmin):
         (_('操作记录'), {'fields': ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')})
     )
 
+    def save_execl(self, request, queryset):
+        filename = '{0}_{1}.xls'.format('jf', datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
+        headers = [
+            'ID', '姓名', '手机号', '金额变更', '变更后余额', '创建人员', '最后变更人员', '创建日期', '最后更新时间']
+        columns = [
+            'pk', 'customer__name', 'customer__mobile', 'amounts', 'current_amounts',
+            'created_by__full_name', 'confirmed_by__full_name', 'datetime_created', 'datetime_updated']
+        return export_excel(queryset, headers, columns, filename)
+
+    save_execl.short_description = "导出Excel"
+
+    actions = [save_execl]
+
 
 @admin.register(CreditChangeRecord)
 class CreditChangeRecordAdmin(AutoUpdateUserModelAdmin):
@@ -97,6 +119,20 @@ class CreditChangeRecordAdmin(AutoUpdateUserModelAdmin):
         (_('基础信息'), {'fields': ('customer', 'credits', 'current_credits', 'notes')}),
         (_('操作记录'), {'fields': ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')})
     )
+
+    def save_execl(self, request, queryset):
+
+        filename = '{0}_{1}.xls'.format('jf', datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
+        headers = [
+            'ID', '姓名', '手机号', '积分变更', '变更后积分', '创建人员', '最后变更人员', '创建日期', '最后更新时间']
+        columns = [
+            'pk', 'customer__name', 'customer__mobile', 'credits', 'current_credits',
+            'created_by__full_name', 'confirmed_by__full_name', 'datetime_created', 'datetime_updated']
+        return export_excel(queryset, headers, columns, filename)
+
+    save_execl.short_description = "导出Excel"
+
+    actions = [save_execl]
 
 
 @admin.register(Customer)
@@ -137,7 +173,7 @@ class CarInfoAdmin(AutoUpdateUserModelAdmin):
 
 
 @admin.register(InsuranceCompany)
-class InsuranceCompanyAdmin(admin.ModelAdmin):
+class InsuranceCompanyAdmin(SimpleModelAdmin):
     list_display = ['pk', 'name', 'desc', 'display', 'is_active']
     search_fields = ['name', 'desc']
     list_display_links = ['pk', 'name', 'desc']
@@ -186,7 +222,7 @@ class ServicePackageInline(admin.TabularInline):
 
 
 @admin.register(ServicePackageType)
-class ServicePackageTypeAdmin(admin.ModelAdmin):
+class ServicePackageTypeAdmin(SimpleModelAdmin):
     list_display = ['pk', 'name', 'desc', 'is_active']
     search_fields = ['name', 'desc']
     list_display_links = ['pk', 'name']
@@ -195,7 +231,7 @@ class ServicePackageTypeAdmin(admin.ModelAdmin):
 
 
 @admin.register(ServicePackage)
-class ServicePackageAdmin(admin.ModelAdmin):
+class ServicePackageAdmin(SimpleModelAdmin):
     list_display = ['pk', 'name', 'price']
     search_fields = ['name']
     list_display_links = ['pk', 'name']
@@ -203,7 +239,7 @@ class ServicePackageAdmin(admin.ModelAdmin):
 
 
 @admin.register(StoreInfo)
-class StoreInfoAdmin(admin.ModelAdmin):
+class StoreInfoAdmin(SimpleModelAdmin):
     list_display = ['pk', 'name', 'address', 'is_active']
     search_fields = ['name']
     list_display_links = ['pk', 'name']
@@ -333,7 +369,7 @@ class InsuranceApplyAdmin(AutoUpdateUserModelAdmin):
 
 
 @admin.register(OilPackage)
-class OilPackageAdmin(admin.ModelAdmin):
+class OilPackageAdmin(SimpleModelAdmin):
     list_display = ['pk', 'name', 'price']
     search_fields = ['name']
     list_display_links = ['pk', 'name']
@@ -380,7 +416,7 @@ class InsuranceRecordUploadAdmin(AutoUpdateUserModelAdmin):
 
 
 @admin.register(ReportMake)
-class ReportMakeAdmin(admin.ModelAdmin):
+class ReportMakeAdmin(AutoUpdateUserModelAdmin):
     list_display = ['pk', 'report_type', 'file', 'date_start', 'date_end', 'notes', 'created_by', 'datetime_created']
     list_display_links = ['pk', 'report_type']
     list_filter = ['report_type']
