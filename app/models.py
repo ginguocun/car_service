@@ -2,6 +2,7 @@ import hashlib
 import pandas as pd
 
 from django.conf import settings
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models.signals import pre_delete
@@ -89,18 +90,20 @@ class WxUser(AbstractUser):
         """
         创建初始的用户名和密码
         """
-        if not self.username and not self.password and self.openid:
-            key = settings.SECRET_KEY
-            self.username = hashlib.pbkdf2_hmac(
-                "sha256", getattr(self, 'openid').encode(encoding='utf-8'), key.encode(encoding='utf-8'), 10).hex()
-            self.password = hashlib.pbkdf2_hmac(
-                "sha256", self.username.encode(), getattr(self, 'openid').encode(encoding='utf-8'), 10).hex()
-        if not self.username and not self.password and self.openid_gzh:
-            key = settings.SECRET_KEY
-            self.username = hashlib.pbkdf2_hmac(
-                "sha256", getattr(self, 'openid_gzh').encode(encoding='utf-8'), key.encode(encoding='utf-8'), 10).hex()
-            self.password = hashlib.pbkdf2_hmac(
-                "sha256", self.username.encode(), getattr(self, 'openid_gzh').encode(encoding='utf-8'), 10).hex()
+        key = settings.SECRET_KEY
+        if not self.username and not self.password:
+            if self.openid:
+                self.username = hashlib.pbkdf2_hmac(
+                    "sha256", getattr(self, 'openid').encode(encoding='utf-8'), key.encode(encoding='utf-8'), 10).hex()
+                raw_password = hashlib.pbkdf2_hmac(
+                    "sha256", self.username.encode(), getattr(self, 'openid').encode(encoding='utf-8'), 10).hex()
+            else:
+                self.username = hashlib.pbkdf2_hmac(
+                    "sha256", getattr(self, 'openid_gzh').encode(encoding='utf-8'), key.encode(encoding='utf-8'),
+                    10).hex()
+                raw_password = hashlib.pbkdf2_hmac(
+                    "sha256", self.username.encode(), getattr(self, 'openid_gzh').encode(encoding='utf-8'), 10).hex()
+            self.password = make_password(raw_password)
 
     def update_related_customers(self):
         """
