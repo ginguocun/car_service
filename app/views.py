@@ -1,7 +1,7 @@
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ImproperlyConfigured
 from django.forms import modelformset_factory
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.views import View
 from django.views.generic import CreateView, TemplateView, ListView, DetailView, UpdateView
@@ -150,7 +150,7 @@ class ServiceRecordDetailView(AppView):
     permission_required = ('app.change_serviceitem', )
 
     def get(self, request, pk):
-        obj = ServiceRecord.objects.get(pk=pk)
+        obj = get_object_or_404(ServiceRecord, pk=pk)
         model_formset_cls = modelformset_factory(model=ServiceItem, form=ServiceItemForm, extra=0)
         queryset = ServiceItem.objects.filter(related_service_record_id=pk)
         max_pk = ServiceRecord.objects.values('pk').order_by('-pk').first()
@@ -163,7 +163,7 @@ class ServiceRecordDetailView(AppView):
                 next_pk = str(int(pk) + 1)
                 next_url = reverse('page:service_record_detail', args=[next_pk])
                 has_next = True
-        if int(pk) > 1:
+        if int(pk) > 6:
             prev_pk = str(int(pk) - 1)
             prev_url = reverse('page:service_record_detail', args=[prev_pk])
             has_prev = True
