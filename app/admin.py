@@ -78,9 +78,45 @@ class WxUserAdmin(UserAdmin):
     )
 
 
+@admin.register(PayedRecord)
+class PayedRecordAdmin(AutoUpdateUserModelAdmin):
+    readonly_fields = [
+        'credit_change', 'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated']
+    list_display = [
+        'pk', 'related_store', 'customer', 'total_price', 'total_payed', 'amount_payed', 'credit_payed', 'cash_payed',
+        'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated']
+    list_display_links = ['pk', 'related_store', 'customer', 'total_price', 'total_payed', 'amount_payed']
+    search_fields = ['customer__name', 'customer__mobile']
+    autocomplete_fields = ['related_store', 'customer']
+    fieldsets = (
+        (_('基础信息'), {'fields': (
+            'related_store', 'customer', 'total_price', 'total_payed', 'amount_payed', 'credit_payed', 'cash_payed')}),
+        (_('操作记录'), {'fields': (
+            'credit_change', 'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')})
+    )
+
+    def save_execl(self, request, queryset):
+        filename = 'media/{0}_{1}.xls'.format('payed_record', datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
+        headers = [
+            'ID', '姓名', '手机号', '应收金额', '实收金额', '余额抵扣', '积分抵扣',
+            '现金支付', '积分变更',
+            '创建人员', '最后变更人员', '创建日期', '最后更新时间']
+        columns = [
+            'pk', 'customer__name', 'customer__mobile', 'total_price', 'total_payed', 'amount_payed', 'credit_payed',
+            'cash_payed', 'credit_change',
+            'created_by__full_name', 'confirmed_by__full_name', 'datetime_created', 'datetime_updated']
+        return export_excel(queryset, headers, columns, filename)
+
+    save_execl.short_description = "导出Excel"
+
+    actions = [save_execl]
+
+
 @admin.register(AmountChangeRecord)
 class AmountChangeRecordAdmin(AutoUpdateUserModelAdmin):
-    readonly_fields = ['current_amounts', 'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated']
+    readonly_fields = [
+        'current_amounts', 'related_payed_record',
+        'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated']
     list_display = [
         'pk', 'customer', 'amounts', 'current_amounts', 'notes',
         'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated']
@@ -88,12 +124,12 @@ class AmountChangeRecordAdmin(AutoUpdateUserModelAdmin):
     search_fields = ['customer__name', 'customer__mobile']
     autocomplete_fields = ['customer']
     fieldsets = (
-        (_('基础信息'), {'fields': ('customer', 'amounts', 'current_amounts', 'notes')}),
+        (_('基础信息'), {'fields': ('customer', 'amounts', 'current_amounts', 'related_payed_record', 'notes')}),
         (_('操作记录'), {'fields': ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')})
     )
 
     def save_execl(self, request, queryset):
-        filename = '{0}_{1}.xls'.format('jf', datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
+        filename = 'media/{0}_{1}.xls'.format('amounts', datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
         headers = [
             'ID', '姓名', '手机号', '金额变更', '变更后余额', '创建人员', '最后变更人员', '创建日期', '最后更新时间']
         columns = [
@@ -108,7 +144,9 @@ class AmountChangeRecordAdmin(AutoUpdateUserModelAdmin):
 
 @admin.register(CreditChangeRecord)
 class CreditChangeRecordAdmin(AutoUpdateUserModelAdmin):
-    readonly_fields = ['current_credits', 'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated']
+    readonly_fields = [
+        'current_credits', 'related_payed_record',
+        'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated']
     list_display = [
         'pk', 'customer', 'credits', 'current_credits', 'notes',
         'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated']
@@ -116,13 +154,13 @@ class CreditChangeRecordAdmin(AutoUpdateUserModelAdmin):
     search_fields = ['customer__name', 'customer__mobile']
     autocomplete_fields = ['customer']
     fieldsets = (
-        (_('基础信息'), {'fields': ('customer', 'credits', 'current_credits', 'notes')}),
+        (_('基础信息'), {'fields': ('customer', 'credits', 'current_credits', 'related_payed_record', 'notes')}),
         (_('操作记录'), {'fields': ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')})
     )
 
     def save_execl(self, request, queryset):
 
-        filename = '{0}_{1}.xls'.format('jf', datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
+        filename = 'media/{0}_{1}.xls'.format('credits', datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
         headers = [
             'ID', '姓名', '手机号', '积分变更', '变更后积分', '创建人员', '最后变更人员', '创建日期', '最后更新时间']
         columns = [
@@ -302,10 +340,12 @@ class ServiceRecordAdmin(AutoUpdateUserModelAdmin):
         (_('基础信息'), {'fields': (
             'reserve_type', 'car', 'reserve_time', 'finish_time', 'reserve_address', 'vehicle_mileage')}),
         (_('服务信息'), {
-            'fields': ('related_store',  'total_price', 'total_payed', ('served_by', 'is_served'))}),
+            'fields': (
+                'related_store',  'total_price', 'total_payed',
+                ('served_by', 'is_served'), ('checked_by', 'is_checked'))}),
         (_('预约信息'), {
             'fields': (
-                'is_reversed', 'service_package', 'oil_package', ('checked_by', 'is_checked')),
+                'is_reversed', 'service_package', 'oil_package', 'service_info'),
             'classes': ('collapse',)
         }),
         (_('备注'), {

@@ -244,10 +244,114 @@ class Customer(models.Model):
         verbose_name_plural = _('客户列表')
 
     def __str__(self):
-        return "{0} {1}".format(
+        return "{0} {1} (￥{2})".format(
             self.name,
-            self.mobile,
+            self.mobile if self.mobile else '',
+            self.current_amounts
         )
+
+
+class StoreInfo(models.Model):
+    """
+    门店信息
+    """
+    name = models.CharField(_('名称'), max_length=200, null=True, unique=True)
+    contact = models.CharField(_('联系电话'), max_length=200, null=True, blank=True)
+    address = models.TextField(_('地址'), max_length=1000, null=True, blank=True)
+    image = models.ImageField(_('照片'), upload_to='', null=True, blank=True)
+    is_active = models.BooleanField(_('有效'), default=True)
+    desc = models.TextField(_('介绍'), max_length=2000, null=True, blank=True)
+
+    objects = models.Manager()
+
+    class Meta:
+        ordering = ['id']
+        verbose_name = _('门店信息')
+        verbose_name_plural = _('门店信息')
+
+    def __str__(self):
+        return "{}".format(
+            self.name,
+        )
+
+
+class PayedRecord(models.Model):
+    related_store = models.ForeignKey(
+        StoreInfo,
+        on_delete=models.SET_NULL,
+        null=True,
+        verbose_name=_('维修门店')
+    )
+    customer = models.ForeignKey(
+        Customer,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        verbose_name=_('关联客户')
+    )
+    total_price = models.DecimalField(_('应收金额'), default=0, decimal_places=2, max_digits=10)
+    total_payed = models.DecimalField(_('实收金额'), default=0, decimal_places=2, max_digits=10)
+    amount_payed = models.DecimalField(_('余额抵扣'), default=0, decimal_places=2, max_digits=10)
+    credit_payed = models.DecimalField(_('积分抵扣'), default=0, decimal_places=2, max_digits=10)
+    credit_change = models.BigIntegerField(_('积分变更'), default=0)
+    cash_payed = models.DecimalField(_('现金支付'), null=True, blank=True, decimal_places=2, max_digits=10)
+    notes = models.TextField(_('备注'), max_length=1000, null=True, blank=True)
+    created_by = models.ForeignKey(
+        WxUser,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='income_record_created_by',
+        verbose_name=_('创建人员')
+    )
+    confirmed_by = models.ForeignKey(
+        WxUser,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='income_record_confirmed_by',
+        verbose_name=_('审核人员')
+    )
+    datetime_created = models.DateTimeField(_('记录时间'), auto_now_add=True)
+    datetime_updated = models.DateTimeField(_('更新时间'), auto_now=True)
+
+    objects = models.Manager()
+
+    class Meta:
+        ordering = ['-id']
+        verbose_name = _('收银记录')
+        verbose_name_plural = _('收银记录')
+
+    def __str__(self):
+        return "{} {}".format(
+            self.customer,
+            self.total_payed
+        )
+
+    def update_cash_payed(self):
+        # 自动计算现金支付金额
+        if self.total_payed:
+            total_payed = float(getattr(self, 'total_payed'))
+            amount_payed = 0
+            credit_payed = 0
+            if self.amount_payed:
+                amount_payed = float(getattr(self, 'amount_payed'))
+            if self.credit_payed:
+                credit_payed = float(getattr(self, 'credit_payed'))
+            self.cash_payed = total_payed - amount_payed - credit_payed
+
+    def save(self, *args, **kwargs):
+        self.update_cash_payed()
+        super(PayedRecord, self).save(*args, **kwargs)
+        # 如果有余额支付的情况，自动创建余额变更记录
+        if self.amount_payed and self.customer:
+            amounts_change = - float(getattr(self, 'amount_payed'))
+            AmountChangeRecord.objects.update_or_create(
+                related_payed_record_id=self.pk,
+                defaults={
+                    'amounts': amounts_change,
+                    'customer': self.customer,
+                    'created_by': self.created_by})
 
 
 class AmountChangeRecord(models.Model):
@@ -264,6 +368,13 @@ class AmountChangeRecord(models.Model):
         verbose_name=_('金额变更'), max_digits=10, decimal_places=2, null=True)
     current_amounts = models.DecimalField(
         verbose_name=_('变更后余额'), max_digits=10, decimal_places=2, null=True, blank=True)
+    related_payed_record = models.ForeignKey(
+        PayedRecord,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        verbose_name=_('关联收银记录')
+    )
     notes = models.TextField(_('备注'), max_length=1000, null=True, blank=True)
     created_by = models.ForeignKey(
         WxUser,
@@ -331,6 +442,15 @@ class CreditChangeRecord(models.Model):
     )
     credits = models.BigIntegerField(_('积分变更'), null=True)
     current_credits = models.BigIntegerField(_('变更后积分'), null=True, blank=True)
+    related_payed_record = models.ForeignKey(
+        PayedRecord,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        verbose_name=_('关联收银记录')
+    )
+    change_type = models.SmallIntegerField(
+        _('变更类型'), default=1, choices=[(1, '消费获取'), (2, '活动获取'), (3, '支付抵扣'), (4, '其他')])
     notes = models.TextField(_('备注'), max_length=1000, null=True, blank=True)
     created_by = models.ForeignKey(
         WxUser,
@@ -749,30 +869,6 @@ class OilPackage(models.Model):
         return "{} （￥ {}）".format(
             self.name,
             self.price
-        )
-
-
-class StoreInfo(models.Model):
-    """
-    门店信息
-    """
-    name = models.CharField(_('名称'), max_length=200, null=True, unique=True)
-    contact = models.CharField(_('联系电话'), max_length=200, null=True, blank=True)
-    address = models.TextField(_('地址'), max_length=1000, null=True, blank=True)
-    image = models.ImageField(_('照片'), upload_to='', null=True, blank=True)
-    is_active = models.BooleanField(_('有效'), default=True)
-    desc = models.TextField(_('介绍'), max_length=2000, null=True, blank=True)
-
-    objects = models.Manager()
-
-    class Meta:
-        ordering = ['id']
-        verbose_name = _('门店信息')
-        verbose_name_plural = _('门店信息')
-
-    def __str__(self):
-        return "{}".format(
-            self.name,
         )
 
 

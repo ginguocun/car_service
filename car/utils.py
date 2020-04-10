@@ -13,6 +13,12 @@ from rest_framework.response import Response
 
 
 def file_iterator(filename, chuck_size=512):
+    """
+    将文件分块返回
+    :param filename: 文件名称
+    :param chuck_size: 块的大小，默认 512
+    :return: 文件以可迭代对象的方式分块返回
+    """
     with open(filename, "rb") as f:
         while True:
             c = f.read(chuck_size)
@@ -22,7 +28,19 @@ def file_iterator(filename, chuck_size=512):
                 break
 
 
-def export_excel(queryset, headers, columns, filename='jf'):
+def export_excel(queryset, headers, columns, filename='file_name'):
+    """
+    通过传递进去的数据构建 Excel 文件，并且以数据流的返回返回文件
+    :param queryset: 数据列表，通常为筛选后的结果。
+    :param headers:
+        Excel 的表头，以列表的方式传入。
+        例如： ['ID', '姓名', '手机号', '金额变更', '变更后余额']
+    :param columns:
+        数据列的名称，以列表的方式传入。
+        例如：['pk', 'customer__name', 'customer__mobile', 'amounts', 'current_amounts']
+    :param filename: 返回文件的文件名，必须以 .xls 为后缀
+    :return:
+    """
     wb = xlwt.Workbook()
     sheet = wb.add_sheet("data")
     for i, h in enumerate(headers):
