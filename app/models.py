@@ -245,7 +245,7 @@ class Customer(models.Model):
         verbose_name_plural = _('客户列表')
 
     def __str__(self):
-        return "{0} {1} (￥{2}, {3}积分)".format(
+        return "{0} {1} (余额:￥{2}; 积分:{3})".format(
             self.name,
             self.mobile if self.mobile else '',
             self.current_amounts if self.current_amounts else '0',
