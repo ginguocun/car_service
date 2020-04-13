@@ -186,7 +186,7 @@ class Superior(models.Model):
     def __str__(self):
         return "{0} {1}".format(
             self.name,
-            self.mobile,
+            self.mobile if self.mobile else '',
         )
 
 
@@ -196,8 +196,9 @@ class Customer(models.Model):
     """
     name = models.CharField(_('名字'), max_length=255, null=True)
     mobile = models.CharField(_('手机'), max_length=255, null=True, unique=True)
+    is_partner = models.BooleanField(_('是合伙人'), default=False)
     current_amounts = models.DecimalField(
-        verbose_name=_('当前余额'),
+        verbose_name=_('当前余额（元）'),
         help_text=_('请到[积分/余额-->余额变更]添加记录'),
         max_digits=10, decimal_places=2, null=True, blank=True, default=0)
     current_credits = models.BigIntegerField(
@@ -244,10 +245,11 @@ class Customer(models.Model):
         verbose_name_plural = _('客户列表')
 
     def __str__(self):
-        return "{0} {1} (￥{2})".format(
+        return "{0} {1} (￥{2}, {3}积分)".format(
             self.name,
             self.mobile if self.mobile else '',
-            self.current_amounts
+            self.current_amounts if self.current_amounts else '0',
+            self.current_credits if self.current_credits else '0',
         )
 
 
@@ -289,12 +291,12 @@ class PayedRecord(models.Model):
         on_delete=models.SET_NULL,
         verbose_name=_('关联客户')
     )
-    total_price = models.DecimalField(_('应收金额'), default=0, decimal_places=2, max_digits=10)
-    total_payed = models.DecimalField(_('实收金额'), default=0, decimal_places=2, max_digits=10)
-    amount_payed = models.DecimalField(_('余额抵扣'), default=0, decimal_places=2, max_digits=10)
-    credit_payed = models.DecimalField(_('积分抵扣'), default=0, decimal_places=2, max_digits=10)
-    credit_change = models.BigIntegerField(_('积分变更'), default=0)
-    cash_payed = models.DecimalField(_('现金支付'), null=True, blank=True, decimal_places=2, max_digits=10)
+    total_price = models.DecimalField(_('应收金额（元）'), default=0, decimal_places=2, max_digits=10)
+    total_payed = models.DecimalField(_('实收金额（元）'), default=0, decimal_places=2, max_digits=10)
+    amount_payed = models.DecimalField(_('余额抵扣（元）'), default=0, decimal_places=2, max_digits=10)
+    credit_payed = models.DecimalField(_('积分抵扣（元）'), default=0, decimal_places=2, max_digits=10)
+    credit_change = models.BigIntegerField(_('积分获得'), help_text=_('现金支付，每满20元获得1积分'), default=0)
+    cash_payed = models.DecimalField(_('现金支付（元）'), null=True, blank=True, decimal_places=2, max_digits=10)
     notes = models.TextField(_('备注'), max_length=1000, null=True, blank=True)
     created_by = models.ForeignKey(
         WxUser,
@@ -329,7 +331,7 @@ class PayedRecord(models.Model):
         )
 
     def update_cash_payed(self):
-        # 自动计算现金支付金额
+        # 自动计算现金支付金额和积分获得
         if self.total_payed:
             total_payed = float(getattr(self, 'total_payed'))
             amount_payed = 0
@@ -338,7 +340,11 @@ class PayedRecord(models.Model):
                 amount_payed = float(getattr(self, 'amount_payed'))
             if self.credit_payed:
                 credit_payed = float(getattr(self, 'credit_payed'))
-            self.cash_payed = total_payed - amount_payed - credit_payed
+            # 现金支付
+            cash_payed = total_payed - amount_payed - credit_payed
+            self.cash_payed = cash_payed
+            # 积分获得
+            self.credit_change = cash_payed // 20
 
     def save(self, *args, **kwargs):
         self.update_cash_payed()
@@ -352,6 +358,27 @@ class PayedRecord(models.Model):
                     'amounts': amounts_change,
                     'customer': self.customer,
                     'created_by': self.created_by})
+        if self.customer:
+            # 积分消耗
+            credits_used = - float(getattr(self, 'credit_payed'))
+            CreditChangeRecord.objects.update_or_create(
+                related_payed_record_id=self.pk,
+                change_type=3,
+                defaults={
+                    'credits': credits_used,
+                    'customer': self.customer,
+                    'created_by': self.created_by}
+            )
+            # 积分获得
+            credits_get = float(getattr(self, 'credit_change'))
+            CreditChangeRecord.objects.update_or_create(
+                related_payed_record_id=self.pk,
+                change_type=1,
+                defaults={
+                    'credits': credits_get,
+                    'customer': self.customer,
+                    'created_by': self.created_by}
+            )
 
 
 class AmountChangeRecord(models.Model):
@@ -365,9 +392,9 @@ class AmountChangeRecord(models.Model):
         verbose_name=_('关联客户')
     )
     amounts = models.DecimalField(
-        verbose_name=_('金额变更'), max_digits=10, decimal_places=2, null=True)
+        verbose_name=_('金额变更（元）'), max_digits=10, decimal_places=2, null=True)
     current_amounts = models.DecimalField(
-        verbose_name=_('变更后余额'), max_digits=10, decimal_places=2, null=True, blank=True)
+        verbose_name=_('变更后余额（元）'), max_digits=10, decimal_places=2, null=True, blank=True)
     related_payed_record = models.ForeignKey(
         PayedRecord,
         null=True,
@@ -642,7 +669,7 @@ class InsuranceRecord(models.Model):
     record_date = models.DateField(_('签单日期'), null=True)
     insurance_date = models.DateField(_('保单开始日期'), null=True, blank=True)
     total_price = models.DecimalField(
-        verbose_name=_('含税总保费'), max_digits=10, decimal_places=2, null=True, blank=True)
+        verbose_name=_('含税总保费（元）'), max_digits=10, decimal_places=2, null=True, blank=True)
     receiver = models.ForeignKey(
         Superior,
         on_delete=models.SET_NULL,
@@ -665,16 +692,24 @@ class InsuranceRecord(models.Model):
         limit_choices_to={'is_active': True},
         verbose_name=_('保险公司')
     )
-    tax = models.DecimalField(_('车船税'), max_digits=10, decimal_places=2, null=True, blank=True)
+    related_partner = models.ForeignKey(
+        Customer,
+        on_delete=models.SET_NULL,
+        limit_choices_to={'is_partner': True},
+        null=True,
+        blank=True,
+        verbose_name=_('城市合伙人')
+    )
+    tax = models.DecimalField(_('车船税（元）'), max_digits=10, decimal_places=2, null=True, blank=True)
     has_payback = models.BooleanField(_('是否已返费'), default=False)
     payback_percent = models.DecimalField(
         verbose_name=_('已返费率'), max_digits=7, decimal_places=4, null=True, blank=True)
     payback_amount = models.DecimalField(
-        verbose_name=_('已返金额'), max_digits=10, decimal_places=2, null=True, blank=True)
+        verbose_name=_('已返金额（元）'), max_digits=10, decimal_places=2, null=True, blank=True)
     ic_payback_percent = models.DecimalField(
         verbose_name=_('保险公司返点'), max_digits=7, decimal_places=4, null=True, blank=True)
     ic_payback_amount = models.DecimalField(
-        verbose_name=_('返费金额'), max_digits=10, decimal_places=2, null=True, blank=True)
+        verbose_name=_('返费金额（元）'), max_digits=10, decimal_places=2, null=True, blank=True)
     profits = models.DecimalField(
         verbose_name=_('利润'), max_digits=10, decimal_places=2, null=True, blank=True)
     is_payed = models.BooleanField(_('已支付'), default=True)
@@ -824,7 +859,7 @@ class ServicePackage(models.Model):
     服务套餐
     """
     name = models.CharField(_('名称'), max_length=200, null=True,  unique=True)
-    price = models.DecimalField(_('价格'), max_digits=10, decimal_places=2, null=True, blank=True)
+    price = models.DecimalField(_('价格（元）'), max_digits=10, decimal_places=2, null=True, blank=True)
     desc = models.CharField(_('介绍'), max_length=200, null=True, blank=True)
     is_active = models.BooleanField(_('是否有效'), default=True)
     service_type = models.ForeignKey(
@@ -854,7 +889,7 @@ class OilPackage(models.Model):
     机油套餐
     """
     name = models.CharField(_('名称'), max_length=200, null=True,  unique=True)
-    price = models.DecimalField(_('价格'), max_digits=10, decimal_places=2, null=True, blank=True)
+    price = models.DecimalField(_('价格（元）'), max_digits=10, decimal_places=2, null=True, blank=True)
     desc = models.CharField(_('介绍'), max_length=200, null=True, blank=True)
     is_active = models.BooleanField(_('是否有效'), default=True)
 
@@ -905,9 +940,9 @@ class ServiceRecord(models.Model):
     finish_time = models.DateTimeField(_('预计出厂时间'), null=True, blank=True)
     reserve_address = models.TextField(_('服务地点'), max_length=1000, null=True, blank=True)
     vehicle_mileage = models.IntegerField(_('当前行驶公里数'), null=True, blank=True)
-    total_price = models.DecimalField(_('应收金额'), default=0, decimal_places=2, max_digits=10)
-    total_payed = models.DecimalField(_('实收金额'), default=0, decimal_places=2, max_digits=10)
-    total_cost = models.DecimalField(_('总成本'), default=0, decimal_places=2, max_digits=10)
+    total_price = models.DecimalField(_('应收金额（元）'), default=0, decimal_places=2, max_digits=10)
+    total_payed = models.DecimalField(_('实收金额（元）'), default=0, decimal_places=2, max_digits=10)
+    total_cost = models.DecimalField(_('总成本（元）'), default=0, decimal_places=2, max_digits=10)
     checked_by = models.ForeignKey(
         Superior,
         on_delete=models.SET_NULL,
@@ -917,6 +952,14 @@ class ServiceRecord(models.Model):
         verbose_name=_('由谁联系')
     )
     is_checked = models.BooleanField(_('已联系/已确认'), default=False)
+    related_partner = models.ForeignKey(
+        Customer,
+        on_delete=models.SET_NULL,
+        limit_choices_to={'is_partner': True},
+        null=True,
+        blank=True,
+        verbose_name=_('城市合伙人')
+    )
     related_store = models.ForeignKey(
         StoreInfo,
         on_delete=models.SET_NULL,
@@ -924,15 +967,7 @@ class ServiceRecord(models.Model):
         blank=True,
         verbose_name=_('维修门店')
     )
-    served_by = models.ForeignKey(
-        Superior,
-        on_delete=models.SET_NULL,
-        related_name='service_record_served_by',
-        null=True,
-        blank=True,
-        verbose_name=_('维修人员')
-    )
-    is_served = models.BooleanField(_('服务已完成'), default=False)
+    is_served = models.BooleanField(_('服务已完成'), help_text=_('若服务已经完成，请勾选此项'), default=False)
     notes = models.TextField(_('备注'), max_length=1000, null=True, blank=True)
     created_by = models.ForeignKey(
         WxUser,
@@ -974,9 +1009,18 @@ class ServiceItem(models.Model):
         on_delete=models.CASCADE,
         verbose_name=_('维修服务')
     )
+    served_by = models.ForeignKey(
+        Superior,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_('维修人员')
+    )
     name = models.CharField(_('项目名称'), max_length=255, null=True, blank=True)
-    price = models.DecimalField(_('售价'), null=True, blank=True, decimal_places=2, max_digits=10)
-    cost = models.DecimalField(_('成本'), null=True, blank=True, decimal_places=2, max_digits=10)
+    item_price = models.DecimalField(_('单价（元）'), null=True, blank=True, decimal_places=2, max_digits=10)
+    item_count = models.IntegerField(_('数量'), null=True, blank=True, default=1)
+    price = models.DecimalField(_('小计（元）'), null=True, blank=True, decimal_places=2, max_digits=10)
+    cost = models.DecimalField(_('成本（元）'), null=True, blank=True, decimal_places=2, max_digits=10)
     notes = models.CharField(_('备注'), max_length=255, null=True, blank=True)
     created_by = models.ForeignKey(
         WxUser,
@@ -1038,6 +1082,8 @@ class ServiceItem(models.Model):
             ).update(total_price=total_price, total_cost=total_cost)
 
     def save(self, *args, **kwargs):
+        if self.item_price and self.item_count:
+            self.price = float(getattr(self, 'item_price')) * int(getattr(self, 'item_count'))
         super(ServiceItem, self).save(*args, **kwargs)
         self.update_related_service_record()
 
@@ -1475,6 +1521,17 @@ class PartnerApply(models.Model):
         verbose_name=_('由谁联系')
     )
     is_checked = models.BooleanField(_('已联系/已确认'), default=False)
+    is_confirmed = models.BooleanField(
+        _('申请成功'),
+        help_text=_('勾选此项，城市合伙人信息将自动与客户信息关联'),
+        default=False)
+    related_customer = models.ForeignKey(
+        Customer,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_('关联客户')
+    )
     notes = models.TextField(_('备注'), max_length=1000, null=True, blank=True)
     created_by = models.ForeignKey(
         WxUser,
@@ -1499,8 +1556,16 @@ class PartnerApply(models.Model):
 
     class Meta:
         ordering = ['-id']
-        verbose_name = _('城市合伙人')
-        verbose_name_plural = _('城市合伙人')
+        verbose_name = _('城市合伙人申请')
+        verbose_name_plural = _('城市合伙人申请')
+
+    def import_partner(self):
+        if self.mobile:
+            customer, created = Customer.objects.get_or_create(
+                mobile=self.mobile, defaults={'name': self.name})
+            customer.is_partner = True
+            customer.save()
+            self.related_customer = customer
 
     def __str__(self):
         return "{} {} {}".format(
@@ -1508,6 +1573,11 @@ class PartnerApply(models.Model):
             self.mobile,
             self.is_checked
         )
+
+    def save(self, *args, **kwargs):
+        if self.is_confirmed:
+            self.import_partner()
+        super(PartnerApply, self).save(*args, **kwargs)
 
 
 class InsuranceRecordUpload(models.Model):

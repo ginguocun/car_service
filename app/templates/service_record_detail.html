@@ -66,6 +66,7 @@
     <div class="module">
         <fieldset class="module aligned ">
             <h2>服务条目</h2>
+            {% if has_data %}
             <form method="post" action="{{ request.path }}">
                 {{ formset.management_form }}
                 <table>
@@ -74,8 +75,11 @@
                     <tr>
                         <th class="original">No.</th>
                         <th class="column-name">项目名称</th>
-                        <th class="column-price">售价</th>
-                        <th class="column-price">成本</th>
+                        <th class="column-served_by">维修人员</th>
+                        <th class="column-item_price">单价(元)</th>
+                        <th class="column-item_count">数量</th>
+                        <th class="column-price">小计(元)</th>
+                        <th class="column-price">成本(元)</th>
                         <th class="column-notes">备注</th>
                     </tr>
                     </thead>
@@ -86,6 +90,9 @@
                         {{ form.id }}
                         <td>{{ forloop.counter }}<input type="hidden" name="form-{{ forloop.counter0 }}-confirmed_by" value="{{ request.user.id }}"></td>
                         <td>{{ form.name }}</td>
+                        <td>{{ form.served_by }}</td>
+                        <td>{{ form.item_price }}</td>
+                        <td>{{ form.item_count }}</td>
                         <td>{{ form.price }}</td>
                         <td>{{ form.cost }}</td>
                         <td>{{ form.notes }}</td>
@@ -100,6 +107,15 @@
                     {% if has_data %}<input type="submit" value="保存" name="_save" class="el-button el-button--primary">{% endif %}
                 </div>
             </form>
+            {% else %}
+            <h3>暂无服务详情记录~~~~</h3>
+            <div class="submit-row">
+                    <a href="{{ back }}"><button type="button" class="el-button el-button--button" style="float: left; margin-right: 10px; margin-bottom: 10px;"><i class="el-icon-arrow-left"></i><span><span>返回</span></span></button></a>
+                    {% if has_prev %}<a href="{{ prev_url }}"><span style="margin-right: 10px;">上一条</span></a>{% endif %}
+                    {% if has_next %}<a href="{{ next_url }}"><span style="margin-right: 10px;">下一条</span></a>{% endif %}
+                    {% if has_data %}<input type="submit" value="保存" name="_save" class="el-button el-button--primary">{% endif %}
+                </div>
+            {% endif %}
         </fieldset>
     </div>
 </div>

@@ -180,11 +180,11 @@ class CustomerAdmin(AutoUpdateUserModelAdmin):
     list_display = ['pk', 'name', 'mobile', 'current_amounts', 'current_credits', 'related_superior']
     list_display_links = ['pk', 'name', 'mobile']
     search_fields = ['name', 'mobile']
-    list_filter = ['related_superior']
+    list_filter = ['related_superior', 'is_partner']
     autocomplete_fields = ['related_superior']
     filter_horizontal = ['related_user']
     fieldsets = (
-        (_('基础信息'), {'fields': ('name', 'mobile', 'related_superior', 'related_user')}),
+        (_('基础信息'), {'fields': ('name', 'mobile', 'related_superior', 'related_user', 'is_partner')}),
         (_('余额/积分'), {'fields': ('current_amounts', 'current_credits')}),
         (_('操作记录'), {'fields': ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')})
     )
@@ -237,7 +237,7 @@ class InsuranceRecordAdmin(AutoUpdateUserModelAdmin):
     list_filter = ['has_payback', 'belong_to', 'insurance_company']
     date_hierarchy = 'record_date'
     search_fields = ['car__car_number', 'car__customer__name', 'car__customer__mobile']
-    autocomplete_fields = ['car', 'receiver', 'belong_to', 'insurance_company']
+    autocomplete_fields = ['car', 'related_partner', 'receiver', 'belong_to', 'insurance_company']
     fieldsets = (
         (_('基础'), {'fields': ('car', 'record_date', 'insurance_date')}),
         (_('金额'), {'fields': (
@@ -248,7 +248,7 @@ class InsuranceRecordAdmin(AutoUpdateUserModelAdmin):
         (_('保险详情'), {'fields': (
             'insurance_jqx', 'insurance_csx', 'insurance_fdjss', 'insurance_zrss', 'insurance_dqx', 'insurance_pl',
             'insurance_cshx', 'insurance_dsxr', 'insurance_sj', 'insurance_ck', 'insurance_hw')}),
-        (_('人员'), {'fields': ('receiver', 'belong_to', 'insurance_company')}),
+        (_('人员'), {'fields': ('receiver', 'belong_to', 'insurance_company', 'related_partner')}),
         (_('备注'), {'fields': ('notes',)})
     )
 
@@ -287,7 +287,8 @@ class StoreInfoAdmin(SimpleModelAdmin):
 class ServiceItemInline(admin.TabularInline):
     model = ServiceItem
     extra = 1
-    fields = ['name', 'price', 'notes']
+    autocomplete_fields = ('served_by',)
+    fields = ['name', 'served_by', 'item_price', 'item_count', 'notes']
 
 
 class ServiceFeedbackInline(admin.TabularInline):
@@ -328,21 +329,21 @@ class ServiceRecordAdmin(AutoUpdateUserModelAdmin):
     list_display = [
         'pk', 'car', 'reserve_type', 'is_reversed', 'reserve_time', 'reserve_address', 'related_store',
         'total_price', 'total_payed',
-        'checked_by', 'is_checked', 'served_by', 'is_served', 'notes'
+        'checked_by', 'is_checked', 'is_served', 'notes'
     ]
     list_display_links = ['pk', 'car']
     list_filter = [
-        'is_reversed', 'checked_by', 'served_by', 'is_checked', 'is_served', 'related_store', 'service_package']
+        'is_reversed', 'checked_by', 'is_checked', 'is_served', 'related_store', 'service_package']
     date_hierarchy = 'reserve_time'
     search_fields = ['car__car_number', 'car__customer__name', 'car__customer__mobile']
-    autocomplete_fields = ['car', 'checked_by', 'served_by', 'related_store', 'service_package', 'oil_package']
+    autocomplete_fields = ['car', 'checked_by', 'related_partner', 'related_store', 'service_package', 'oil_package']
     fieldsets = (
         (_('基础信息'), {'fields': (
             'reserve_type', 'car', 'reserve_time', 'finish_time', 'reserve_address', 'vehicle_mileage')}),
         (_('服务信息'), {
             'fields': (
                 'related_store',  'total_price', 'total_payed',
-                ('served_by', 'is_served'), ('checked_by', 'is_checked'))}),
+                'is_served', ('checked_by', 'is_checked'), 'related_partner')}),
         (_('预约信息'), {
             'fields': (
                 'is_reversed', 'service_package', 'oil_package', 'service_info'),
@@ -419,16 +420,16 @@ class OilPackageAdmin(SimpleModelAdmin):
 class PartnerApplyAdmin(AutoUpdateUserModelAdmin):
     readonly_fields = ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')
     list_display = [
-        'pk', 'name', 'mobile', 'address', 'professional', 'reason', 'is_checked', 'notes'
+        'pk', 'name', 'mobile', 'address', 'professional', 'reason', 'is_checked', 'is_confirmed', 'notes'
     ]
     list_display_links = ['pk', 'name', 'mobile']
-    list_filter = ['is_checked', 'checked_by']
+    list_filter = ['is_checked', 'checked_by', 'is_confirmed']
     date_hierarchy = 'datetime_created'
     search_fields = ['name', 'mobile', 'address']
     autocomplete_fields = ['checked_by']
     fieldsets = (
         (_('基本信息'), {'fields': ('name', 'mobile', 'address', 'professional', 'reason')}),
-        (_('审核信息'), {'fields': ('checked_by', 'is_checked')}),
+        (_('审核信息'), {'fields': ('checked_by', 'is_checked', 'is_confirmed')}),
         (_('备注'), {'fields': ('notes', 'datetime_created', 'datetime_updated')})
     )
 

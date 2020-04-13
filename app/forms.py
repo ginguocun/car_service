@@ -121,10 +121,11 @@ class ServiceItemForm(AppModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['name'].widget.attrs.update({'readonly': 'readonly'})
-        self.fields['price'].widget.attrs.update({'readonly': 'readonly'})
+        readonly_fields = ['name', 'served_by', 'item_price', 'item_count', 'price']
+        for f in readonly_fields:
+            self.fields[f].widget.attrs.update({'readonly': 'readonly', 'style': 'background-color: lightgrey'})
         self.fields['confirmed_by'].widget.attrs.update({'type': 'hidden'})
 
     class Meta:
         model = ServiceItem
-        fields = ['name', 'price', 'cost', 'notes', 'confirmed_by']
+        fields = ['name', 'served_by', 'item_price', 'item_count', 'price', 'cost', 'notes', 'confirmed_by']
