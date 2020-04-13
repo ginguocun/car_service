@@ -177,7 +177,7 @@ class CreditChangeRecordAdmin(AutoUpdateUserModelAdmin):
 class CustomerAdmin(AutoUpdateUserModelAdmin):
     readonly_fields = [
         'current_amounts', 'current_credits', 'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated']
-    list_display = ['pk', 'name', 'mobile', 'current_amounts', 'current_credits', 'related_superior']
+    list_display = ['pk', 'name', 'mobile', 'current_amounts', 'current_credits', 'is_partner', 'related_superior']
     list_display_links = ['pk', 'name', 'mobile']
     search_fields = ['name', 'mobile']
     list_filter = ['related_superior', 'is_partner']

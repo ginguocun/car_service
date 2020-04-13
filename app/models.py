@@ -292,7 +292,10 @@ class PayedRecord(models.Model):
         verbose_name=_('关联客户')
     )
     total_price = models.DecimalField(_('应收金额（元）'), default=0, decimal_places=2, max_digits=10)
-    total_payed = models.DecimalField(_('实收金额（元）'), default=0, decimal_places=2, max_digits=10)
+    total_payed = models.DecimalField(
+        _('实收金额（元）'),
+        help_text=_('如果是挂账，请填写0'),
+        default=0, decimal_places=2, max_digits=10)
     amount_payed = models.DecimalField(_('余额抵扣（元）'), default=0, decimal_places=2, max_digits=10)
     credit_payed = models.DecimalField(_('积分抵扣（元）'), default=0, decimal_places=2, max_digits=10)
     credit_change = models.BigIntegerField(_('积分获得'), help_text=_('现金支付，每满20元获得1积分'), default=0)
@@ -1018,7 +1021,7 @@ class ServiceItem(models.Model):
     )
     name = models.CharField(_('项目名称'), max_length=255, null=True, blank=True)
     item_price = models.DecimalField(_('单价（元）'), null=True, blank=True, decimal_places=2, max_digits=10)
-    item_count = models.IntegerField(_('数量'), null=True, blank=True, default=1)
+    item_count = models.DecimalField(_('数量'), null=True, blank=True, default=1, decimal_places=2, max_digits=10)
     price = models.DecimalField(_('小计（元）'), null=True, blank=True, decimal_places=2, max_digits=10)
     cost = models.DecimalField(_('成本（元）'), null=True, blank=True, decimal_places=2, max_digits=10)
     notes = models.CharField(_('备注'), max_length=255, null=True, blank=True)
