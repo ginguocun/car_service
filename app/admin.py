@@ -237,7 +237,7 @@ class InsuranceRecordAdmin(AutoUpdateUserModelAdmin):
     list_filter = ['has_payback', 'belong_to', 'insurance_company']
     date_hierarchy = 'record_date'
     search_fields = ['car__car_number', 'car__customer__name', 'car__customer__mobile']
-    autocomplete_fields = ['car', 'related_partner', 'receiver', 'belong_to', 'insurance_company']
+    autocomplete_fields = ['car', 'receiver', 'belong_to', 'insurance_company']
     fieldsets = (
         (_('基础'), {'fields': ('car', 'record_date', 'insurance_date')}),
         (_('金额'), {'fields': (
@@ -336,7 +336,7 @@ class ServiceRecordAdmin(AutoUpdateUserModelAdmin):
         'is_reversed', 'checked_by', 'is_checked', 'is_served', 'related_store', 'service_package']
     date_hierarchy = 'reserve_time'
     search_fields = ['car__car_number', 'car__customer__name', 'car__customer__mobile']
-    autocomplete_fields = ['car', 'checked_by', 'related_partner', 'related_store', 'service_package', 'oil_package']
+    autocomplete_fields = ['car', 'checked_by', 'related_store', 'service_package', 'oil_package']
     fieldsets = (
         (_('基础信息'), {'fields': (
             'reserve_type', 'car', 'reserve_time', 'finish_time', 'reserve_address', 'vehicle_mileage')}),

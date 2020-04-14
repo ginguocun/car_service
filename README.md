@@ -70,3 +70,9 @@ ps auxw | grep uwsgi
 uwsgi --ini /opt/car_service/car_uwsgi.ini
 uwsgi --reload /opt/car_service/uwsgi/uwsgi.pid
 ```
+
+数据迁移
+```bash
+python3 manage.py dumpdata --all --format=json > mysite_all_data.json
+python3 manage.py loaddata mysite_all_data.json
+```
