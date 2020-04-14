@@ -252,6 +252,47 @@ class Customer(models.Model):
             self.current_credits if self.current_credits else '0',
         )
 
+    def update_partner(self):
+        # 更新城市合伙人信息
+        if self.is_partner:
+            Partner.objects.update_or_create(
+                related_customer_id=self.pk,
+                defaults={
+                    'name': self.name,
+                    'mobile': self.mobile,
+                })
+
+    def save(self, *args, **kwargs):
+        super(Customer, self).save(*args, **kwargs)
+        self.update_partner()
+
+
+class Partner(models.Model):
+    """
+    城市合伙人，手机号作为唯一标识
+    """
+    name = models.CharField(_('名字'), max_length=255, null=True)
+    mobile = models.CharField(_('手机'), max_length=255, null=True, unique=True)
+    related_customer = models.OneToOneField(
+        Customer,
+        on_delete=models.CASCADE,
+        null=False,
+        blank=False
+    )
+
+    objects = models.Manager()
+
+    class Meta:
+        ordering = ['id']
+        verbose_name = _('城市合伙人')
+        verbose_name_plural = _('城市合伙人')
+
+    def __str__(self):
+        return "{0} {1}".format(
+            self.name,
+            self.mobile if self.mobile else '',
+        )
+
 
 class StoreInfo(models.Model):
     """
@@ -696,9 +737,8 @@ class InsuranceRecord(models.Model):
         verbose_name=_('保险公司')
     )
     related_partner = models.ForeignKey(
-        Customer,
+        Partner,
         on_delete=models.SET_NULL,
-        limit_choices_to={'is_partner': True},
         null=True,
         blank=True,
         verbose_name=_('城市合伙人')
@@ -956,9 +996,8 @@ class ServiceRecord(models.Model):
     )
     is_checked = models.BooleanField(_('已联系/已确认'), default=False)
     related_partner = models.ForeignKey(
-        Customer,
+        Partner,
         on_delete=models.SET_NULL,
-        limit_choices_to={'is_partner': True},
         null=True,
         blank=True,
         verbose_name=_('城市合伙人')
