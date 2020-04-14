@@ -471,7 +471,10 @@ def get_user_detail(user):
         'amount_records': list(),
         'credit_records': list(),
         'current_amounts': None,
-        'current_credits': None
+        'current_credits': None,
+        'bank_account_name': None,
+        'bank_account_no': None,
+        'bank_name': None,
     }
     if user:
         res['user'] = model_to_dict(
@@ -482,10 +485,9 @@ def get_user_detail(user):
             ])
         amount_records_q = AmountChangeRecord.objects.filter(
             customer__related_user=user
-        ).order_by('-pk').values('pk', 'customer__name', 'amounts', 'current_amounts', 'datetime_created', 'notes')
+        ).order_by('-pk').values(
+            'pk', 'customer__name', 'amounts', 'current_amounts', 'datetime_created', 'notes')
         for ar in amount_records_q:
-            if res['current_amounts'] is None:
-                res['current_amounts'] = ar.get('current_amounts', 0)
             res['amount_records'].append(
                 {
                     'pk': ar.get('pk'),
@@ -498,10 +500,9 @@ def get_user_detail(user):
             )
         credit_records_q = CreditChangeRecord.objects.filter(
             customer__related_user=user
-        ).order_by('-pk').values('pk', 'customer__name', 'credits', 'current_credits', 'datetime_created', 'notes')
+        ).order_by('-pk').values(
+            'pk', 'customer__name', 'credits', 'current_credits', 'datetime_created', 'notes')
         for cr in credit_records_q:
-            if res['current_credits'] is None:
-                res['current_credits'] = cr.get('current_credits', 0)
             res['credit_records'].append(
                 {
                     'pk': cr.get('pk'),
@@ -512,6 +513,11 @@ def get_user_detail(user):
                     'datetime_created': cr.get('datetime_created')
                 }
             )
+        fs = ['bank_account_name', 'bank_account_no', 'bank_name', 'current_amounts', 'current_credits']
+        related_customer = Customer.objects.values(*fs).filter(related_user=user).first()
+        if related_customer:
+            for f in fs:
+                res[f] = related_customer.get(f)
     return res
 
 
@@ -521,7 +527,7 @@ class UserInfoView(AppApi):
     获取自己的用户信息
     """
     def get(self, request):
-        if request.user.id:
+        if self.request.user.id:
             user = WxUser.objects.filter(pk=request.user.id).first()
             if user:
                 res = get_user_detail(user)
@@ -532,11 +538,12 @@ class UserInfoView(AppApi):
 class UpdateMobileView(AppApi):
     """
     post:
-    更新手机号
+    更新手机号，字段 mobile 和 code
     """
     def post(self, request):
-        if request.user.id:
+        if self.request.user.id:
             user = WxUser.objects.filter(pk=request.user.id).first()
+            pre_related_customers = Customer.objects.filter(related_user=user)
             mobile = request.data.get('mobile', '')
             code = request.data.get('code', '')
             if re.match(r"^1[2-9]\d{9}$", mobile):
@@ -546,6 +553,21 @@ class UpdateMobileView(AppApi):
                     ).order_by('-pk').first()
                     if code_msg:
                         if (datetime.now() - code_msg.datetime_created).seconds < 300:
+                            # 如果用户之前已经有手机号，并且已经关联了客户信息，用户更新手机号会同步更新关联客户的手机号
+                            if pre_related_customers.exists() and user.mobile:
+                                exist_customer = Customer.objects.filter(mobile=mobile).first()
+                                # 新提供的手机号是否已经存在
+                                if not exist_customer:
+                                    # 如果不存在，直接更新
+                                    pre_related_customers.filter(mobile=user.mobile).update(mobile=mobile)
+                                else:
+                                    # 如果存在，将之前相同手机号的关联用户删除，然后将用户关联到已经存在的客户上
+                                    pre_related_customer = pre_related_customers.filter(mobile=user.mobile).first()
+                                    pre_related_customer.related_user.remove(user.pk)
+                                    pre_related_customer.save()
+                                    
+                                    exist_customer.related_user.add(user.pk)
+                                    exist_customer.save()
                             user.mobile = mobile
                             user.save()
                             res = get_user_detail(user)
@@ -553,13 +575,54 @@ class UpdateMobileView(AppApi):
                         return Response({'detail': '验证码过期'}, status=HTTP_400_BAD_REQUEST)
                     return Response({'detail': '验证失败'}, status=HTTP_400_BAD_REQUEST)
                 else:
-                    # todo 待更新
-                    # return Response({'detail': 'code 未提供'}, status=HTTP_400_BAD_REQUEST)
-                    user.mobile = mobile
-                    user.save()
-                    res = get_user_detail(user)
-                    return Response(res, status=HTTP_200_OK)
+                    return Response({'detail': '验证码未提供'}, status=HTTP_400_BAD_REQUEST)
+                    # 如果用户之前已经有手机号，并且已经关联了客户信息，用户更新手机号会同步更新关联客户的手机号
+                    # if pre_related_customers.exists() and user.mobile:
+                    #     exist_customer = Customer.objects.filter(mobile=mobile).first()
+                    #     # 新提供的手机号是否已经存在
+                    #     if not exist_customer:
+                    #         # 如果不存在，直接更新
+                    #         pre_related_customers.filter(mobile=user.mobile).update(mobile=mobile)
+                    #     else:
+                    #         # 如果存在，将之前相同手机号的关联用户删除，然后将用户关联到已经存在的客户上
+                    #         pre_related_customer = pre_related_customers.filter(mobile=user.mobile).first()
+                    #         pre_related_customer.related_user.remove(user.pk)
+                    #         pre_related_customer.save()
+                    #         exist_customer.related_user.add(user.pk)
+                    #         exist_customer.save()
+                    # user.mobile = mobile
+                    # user.save()
+                    # res = get_user_detail(user)
+                    # return Response(res, status=HTTP_200_OK)
             return Response({'detail': '手机号格式有误'}, status=HTTP_400_BAD_REQUEST)
+        return Response({'detail': '请登录'}, status=HTTP_401_UNAUTHORIZED)
+
+
+class UpdateUserInfoView(AppApi):
+    """
+    post:
+    更新姓名和银行卡信息，可更新字段为 'name', 'bank_account_name', 'bank_account_no', 'bank_name'
+    """
+    def post(self, request):
+        fields = ['name', 'bank_account_name', 'bank_account_no', 'bank_name']
+        if self.request.user.id:
+            user = WxUser.objects.filter(pk=request.user.id).first()
+            data = {}
+            for f in fields:
+                v = request.data.get(f)
+                data[f] = v
+            customers = Customer.objects.filter(related_user=user)
+            if not customers.exists():
+                if user.mobile:
+                    customer = Customer.objects.create(name=user.nick_name, mobile=user.mobile, defaults=data)
+                    customer.related_user.add(user.pk)
+                    customer.save()
+                else:
+                    return Response({'detail': '请先提交手机号'}, status=HTTP_400_BAD_REQUEST)
+            else:
+                customers.update(**data)
+                customer = customers.first()
+            return Response(model_to_dict(customer, fields=fields), status=HTTP_200_OK)
         return Response({'detail': '请登录'}, status=HTTP_401_UNAUTHORIZED)
 
 

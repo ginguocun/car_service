@@ -186,6 +186,7 @@ class CustomerAdmin(AutoUpdateUserModelAdmin):
     fieldsets = (
         (_('基础信息'), {'fields': ('name', 'mobile', 'related_superior', 'related_user', 'is_partner')}),
         (_('余额/积分'), {'fields': ('current_amounts', 'current_credits')}),
+        (_('银行卡'), {'fields': ('bank_account_name', 'bank_account_no', 'bank_name')}),
         (_('操作记录'), {'fields': ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')})
     )
 

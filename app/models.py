@@ -125,21 +125,21 @@ class WxUser(AbstractUser):
                         openid_gzh = u.openid_gzh
                         u.delete()
                         self.openid_gzh = openid_gzh
-            # 手机号更新以后，删除之前关联的客户关系
-            related_customers = Customer.objects.filter(related_user=self.pk)
-            for rc in related_customers:
-                rc.related_user.remove(self.pk)
-                rc.save()
-            # 根据新的手机号重新关联客户
-            customer = Customer.objects.filter(mobile=self.mobile).first()
-            if customer:
-                customer.related_user.add(self.pk)
+            # 手机号更新以后，以前关联的客户关系不变
+            # related_customers = Customer.objects.filter(related_user=self.pk)
+            # for rc in related_customers:
+            #     rc.related_user.remove(self.pk)
+            #     rc.save()
+            # 根据新的手机号重新查找和关联客户
+            customer, created = Customer.objects.get_or_create(mobile=self.mobile, defaults={'name': self.nick_name})
+            customer.related_user.add(self.pk)
+            customer.save()
 
     def save(self, *args, **kwargs):
         self.create_username_password()
         super().save(*args, **kwargs)
-        self.update_related_customers()
         if self.mobile:
+            self.update_related_customers()
             super().save(update_fields=['openid', 'openid_gzh'])
 
 
@@ -194,8 +194,12 @@ class Customer(models.Model):
     """
     客户，手机号作为唯一标识
     """
-    name = models.CharField(_('名字'), max_length=255, null=True)
+    name = models.CharField(_('名字'), help_text=_('请尽量填写真实姓名'), max_length=255, null=True)
     mobile = models.CharField(_('手机'), max_length=255, null=True, unique=True)
+    # 银行卡信息
+    bank_account_name = models.CharField(_('银行账户-姓名'), max_length=255, null=True, blank=True)
+    bank_account_no = models.CharField(_('银行账户-卡号'), max_length=255, null=True, blank=True)
+    bank_name = models.CharField(_('银行名称'), max_length=255, null=True, blank=True)
     is_partner = models.BooleanField(_('是合伙人'), default=False)
     current_amounts = models.DecimalField(
         verbose_name=_('当前余额（元）'),

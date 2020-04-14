@@ -36,4 +36,5 @@ urlpatterns = format_suffix_patterns([
     re_path(r'^user_info/$', UserInfoView.as_view(), name='user_info'),
     re_path(r'^update_mobile/$', UpdateMobileView.as_view(), name='update_mobile'),
     re_path(r'^get_code/$', GetCodeView.as_view(), name='get_code'),
+    re_path(r'^update_user_info/$', UpdateUserInfoView.as_view(), name='update_user_info'),
 ])
