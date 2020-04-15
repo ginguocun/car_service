@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.db.models.signals import pre_delete
+from django.db.models.signals import post_save, post_delete, pre_save, pre_delete
 from django.dispatch import receiver
 from django.forms import model_to_dict
 from django.utils.translation import gettext_lazy as _
@@ -86,61 +86,62 @@ class WxUser(AbstractUser):
             self.mobile
         )
 
-    def create_username_password(self):
-        """
-        创建初始的用户名和密码
-        """
-        key = settings.SECRET_KEY
-        if not self.username and not self.password:
-            if self.openid:
-                self.username = hashlib.pbkdf2_hmac(
-                    "sha256", getattr(self, 'openid').encode(encoding='utf-8'), key.encode(encoding='utf-8'), 10).hex()
-                raw_password = hashlib.pbkdf2_hmac(
-                    "sha256", self.username.encode(), getattr(self, 'openid').encode(encoding='utf-8'), 10).hex()
-            else:
-                self.username = hashlib.pbkdf2_hmac(
-                    "sha256", getattr(self, 'openid_gzh').encode(encoding='utf-8'), key.encode(encoding='utf-8'),
-                    10).hex()
-                raw_password = hashlib.pbkdf2_hmac(
-                    "sha256", self.username.encode(), getattr(self, 'openid_gzh').encode(encoding='utf-8'), 10).hex()
-            self.password = make_password(raw_password)
 
-    def update_related_customers(self):
-        """
-        如果用户填写了手机号，自动合并相同手机号的用户，并将手机号相同的客户关联到此账号
-        """
-        if self.mobile:
-            # 理论上用户可以有多个账号，同一个微信号可以注册公众号和小程序的账号，填写手机号后，将公众号和小程序注册的账号进行合并
-            related_users = WxUser.objects.filter(mobile=self.mobile).exclude(pk=self.pk, is_staff=True)
-            # 自动进行账号合并
-            if self.openid_gzh and not self.openid:
-                for u in related_users:
-                    if u.openid:
-                        openid = u.openid
-                        u.delete()
-                        self.openid = openid
-            elif self.openid and not self.openid_gzh:
-                for u in related_users:
-                    if u.openid_gzh:
-                        openid_gzh = u.openid_gzh
-                        u.delete()
-                        self.openid_gzh = openid_gzh
-            # 手机号更新以后，以前关联的客户关系不变
-            # related_customers = Customer.objects.filter(related_user=self.pk)
-            # for rc in related_customers:
-            #     rc.related_user.remove(self.pk)
-            #     rc.save()
-            # 根据新的手机号重新查找和关联客户
-            customer, created = Customer.objects.get_or_create(mobile=self.mobile, defaults={'name': self.nick_name})
-            customer.related_user.add(self.pk)
-            customer.save()
+@receiver(pre_save, sender=WxUser)
+def create_username_password(sender, instance, **kwargs):
+    key = settings.SECRET_KEY
+    if not instance.username and not instance.password:
+        if instance.openid:
+            instance.username = hashlib.pbkdf2_hmac(
+                "sha256", getattr(instance, 'openid').encode(encoding='utf-8'), key.encode(encoding='utf-8'), 10
+            ).hex()
+            raw_password = hashlib.pbkdf2_hmac(
+                "sha256", instance.username.encode(), getattr(instance, 'openid').encode(encoding='utf-8'), 10
+            ).hex()
+            instance.password = make_password(raw_password)
+        else:
+            if instance.openid_gzh:
+                instance.username = hashlib.pbkdf2_hmac(
+                    "sha256", getattr(instance, 'openid_gzh').encode(encoding='utf-8'), key.encode(encoding='utf-8'), 10
+                ).hex()
+                raw_password = hashlib.pbkdf2_hmac(
+                    "sha256", instance.username.encode(), getattr(instance, 'openid_gzh').encode(encoding='utf-8'), 10
+                ).hex()
+                instance.password = make_password(raw_password)
 
-    def save(self, *args, **kwargs):
-        self.create_username_password()
-        super().save(*args, **kwargs)
-        if self.mobile:
-            self.update_related_customers()
-            super().save(update_fields=['openid', 'openid_gzh'])
+
+@receiver(post_save, sender=WxUser)
+def update_related_customers(sender, instance, **kwargs):
+    """
+    如果用户填写了手机号，自动合并相同手机号的用户，并将手机号相同的客户关联到此账号
+    """
+    if instance.mobile:
+        # 理论上用户可以有多个账号，同一个微信号可以注册公众号和小程序的账号，填写手机号后，将公众号和小程序注册的账号进行合并
+        related_users = WxUser.objects.filter(mobile=instance.mobile).exclude(pk=instance.pk, is_staff=True)
+        # 自动进行账号合并
+        if instance.openid_gzh and not instance.openid:
+            for u in related_users:
+                if u.openid:
+                    openid = u.openid
+                    u.delete()
+                    instance.openid = openid
+        elif instance.openid and not instance.openid_gzh:
+            for u in related_users:
+                if u.openid_gzh:
+                    openid_gzh = u.openid_gzh
+                    u.delete()
+                    instance.openid_gzh = openid_gzh
+        # 手机号更新以后，以前关联的客户关系不变
+        # related_customers = Customer.objects.filter(related_user=instance.pk)
+        # for rc in related_customers:
+        #     rc.related_user.remove(instance.pk)
+        #     rc.save()
+        # 根据手机号查找关联客户
+        customer, created = Customer.objects.get_or_create(
+            mobile=instance.mobile, defaults={'name': instance.nick_name})
+        # todo 测试
+        customer.related_user.add(instance.pk)
+        customer.save()
 
 
 class Superior(models.Model):
@@ -256,19 +257,19 @@ class Customer(models.Model):
             self.current_credits if self.current_credits else '0',
         )
 
-    def update_partner(self):
-        # 更新城市合伙人信息
-        if self.is_partner:
-            Partner.objects.update_or_create(
-                related_customer_id=self.pk,
-                defaults={
-                    'name': self.name,
-                    'mobile': self.mobile,
-                })
 
-    def save(self, *args, **kwargs):
-        super(Customer, self).save(*args, **kwargs)
-        self.update_partner()
+@receiver(post_save, sender=Customer)
+def update_partner(sender, instance, **kwargs):
+    # 客户更新以后更新合伙人列表
+    if instance.is_partner:
+        Partner.objects.update_or_create(
+            related_customer_id=instance.pk,
+            defaults={
+                'name': instance.name,
+                'mobile': instance.mobile,
+            })
+    else:
+        Partner.objects.filter(related_customer_id=instance.pk).delete()
 
 
 class Partner(models.Model):
@@ -378,55 +379,63 @@ class PayedRecord(models.Model):
             self.total_payed
         )
 
-    def update_cash_payed(self):
-        # 自动计算现金支付金额和积分获得
-        if self.total_payed:
-            total_payed = float(getattr(self, 'total_payed'))
-            amount_payed = 0
-            credit_payed = 0
-            if self.amount_payed:
-                amount_payed = float(getattr(self, 'amount_payed'))
-            if self.credit_payed:
-                credit_payed = float(getattr(self, 'credit_payed'))
-            # 现金支付
-            cash_payed = total_payed - amount_payed - credit_payed
-            self.cash_payed = cash_payed
-            # 积分获得
-            self.credit_change = cash_payed // 20
 
-    def save(self, *args, **kwargs):
-        self.update_cash_payed()
-        super(PayedRecord, self).save(*args, **kwargs)
-        # 如果有余额支付的情况，自动创建余额变更记录
-        if self.amount_payed and self.customer:
-            amounts_change = - float(getattr(self, 'amount_payed'))
-            AmountChangeRecord.objects.update_or_create(
-                related_payed_record_id=self.pk,
-                defaults={
-                    'amounts': amounts_change,
-                    'customer': self.customer,
-                    'created_by': self.created_by})
-        if self.customer:
-            # 积分消耗
-            credits_used = - float(getattr(self, 'credit_payed'))
-            CreditChangeRecord.objects.update_or_create(
-                related_payed_record_id=self.pk,
-                change_type=3,
-                defaults={
-                    'credits': credits_used,
-                    'customer': self.customer,
-                    'created_by': self.created_by}
-            )
-            # 积分获得
-            credits_get = float(getattr(self, 'credit_change'))
-            CreditChangeRecord.objects.update_or_create(
-                related_payed_record_id=self.pk,
-                change_type=1,
-                defaults={
-                    'credits': credits_get,
-                    'customer': self.customer,
-                    'created_by': self.created_by}
-            )
+@receiver(pre_save, sender=PayedRecord)
+def update_cash_payed(sender, instance, **kwargs):
+    # 自动计算现金支付金额和积分获得
+    if instance.total_payed:
+        total_payed = float(getattr(instance, 'total_payed'))
+        amount_payed = 0
+        credit_payed = 0
+        if instance.amount_payed:
+            amount_payed = float(getattr(instance, 'amount_payed'))
+        if instance.credit_payed:
+            credit_payed = float(getattr(instance, 'credit_payed'))
+        # 现金支付
+        cash_payed = total_payed - amount_payed - credit_payed
+        instance.cash_payed = cash_payed
+        # 积分获得
+        instance.credit_change = cash_payed // 20
+
+
+@receiver(post_save, sender=PayedRecord)
+def post_save_payed_record(sender, instance, **kwargs):
+    # 如果有余额支付的情况，自动创建余额变更记录
+    if instance.amount_payed and instance.customer:
+        amounts_change = - float(getattr(instance, 'amount_payed'))
+        AmountChangeRecord.objects.update_or_create(
+            related_payed_record_id=instance.pk,
+            defaults={
+                'amounts': amounts_change,
+                'customer': instance.customer,
+                'created_by': instance.created_by})
+    if instance.customer:
+        # 积分消耗
+        credits_used = - float(getattr(instance, 'credit_payed'))
+        CreditChangeRecord.objects.update_or_create(
+            related_payed_record_id=instance.pk,
+            change_type=3,
+            defaults={
+                'credits': credits_used,
+                'customer': instance.customer,
+                'created_by': instance.created_by}
+        )
+        # 积分获得
+        credits_get = float(getattr(instance, 'credit_change'))
+        CreditChangeRecord.objects.update_or_create(
+            related_payed_record_id=instance.pk,
+            change_type=1,
+            defaults={
+                'credits': credits_get,
+                'customer': instance.customer,
+                'created_by': instance.created_by}
+        )
+
+
+@receiver(pre_delete, sender=PayedRecord)
+def pre_delete_payed_record(sender, instance, **kwargs):
+    AmountChangeRecord.objects.filter(related_payed_record_id=instance.pk).delete()
+    CreditChangeRecord.objects.filter(related_payed_record_id=instance.pk).delete()
 
 
 class AmountChangeRecord(models.Model):
@@ -477,32 +486,38 @@ class AmountChangeRecord(models.Model):
         verbose_name = _('余额变更记录')
         verbose_name_plural = _('余额变更记录')
 
-    def update_customer_amount(self):
-        current_amounts = 0
-        current_amounts_all = 0
-        all_records = AmountChangeRecord.objects.filter(customer=self.customer)
-        for r in all_records.values('amounts'):
-            current_amounts_all += float(r['amounts'])
-        Customer.objects.filter(pk=getattr(self, 'customer').id).update(current_amounts=round(current_amounts_all, 2))
-        pre_records = all_records.filter(pk__lte=self.pk)
-        for r in pre_records.values('amounts'):
-            current_amounts += float(r['amounts'])
-        return round(current_amounts, 2)
-
-    def save(self, *args, **kwargs):
-        super(AmountChangeRecord, self).save(*args, **kwargs)
-        self.current_amounts = self.update_customer_amount()
-        super(AmountChangeRecord, self).save(update_fields=['current_amounts'])
-        record_after = AmountChangeRecord.objects.filter(customer=self.customer, pk__gt=self.pk).order_by('pk').first()
-        if record_after:
-            record_after.save()
-
     def __str__(self):
         return "{0} {1} {2}".format(
             self.customer,
             self.amounts,
             self.notes,
         )
+
+
+@receiver(pre_save, sender=AmountChangeRecord)
+def pre_save_customer_amount(sender, instance, **kwargs):
+    current_amounts = 0
+    current_amounts_all = 0
+    all_records = AmountChangeRecord.objects.filter(customer=instance.customer).exclude(pk=instance.pk)
+    for r in all_records.values('amounts'):
+        current_amounts_all += float(r['amounts'])
+    current_amounts_all += float(instance.amounts)
+    # 更新客户的余额
+    Customer.objects.filter(pk=getattr(instance, 'customer').id).update(current_amounts=round(current_amounts_all, 2))
+    # 计算当前记录的余额
+    pre_records = all_records.filter(pk__lt=instance.pk)
+    for r in pre_records.values('amounts'):
+        current_amounts += float(r['amounts'])
+    current_amounts += float(instance.amounts)
+    instance.current_amounts = round(current_amounts, 2)
+
+
+@receiver(post_save, sender=AmountChangeRecord)
+def post_save_customer_amount(sender, instance, **kwargs):
+    after_record = AmountChangeRecord.objects.filter(
+        customer=instance.customer, pk__gt=instance.pk).order_by('pk').first()
+    if after_record:
+        after_record.save()
 
 
 class CreditChangeRecord(models.Model):
@@ -553,32 +568,38 @@ class CreditChangeRecord(models.Model):
         verbose_name = _('积分变更记录')
         verbose_name_plural = _('积分变更记录')
 
-    def update_customer_credit(self):
-        current_credits = 0
-        current_credits_all = 0
-        all_records = CreditChangeRecord.objects.filter(customer=self.customer)
-        for r in all_records.values('credits'):
-            current_credits_all += int(r['credits'])
-        Customer.objects.filter(pk=getattr(self, 'customer').id).update(current_credits=current_credits_all)
-        pre_records = all_records.filter(pk__lte=self.pk)
-        for r in pre_records.values('credits'):
-            current_credits += int(r['credits'])
-        return current_credits
-
-    def save(self, *args, **kwargs):
-        super(CreditChangeRecord, self).save(*args, **kwargs)
-        self.current_credits = self.update_customer_credit()
-        super(CreditChangeRecord, self).save(update_fields=['current_credits'])
-        record_after = CreditChangeRecord.objects.filter(customer=self.customer, pk__gt=self.pk).order_by('pk').first()
-        if record_after:
-            record_after.save()
-
     def __str__(self):
         return "{0} {1} {2}".format(
             self.customer,
             self.credits,
             self.notes,
         )
+
+
+@receiver([pre_save, post_delete], sender=CreditChangeRecord)
+def pre_save_customer_credit(sender, instance, **kwargs):
+    current_credits = 0
+    current_credits_all = 0
+    all_records = CreditChangeRecord.objects.filter(customer=instance.customer).exclude(pk=instance.pk)
+    for r in all_records.values('credits'):
+        current_credits_all += int(r['credits'])
+    current_credits_all += int(instance.credits)
+    # 更新客户的积分
+    Customer.objects.filter(pk=getattr(instance, 'customer').id).update(current_credits=current_credits_all)
+    # 计算当前记录的剩余积分
+    pre_records = all_records.filter(pk__lte=instance.pk)
+    for r in pre_records.values('credits'):
+        current_credits += int(r['credits'])
+    current_credits += int(instance.credits)
+    instance.current_credits = current_credits
+
+
+@receiver(post_save, sender=CreditChangeRecord)
+def post_save_customer_credit(sender, instance, **kwargs):
+    after_record = CreditChangeRecord.objects.filter(
+        customer=instance.customer, pk__gt=instance.pk).order_by('pk').first()
+    if after_record:
+        after_record.save()
 
 
 class CarInfo(models.Model):
@@ -1100,67 +1121,39 @@ class ServiceItem(models.Model):
             self.price,
         )
 
-    def update_related_service_record(self):
-        # 更新服务记录的 total_price 和 total_cost
-        total_price = 0
-        total_cost = 0
-        if self.related_service_record:
-            items = ServiceItem.objects.filter(
-                related_service_record_id=getattr(self, 'related_service_record_id')
-            ).values('price', 'cost')
-            for it in items:
-                # price 计算
-                price = it.get('price', 0)
-                if price:
-                    price = float(price)
-                else:
-                    price = 0
-                total_price = total_price + price
-                # cost 计算
-                cost = it.get('cost', 0)
-                if cost:
-                    cost = float(cost)
-                else:
-                    cost = 0
-                total_cost = total_cost + cost
-            ServiceRecord.objects.filter(
-                pk=getattr(self, 'related_service_record_id')
-            ).update(total_price=total_price, total_cost=total_cost)
 
-    def save(self, *args, **kwargs):
-        if self.item_price and self.item_count:
-            self.price = float(getattr(self, 'item_price')) * int(getattr(self, 'item_count'))
-        super(ServiceItem, self).save(*args, **kwargs)
-        self.update_related_service_record()
+@receiver(pre_save, sender=ServiceItem)
+def calculate_price(sender, instance, **kwargs):
+    if instance.item_price and instance.item_count:
+        instance.price = float(getattr(instance, 'item_price')) * int(getattr(instance, 'item_count'))
 
 
-@receiver(pre_delete, sender=ServiceItem)
-def before_delete_service_item(sender, instance, **kwargs):
+@receiver([post_save, post_delete], sender=ServiceItem)
+def update_related_service_record(sender, instance, **kwargs):
     total_price = 0
     total_cost = 0
-    items = ServiceItem.objects.filter(
-        related_service_record_id=getattr(instance, 'related_service_record_id')
-    ).exclude(
-        pk=getattr(instance, 'pk')
-    ).values('price', 'cost')
-    for it in items:
-        # price 计算
-        price = it.get('price', 0)
-        if price:
-            price = float(price)
-        else:
-            price = 0
-        total_price = total_price + price
-        # cost 计算
-        cost = it.get('cost', 0)
-        if cost:
-            cost = float(cost)
-        else:
-            cost = 0
-        total_cost = total_cost + cost
-    ServiceRecord.objects.filter(
-        pk=getattr(instance, 'related_service_record_id')
-    ).update(total_price=total_price, total_cost=total_cost)
+    if instance.related_service_record:
+        items = ServiceItem.objects.filter(
+            related_service_record_id=getattr(instance, 'related_service_record_id')
+        ).values('price', 'cost')
+        for it in items:
+            # price 计算
+            price = it.get('price', 0)
+            if price:
+                price = float(price)
+            else:
+                price = 0
+            total_price = total_price + price
+            # cost 计算
+            cost = it.get('cost', 0)
+            if cost:
+                cost = float(cost)
+            else:
+                cost = 0
+            total_cost = total_cost + cost
+        ServiceRecord.objects.filter(
+            pk=getattr(instance, 'related_service_record_id')
+        ).update(total_price=total_price, total_cost=total_cost)
 
 
 class ServiceFeedback(models.Model):
