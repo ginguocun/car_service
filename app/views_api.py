@@ -565,7 +565,7 @@ class UpdateMobileView(AppApi):
                                     pre_related_customer = pre_related_customers.filter(mobile=user.mobile).first()
                                     pre_related_customer.related_user.remove(user.pk)
                                     pre_related_customer.save()
-                                    
+
                                     exist_customer.related_user.add(user.pk)
                                     exist_customer.save()
                             user.mobile = mobile

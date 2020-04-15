@@ -2,6 +2,8 @@ import base64
 import binascii
 import datetime
 import hashlib
+import re
+
 import rsa
 import xlwt
 
@@ -178,8 +180,13 @@ def date_value(ori_date):
     :return: 返回处理后的数据
     """
     from datetime import datetime
+    res = None
     try:
-        res = datetime.strptime(ori_date, '%Y.%m.%d').strftime('%Y-%m-%d')
+        if isinstance(ori_date, str):
+            if re.match(r'\d{4}\.\d{1,2}.\d{1,2}', ori_date):
+                res = datetime.strptime(ori_date, '%Y.%m.%d').strftime('%Y-%m-%d')
     except ValueError:
         res = None
+        print(ori_date)
     return res
+
