@@ -1285,6 +1285,7 @@ class InsuranceRecordUpload(models.Model):
         数据导入模块
         """
         if self.file:
+            file_name = getattr(self, 'file').name
             self.is_processed = True
             df = pd.read_excel(getattr(self, 'file').path, keep_default_na=False)
             fields = {
@@ -1369,7 +1370,7 @@ class InsuranceRecordUpload(models.Model):
                     insurance_company=insurance_company,
                     has_payback=True,
                     is_payed=True,
-                    notes='自动导入数据',
+                    notes='自动导入数据-{0}-{1}'.format(file_name, r.Index),
                     **data
                 )
                 if ir_created:
@@ -1885,8 +1886,11 @@ def post_save_customer_credit(sender, instance, **kwargs):
 def post_save_insurance_record(sender, instance, **kwargs):
     if instance.is_payed:
         total_payed = 0
+        total_price = 0
+
         customer = None
         if instance.total_price:
+            total_price = float(instance.total_price)
             if instance.payback_amount:
                 total_payed = float(instance.total_price) - float(instance.payback_amount)
             else:
@@ -1897,7 +1901,7 @@ def post_save_insurance_record(sender, instance, **kwargs):
             related_insurance_record=instance,
             defaults={
                 'customer': customer,
-                'total_price': instance.total_price,
+                'total_price': total_price,
                 'total_payed': total_payed,
                 'created_by': instance.created_by,
                 'confirmed_by': instance.confirmed_by,
