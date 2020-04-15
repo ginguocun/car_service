@@ -184,6 +184,12 @@ def date_value(ori_date):
         if isinstance(ori_date, str):
             if re.match(r'\d{4}\.\d{1,2}.\d{1,2}', ori_date):
                 res = datetime.datetime.strptime(ori_date, '%Y.%m.%d').strftime('%Y-%m-%d')
+            if re.match(r'\d{4}/\d{1,2}/\d{1,2}', ori_date):
+                res = datetime.datetime.strptime(ori_date, '%Y/%m/%d').strftime('%Y-%m-%d')
+            if re.match(r'\d{4}-\d{1,2}-\d{1,2}', ori_date):
+                res = datetime.datetime.strptime(ori_date, '%Y-%m-%d').strftime('%Y-%m-%d')
+        if isinstance(ori_date, datetime.datetime):
+            res = ori_date.strftime('%Y-%m-%d')
     except ValueError:
         res = None
         print(ori_date)

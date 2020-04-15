@@ -80,18 +80,28 @@ class WxUserAdmin(UserAdmin):
 
 @admin.register(PayedRecord)
 class PayedRecordAdmin(AutoUpdateUserModelAdmin):
+    date_hierarchy = 'payed_date'
     readonly_fields = [
-        'credit_change', 'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated']
+        'credit_change', 'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated',
+        'related_service_record',
+        'related_insurance_record',
+    ]
     list_display = [
-        'pk', 'related_store', 'customer', 'total_price', 'total_payed', 'amount_payed', 'credit_payed', 'cash_payed',
+        'pk', 'payed_date', 'related_store', 'customer',
+        'total_price', 'total_payed', 'amount_payed', 'credit_payed', 'cash_payed', 'is_confirmed',
         'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated']
     list_display_links = ['pk', 'related_store', 'customer', 'total_price', 'total_payed', 'amount_payed']
-    search_fields = ['customer__name', 'customer__mobile']
+    search_fields = ['customer__name', 'customer__mobile', 'notes']
     autocomplete_fields = ['related_store', 'customer']
+    list_filter = ['is_confirmed']
+    list_editable = ['is_confirmed']
     fieldsets = (
         (_('基础信息'), {'fields': (
-            'related_store', 'customer', 'total_price', 'total_payed', 'amount_payed', 'credit_payed', 'cash_payed')}),
+            'payed_date', 'related_store', 'customer',
+            'total_price', 'total_payed', 'amount_payed', 'credit_payed', 'cash_payed', 'is_confirmed')}),
         (_('操作记录'), {'fields': (
+            'related_service_record',
+            'related_insurance_record',
             'credit_change', 'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')})
     )
 
