@@ -1793,25 +1793,27 @@ def post_save_payed_record(sender, instance, **kwargs):
                 'created_by': instance.created_by})
     if instance.customer:
         # 积分消耗
-        credits_used = - float(getattr(instance, 'credit_payed'))
-        CreditChangeRecord.objects.update_or_create(
-            related_payed_record_id=instance.pk,
-            change_type=3,
-            defaults={
-                'credits': credits_used,
-                'customer': instance.customer,
-                'created_by': instance.created_by}
-        )
+        if instance.credit_payed:
+            credits_used = - float(getattr(instance, 'credit_payed'))
+            CreditChangeRecord.objects.update_or_create(
+                related_payed_record_id=instance.pk,
+                change_type=3,
+                defaults={
+                    'credits': credits_used,
+                    'customer': instance.customer,
+                    'created_by': instance.created_by}
+            )
         # 积分获得
-        credits_get = float(getattr(instance, 'credit_change'))
-        CreditChangeRecord.objects.update_or_create(
-            related_payed_record_id=instance.pk,
-            change_type=1,
-            defaults={
-                'credits': credits_get,
-                'customer': instance.customer,
-                'created_by': instance.created_by}
-        )
+        if instance.credit_change:
+            credits_get = float(getattr(instance, 'credit_change'))
+            CreditChangeRecord.objects.update_or_create(
+                related_payed_record_id=instance.pk,
+                change_type=1,
+                defaults={
+                    'credits': credits_get,
+                    'customer': instance.customer,
+                    'created_by': instance.created_by}
+            )
 
 
 @receiver(pre_delete, sender=PayedRecord)

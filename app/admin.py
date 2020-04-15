@@ -158,13 +158,15 @@ class CreditChangeRecordAdmin(AutoUpdateUserModelAdmin):
         'current_credits', 'related_payed_record',
         'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated']
     list_display = [
-        'pk', 'customer', 'credits', 'current_credits', 'notes',
+        'pk', 'customer', 'credits', 'current_credits', 'change_type', 'notes',
         'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated']
     list_display_links = ['pk', 'customer', 'credits', 'current_credits', 'notes']
     search_fields = ['customer__name', 'customer__mobile']
+    list_filter = ['change_type']
     autocomplete_fields = ['customer']
     fieldsets = (
-        (_('基础信息'), {'fields': ('customer', 'credits', 'current_credits', 'related_payed_record', 'notes')}),
+        (_('基础信息'), {
+            'fields': ('customer', 'credits', 'current_credits', 'change_type', 'related_payed_record', 'notes')}),
         (_('操作记录'), {'fields': ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')})
     )
 
