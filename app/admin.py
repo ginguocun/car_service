@@ -363,7 +363,7 @@ class ServiceRecordAdmin(AutoUpdateUserModelAdmin):
         (_('服务信息'), {
             'fields': (
                 'related_store',  'total_price', 'total_payed',
-                'is_served', ('checked_by', 'is_checked'), 'related_partner')}),
+                'is_served', 'is_payed', ('checked_by', 'is_checked'), 'related_partner')}),
         (_('预约信息'), {
             'fields': (
                 'is_reversed', 'service_package', 'oil_package', 'service_info'),

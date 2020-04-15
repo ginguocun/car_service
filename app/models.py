@@ -725,6 +725,7 @@ class ServiceRecord(models.Model):
         verbose_name=_('维修门店')
     )
     is_served = models.BooleanField(_('服务已完成'), help_text=_('若服务已经完成，请勾选此项'), default=False)
+    is_payed = models.BooleanField(_('已支付'), help_text=_('若已支付，请勾选此项'), default=False)
     notes = models.TextField(_('备注'), max_length=1000, null=True, blank=True)
     created_by = models.ForeignKey(
         WxUser,
