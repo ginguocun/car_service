@@ -179,12 +179,11 @@ def date_value(ori_date):
     :param ori_date: 原始日期数据
     :return: 返回处理后的数据
     """
-    from datetime import datetime
     res = None
     try:
         if isinstance(ori_date, str):
             if re.match(r'\d{4}\.\d{1,2}.\d{1,2}', ori_date):
-                res = datetime.strptime(ori_date, '%Y.%m.%d').strftime('%Y-%m-%d')
+                res = datetime.datetime.strptime(ori_date, '%Y.%m.%d').strftime('%Y-%m-%d')
     except ValueError:
         res = None
         print(ori_date)
