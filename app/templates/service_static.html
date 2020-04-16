@@ -1,0 +1,130 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+{% block content %}
+<style>
+        body, #container {
+            background: #FFF;
+        }
+
+</style>
+
+
+<div id="content-main">
+    <div class="module">
+        <div class="info-card el-row">
+            <div id="toolbar">
+                <form id="changelist-search" method="get" action="{{ request.path }}">
+                    <div class="simpleui-form">
+                        <div class="simpleui-form-item el-input el-input--prefix el-input--suffix"><!---->
+                            <input type="text" autocomplete="off" name="q" value="{{ request.GET.q }}"
+                                   placeholder="搜索名字,项目名称,手机,备注" class="el-input__inner">
+                            <span class="el-input__prefix"><i class="el-input__icon el-icon-search"></i></span>
+                        </div>
+                        <button type="submit" class="el-button el-button--primary"><!---->
+                            <i class="el-icon-search"></i><span>搜索</span>
+                        </button>
+                        <span style="padding:20px">
+                        共 {{ total_count }} 条记录
+                    </span>
+                    </div>
+                </form>
+            </div>
+            <div class="el-col el-col-18">
+                <div class="el-card box-card is-always-shadow">
+                    <div class="el-card__header">
+                        <div class="clearfix"><span>记录明细</span></div>
+                    </div>
+                    <div class="el-card__body">
+                        <div class="clearfix">
+                            {% if object_list %}
+                            <table id="change-history" class="layui-table">
+                                <thead>
+                                <tr>
+                                    <th scope="col">{% trans 'ID' %}</th>
+                                    <th scope="col">{% trans '维修人员' %}</th>
+                                    <th scope="col">{% trans '车牌号' %}</th>
+                                    <th scope="col">{% trans '项目名称' %}</th>
+                                    <th scope="col">{% trans '进厂时间' %}</th>
+                                    <th scope="col">{% trans '预计出厂时间' %}</th>
+                                    <th scope="col">{% trans '单价（元）' %}</th>
+                                    <th scope="col">{% trans '数量' %}</th>
+                                    <th scope="col">{% trans '小计（元）' %}</th>
+                                    <th scope="col">{% trans '总成本' %}</th>
+                                    <th scope="col">{% trans '备注' %}</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for object in object_list %}
+                                <tr>
+                                    <td scope="row"><a href="">{{object.pk }}</a></td>
+                                    <td>{{ object.served_by.name|default_if_none:'' }}</td>
+                                    <td><a href="">
+                                        {{object.related_service_record.car.car_number|default_if_none:'----' }}</a>
+                                    </td>
+                                    <td>{{ object.name|default_if_none:'' }}</td>
+                                    <td>{{ object.related_service_record.reserve_time|date:"DATETIME_FORMAT" }}</td>
+                                    <td>{{ object.related_service_record.finish_time|date:"DATETIME_FORMAT" }}</td>
+                                    <td>{{ object.item_price|default_if_none:'' }}</td>
+                                    <td>{{ object.item_count|default_if_none:'' }}</td>
+                                    <td>{{ object.price|default_if_none:'' }}</td>
+                                    <td>{{ object.cost|default_if_none:'' }}</td>
+                                    <td>{{ object.notes|default_if_none:'' }}</td>
+                                </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                            {% else %}
+                            <p>{% trans "无记录" %}</p>
+                            {% endif %}
+                            {% block pagination %}
+                            {% include "pagination.html" %}
+                            {% endblock %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="el-col el-col-6">
+                <div class="block">
+                    <div id="static_by_sales"></div>
+                </div>
+                <div class="block">
+                    <div id="static_by_profits"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/export-data.js"></script>
+<script language="JavaScript">
+Highcharts.chart('static_by_sales', {
+    credits: {enabled: false},
+    chart: {plotBackgroundColor: null, plotBorderWidth: null, plotShadow: false, type: 'pie'},
+    title: {text: '根据销售额统计'},
+    tooltip: {pointFormat: '{% trans "金额" %}: ￥{point.y:.2f} <b>比例: {point.percentage:.1f}%</b>'},
+    accessibility: {point: {valueSuffix: '%'}},
+    plotOptions: {
+        pie: {
+            allowPointSelect: true,
+            cursor: 'pointer',
+            dataLabels: {enabled: true, format: '<b>{point.name}</b>: {point.percentage:.1f} %'}
+    }},
+    series: [{name: '销售额', colorByPoint: true, data: {{ static_by_sales|safe }}}]
+});
+Highcharts.chart('static_by_profits', {
+    credits: {enabled: false},
+    chart: {plotBackgroundColor: null, plotBorderWidth: null, plotShadow: false, type: 'pie'},
+    title: {text: '根据利润统计'},
+    tooltip: {pointFormat: '{% trans "金额" %}: ￥{point.y:.2f} <b>比例: {point.percentage:.1f}%</b>'},
+    accessibility: {point: {valueSuffix: '%'}},
+    plotOptions: {
+        pie: {
+            allowPointSelect: true,
+            cursor: 'pointer',
+            dataLabels: {enabled: true, format: '<b>{point.name}</b>: {point.percentage:.1f} %'}
+    }},
+    series: [{name: '利润', colorByPoint: true, data: {{ static_by_profits|safe }}}]
+});
+</script>
+{% endblock %}

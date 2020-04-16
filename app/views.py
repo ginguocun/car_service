@@ -1,5 +1,8 @@
+import json
+
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ImproperlyConfigured
+from django.db.models import Q, Sum
 from django.forms import modelformset_factory
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
@@ -142,6 +145,53 @@ class ServiceRecordView(AppListView):
         context = super().get_context_data()
         context['title'] = _('服务记录')
         context['total_count'] = self.get_queryset().count()
+        return context
+
+
+class ServiceStaticView(AppListView):
+    template_name = 'service_static.html'
+    model = ServiceItem
+    paginate_by = 20
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        q = self.request.GET.get('q')
+        if q:
+            queryset = queryset.filter(Q(served_by__name=q) | Q(served_by__mobile=q) | Q(name=q))
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        context['title'] = _('服务统计')
+        context['total_count'] = self.get_queryset().count()
+        static_by_sales_query = self.get_queryset().values(
+            "served_by__name"
+        ).annotate(Sum("price"), Sum("cost")).order_by()
+        static_by_sales_data = []
+        static_by_profits_data = []
+        if static_by_sales_query:
+            for item in static_by_sales_query:
+                served_by__name = item['served_by__name']
+                if not served_by__name:
+                    served_by__name = '未知'
+                if item['price__sum']:
+                    sales = round(float(item['price__sum']), 2)
+                else:
+                    sales = 0
+                if item['cost__sum']:
+                    costs = round(float(item['cost__sum']), 2)
+                else:
+                    costs = 0
+                static_by_sales_data.append({
+                    'name': served_by__name,
+                    'y': sales
+                })
+                static_by_profits_data.append({
+                    'name': served_by__name,
+                    'y': sales - costs
+                })
+        context['static_by_sales'] = json.dumps(static_by_sales_data)
+        context['static_by_profits'] = json.dumps(static_by_profits_data)
         return context
 
 

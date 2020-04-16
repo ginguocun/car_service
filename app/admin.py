@@ -109,11 +109,11 @@ class PayedRecordAdmin(AutoUpdateUserModelAdmin):
         filename = 'media/{0}_{1}.xls'.format('payed_record', datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
         headers = [
             'ID', '姓名', '手机号', '应收金额', '实收金额', '余额抵扣', '积分抵扣',
-            '现金支付', '积分变更',
+            '现金支付', '积分变更', '已确认',
             '创建人员', '最后变更人员', '创建日期', '最后更新时间']
         columns = [
             'pk', 'customer__name', 'customer__mobile', 'total_price', 'total_payed', 'amount_payed', 'credit_payed',
-            'cash_payed', 'credit_change',
+            'cash_payed', 'credit_change', 'is_confirmed',
             'created_by__full_name', 'confirmed_by__full_name', 'datetime_created', 'datetime_updated']
         return export_excel(queryset, headers, columns, filename)
 
