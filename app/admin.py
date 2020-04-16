@@ -128,22 +128,23 @@ class AmountChangeRecordAdmin(AutoUpdateUserModelAdmin):
         'current_amounts', 'related_payed_record',
         'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated']
     list_display = [
-        'pk', 'customer', 'amounts', 'current_amounts', 'notes',
+        'pk', 'customer', 'amounts', 'current_amounts', 'change_type', 'notes',
         'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated']
     list_display_links = ['pk', 'customer', 'amounts', 'current_amounts', 'notes']
     search_fields = ['customer__name', 'customer__mobile']
+    list_filter = ['change_type']
     autocomplete_fields = ['customer']
     fieldsets = (
-        (_('基础信息'), {'fields': ('customer', 'amounts', 'current_amounts', 'related_payed_record', 'notes')}),
+        (_('基础信息'), {'fields': ('change_type', 'customer', 'amounts', 'current_amounts', 'related_payed_record', 'notes')}),
         (_('操作记录'), {'fields': ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')})
     )
 
     def save_execl(self, request, queryset):
         filename = 'media/{0}_{1}.xls'.format('amounts', datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
         headers = [
-            'ID', '姓名', '手机号', '金额变更', '变更后余额', '创建人员', '最后变更人员', '创建日期', '最后更新时间']
+            'ID', '姓名', '手机号', '金额变更', '变更后余额', '变更类型', '创建人员', '最后变更人员', '创建日期', '最后更新时间']
         columns = [
-            'pk', 'customer__name', 'customer__mobile', 'amounts', 'current_amounts',
+            'pk', 'customer__name', 'customer__mobile', 'amounts', 'current_amounts', 'change_type',
             'created_by__full_name', 'confirmed_by__full_name', 'datetime_created', 'datetime_updated']
         return export_excel(queryset, headers, columns, filename)
 
@@ -174,9 +175,9 @@ class CreditChangeRecordAdmin(AutoUpdateUserModelAdmin):
 
         filename = 'media/{0}_{1}.xls'.format('credits', datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
         headers = [
-            'ID', '姓名', '手机号', '积分变更', '变更后积分', '创建人员', '最后变更人员', '创建日期', '最后更新时间']
+            'ID', '姓名', '手机号', '积分变更', '变更后积分', '变更类型', '创建人员', '最后变更人员', '创建日期', '最后更新时间']
         columns = [
-            'pk', 'customer__name', 'customer__mobile', 'credits', 'current_credits',
+            'pk', 'customer__name', 'customer__mobile', 'credits', 'current_credits', 'change_type',
             'created_by__full_name', 'confirmed_by__full_name', 'datetime_created', 'datetime_updated']
         return export_excel(queryset, headers, columns, filename)
 
@@ -196,7 +197,8 @@ class CustomerAdmin(AutoUpdateUserModelAdmin):
     autocomplete_fields = ['related_superior']
     filter_horizontal = ['related_user']
     fieldsets = (
-        (_('基础信息'), {'fields': ('name', 'mobile', 'related_superior', 'related_user', 'is_partner')}),
+        (_('基础信息'), {'fields': ('name', 'mobile', 'related_superior', 'related_user')}),
+        (_('城市合伙人'), {'fields': ('is_partner',)}),
         (_('余额/积分'), {'fields': ('current_amounts', 'current_credits')}),
         (_('银行卡'), {'fields': ('bank_account_name', 'bank_account_no', 'bank_name')}),
         (_('操作记录'), {'fields': ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')})

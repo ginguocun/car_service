@@ -1411,14 +1411,14 @@ class PayedRecord(models.Model):
         ServiceRecord,
         null=True,
         blank=True,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         verbose_name=_('关联服务')
     )
     related_insurance_record = models.ForeignKey(
         InsuranceRecord,
         null=True,
         blank=True,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         verbose_name=_('关联保险')
     )
     total_price = models.DecimalField(_('应收金额（元）'), default=0, decimal_places=2, max_digits=10)
@@ -1483,8 +1483,12 @@ class AmountChangeRecord(models.Model):
         PayedRecord,
         null=True,
         blank=True,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         verbose_name=_('关联收银记录')
+    )
+    change_type = models.SmallIntegerField(
+        _('变更类型'), default=1, choices=[(1, '充值'), (2, '支付'), (3, '合伙人收益'), (4, '其他')],
+        help_text="1-->充值, 2-->支付, 3-->合伙人收益, 4-->其他"
     )
     notes = models.TextField(_('备注'), max_length=1000, null=True, blank=True)
     created_by = models.ForeignKey(
@@ -1537,11 +1541,13 @@ class CreditChangeRecord(models.Model):
         PayedRecord,
         null=True,
         blank=True,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         verbose_name=_('关联收银记录')
     )
     change_type = models.SmallIntegerField(
-        _('变更类型'), default=1, choices=[(1, '消费获取'), (2, '活动获取'), (3, '支付抵扣'), (4, '其他')])
+        _('变更类型'), default=1, choices=[(1, '消费获取'), (2, '活动获取'), (3, '支付抵扣'), (4, '其他')],
+        help_text="1-->消费获取, 2-->活动获取, 3-->支付抵扣, 4-->其他"
+    )
     notes = models.TextField(_('备注'), max_length=1000, null=True, blank=True)
     created_by = models.ForeignKey(
         WxUser,
@@ -1788,10 +1794,13 @@ def post_save_payed_record(sender, instance, **kwargs):
         amounts_change = - float(getattr(instance, 'amount_payed'))
         AmountChangeRecord.objects.update_or_create(
             related_payed_record_id=instance.pk,
+            change_type=2,
             defaults={
                 'amounts': amounts_change,
                 'customer': instance.customer,
-                'created_by': instance.created_by})
+                'created_by': instance.created_by,
+                'notes': '余额支付',
+            })
     if instance.customer:
         # 积分消耗
         if instance.credit_payed:
@@ -1802,7 +1811,9 @@ def post_save_payed_record(sender, instance, **kwargs):
                 defaults={
                     'credits': credits_used,
                     'customer': instance.customer,
-                    'created_by': instance.created_by}
+                    'created_by': instance.created_by,
+                    'notes': '积分抵扣'
+                }
             )
         # 积分获得
         if instance.credit_change:
@@ -1813,41 +1824,40 @@ def post_save_payed_record(sender, instance, **kwargs):
                 defaults={
                     'credits': credits_get,
                     'customer': instance.customer,
-                    'created_by': instance.created_by}
+                    'created_by': instance.created_by,
+                    'notes': '现金支付获得积分'
+                }
             )
 
 
-@receiver(pre_delete, sender=PayedRecord)
-def pre_delete_payed_record(sender, instance, **kwargs):
-    AmountChangeRecord.objects.filter(related_payed_record_id=instance.pk).delete()
-    CreditChangeRecord.objects.filter(related_payed_record_id=instance.pk).delete()
-
-
 @receiver([pre_save, post_delete], sender=AmountChangeRecord)
-def pre_save_customer_amount(sender, instance, **kwargs):
+def pre_save_amount_change_record(sender, instance, **kwargs):
+    # todo delete 测试
     current_amounts = 0
     current_amounts_all = 0
+    # todo 可进行优化
     all_records = AmountChangeRecord.objects.filter(customer=instance.customer)
     if instance.pk:
+        # 排除当前记录
         all_records = all_records.exclude(pk=instance.pk)
     for r in all_records.values('amounts'):
         current_amounts_all += float(r['amounts'])
-    current_amounts_all += float(instance.amounts)
+    current_amounts_all += float(instance.amounts)  # 计算总余额
     # 更新客户的余额
     Customer.objects.filter(pk=getattr(instance, 'customer').id).update(current_amounts=round(current_amounts_all, 2))
     # 计算当前记录的余额
     if instance.pk:
         pre_records = all_records.filter(pk__lt=instance.pk)
+        for r in pre_records.values('amounts'):
+            current_amounts += float(r['amounts'])
+        current_amounts += float(instance.amounts)
     else:
-        pre_records = all_records
-    for r in pre_records.values('amounts'):
-        current_amounts += float(r['amounts'])
-    current_amounts += float(instance.amounts)
+        current_amounts = current_amounts_all
     instance.current_amounts = round(current_amounts, 2)
 
 
 @receiver(post_save, sender=AmountChangeRecord)
-def post_save_customer_amount(sender, instance, **kwargs):
+def post_save_amount_change_record(sender, instance, **kwargs):
     after_record = AmountChangeRecord.objects.filter(
         customer=instance.customer, pk__gt=instance.pk).order_by('pk').first()
     if after_record:
@@ -1855,9 +1865,10 @@ def post_save_customer_amount(sender, instance, **kwargs):
 
 
 @receiver([pre_save, post_delete], sender=CreditChangeRecord)
-def pre_save_customer_credit(sender, instance, **kwargs):
+def pre_save_credit_change_record(sender, instance, **kwargs):
     current_credits = 0
     current_credits_all = 0
+    # todo 可进行优化
     all_records = CreditChangeRecord.objects.filter(customer=instance.customer)
     if instance.pk:
         all_records = all_records.exclude(pk=instance.pk)
@@ -1869,16 +1880,16 @@ def pre_save_customer_credit(sender, instance, **kwargs):
     # 计算当前记录的剩余积分
     if instance.pk:
         pre_records = all_records.filter(pk__lte=instance.pk)
+        for r in pre_records.values('credits'):
+            current_credits += int(r['credits'])
+        current_credits += int(instance.credits)
     else:
-        pre_records = all_records
-    for r in pre_records.values('credits'):
-        current_credits += int(r['credits'])
-    current_credits += int(instance.credits)
+        current_credits = current_credits_all
     instance.current_credits = current_credits
 
 
 @receiver(post_save, sender=CreditChangeRecord)
-def post_save_customer_credit(sender, instance, **kwargs):
+def post_save_credit_change_record(sender, instance, **kwargs):
     after_record = CreditChangeRecord.objects.filter(
         customer=instance.customer, pk__gt=instance.pk).order_by('pk').first()
     if after_record:
@@ -1887,10 +1898,10 @@ def post_save_customer_credit(sender, instance, **kwargs):
 
 @receiver(post_save, sender=InsuranceRecord)
 def post_save_insurance_record(sender, instance, **kwargs):
+    # 自动创建收款记录
     if instance.is_payed:
         total_payed = 0
         total_price = 0
-
         customer = None
         if instance.total_price:
             total_price = float(instance.total_price)
@@ -1900,7 +1911,8 @@ def post_save_insurance_record(sender, instance, **kwargs):
                 total_payed = float(instance.total_price)
         if instance.car:
             customer = instance.car.customer
-        PayedRecord.objects.update_or_create(
+        # 不管有没有关联客户，都要创建收款记录 todo 测试
+        related_payed_record, created = PayedRecord.objects.update_or_create(
             related_insurance_record=instance,
             defaults={
                 'customer': customer,
@@ -1908,25 +1920,45 @@ def post_save_insurance_record(sender, instance, **kwargs):
                 'total_payed': total_payed,
                 'created_by': instance.created_by,
                 'confirmed_by': instance.confirmed_by,
-                'payed_date': instance.record_date
+                'payed_date': instance.record_date,
+                'notes': '投保支付'
             },
         )
+        # 如果有关联合伙人
+        if instance.related_partner:
+            partner_customer = instance.related_partner.related_customer
+            if partner_customer:
+                # 合伙人收益 2%
+                partner_amount_get = total_price * 0.02
+                if customer:
+                    customer_name = customer.name
+                else:
+                    customer_name = '某人'
+                AmountChangeRecord.objects.update_or_create(
+                    related_payed_record=related_payed_record,
+                    change_type=3,
+                    defaults={
+                        'customer': partner_customer,
+                        'amounts': partner_amount_get,
+                        'notes': '{0}投保{1:.2f}元收益'.format(
+                            customer_name,
+                            float(total_price))
+                    },
+                )
     else:
         PayedRecord.objects.filter(related_insurance_record_id=instance.pk).delete()
-
-
-@receiver(pre_delete, sender=InsuranceRecord)
-def pre_delete_insurance_record(sender, instance, **kwargs):
-    PayedRecord.objects.filter(related_insurance_record_id=instance.pk).delete()
 
 
 @receiver(post_save, sender=ServiceRecord)
 def post_save_service_record(sender, instance, **kwargs):
     if instance.is_payed:
+        # 自动创建收支记录
         customer = None
         if instance.car:
             customer = instance.car.customer
-        PayedRecord.objects.update_or_create(
+        # 不管有没有客户，都要创建收款记录 todo 测试
+        total_payed = instance.total_payed
+        related_payed_record, created = PayedRecord.objects.update_or_create(
             related_service_record=instance,
             defaults={
                 'customer': customer,
@@ -1934,13 +1966,31 @@ def post_save_service_record(sender, instance, **kwargs):
                 'total_payed': instance.total_payed,
                 'created_by': instance.created_by,
                 'confirmed_by': instance.confirmed_by,
-                'payed_date': instance.datetime_updated
+                'payed_date': instance.datetime_updated,
+                'notes': '服务支付'
             }
         )
+        # 如果有关联合伙人
+        if instance.related_partner:
+            if total_payed:
+                partner_customer = instance.related_partner.related_customer
+                if partner_customer:
+                    # 合伙人收益为实收金额的 5%
+                    partner_amount_get = float(total_payed) * 0.05
+                    if customer:
+                        customer_name = customer.name
+                    else:
+                        customer_name = '某人'
+                    AmountChangeRecord.objects.update_or_create(
+                        related_payed_record=related_payed_record,
+                        change_type=3,
+                        defaults={
+                            'customer': partner_customer,
+                            'amounts': partner_amount_get,
+                            'notes': '{0}消费{1:.2f}元收益'.format(
+                                customer_name,
+                                float(total_payed))
+                        },
+                    )
     else:
         PayedRecord.objects.filter(related_service_record_id=instance.pk).delete()
-
-
-@receiver(pre_delete, sender=ServiceRecord)
-def pre_delete_service_record(sender, instance, **kwargs):
-    PayedRecord.objects.filter(related_service_record_id=instance.pk).delete()
