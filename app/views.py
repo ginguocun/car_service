@@ -167,7 +167,7 @@ class ServiceStaticView(AppListView):
         if date_end:
             date_end = date_value(date_end)
             if date_end:
-                queryset = queryset.filter(datetime_created__lte=date_end).distinct()
+                queryset = queryset.filter(datetime_created__lte='{} 23:59:59.999999'.format(date_end)).distinct()
         return queryset
 
     def get_context_data(self, **kwargs):
