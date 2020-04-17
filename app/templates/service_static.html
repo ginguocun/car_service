@@ -1,26 +1,41 @@
 {% extends "admin/base_site.html" %}
 {% load i18n static %}
-{% block content %}
-<style>
+{% block extrahead %}
+    {{ block.super }}
+    <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{% static 'flatlab/assets/bootstrap-datepicker/css/bootstrap-datepicker.min.css' %}" rel="stylesheet">
+    <style>
         body, #container {
             background: #FFF;
         }
+        td, th {
+            padding: 6px;
+            }
 
-</style>
+    </style>
+{% endblock %}
 
-
+{% block content %}
 <div id="content-main">
     <div class="module">
         <div class="info-card el-row">
-            <div id="toolbar">
+            <div id="toolbar" style="padding-bottom:20px">
                 <form id="changelist-search" method="get" action="{{ request.path }}">
                     <div class="simpleui-form">
-                        <div class="simpleui-form-item el-input el-input--prefix el-input--suffix"><!---->
+                        <div class="simpleui-form-item el-input el-input--prefix el-input--suffix">
+                            <input id='id_date_start' type="text" autocomplete="off" name="date_start" value="{{ request.GET.date_start }}" placeholder="维修开始时间" class="el-input__inner" data-date-format="yyyy-mm-dd">
+                             <span class="el-input__prefix"><i class="el-input__icon el-icon-time"></i></span>
+                        </div>
+                        <div class="simpleui-form-item el-input el-input--prefix el-input--suffix">
+                            <input id='id_date_end' type="text" autocomplete="off" name="date_end" value="{{ request.GET.date_end }}" placeholder="维修截止时间" class="el-input__inner" data-date-format="yyyy-mm-dd">
+                             <span class="el-input__prefix"><i class="el-input__icon el-icon-time"></i></span>
+                        </div>
+                        <div class="simpleui-form-item el-input el-input--prefix el-input--suffix">
                             <input type="text" autocomplete="off" name="q" value="{{ request.GET.q }}"
                                    placeholder="搜索名字,项目名称,手机,备注" class="el-input__inner">
                             <span class="el-input__prefix"><i class="el-input__icon el-icon-search"></i></span>
                         </div>
-                        <button type="submit" class="el-button el-button--primary"><!---->
+                        <button type="submit" class="el-button el-button--primary">
                             <i class="el-icon-search"></i><span>搜索</span>
                         </button>
                         <span style="padding:20px">
@@ -44,12 +59,12 @@
                                     <th scope="col">{% trans '维修人员' %}</th>
                                     <th scope="col">{% trans '车牌号' %}</th>
                                     <th scope="col">{% trans '项目名称' %}</th>
-                                    <th scope="col">{% trans '进厂时间' %}</th>
-                                    <th scope="col">{% trans '预计出厂时间' %}</th>
                                     <th scope="col">{% trans '单价（元）' %}</th>
                                     <th scope="col">{% trans '数量' %}</th>
                                     <th scope="col">{% trans '小计（元）' %}</th>
                                     <th scope="col">{% trans '总成本' %}</th>
+                                    <th scope="col">{% trans '维修时间' %}</th>
+                                    <th scope="col">{% trans '进厂时间' %}</th>
                                     <th scope="col">{% trans '备注' %}</th>
                                 </tr>
                                 </thead>
@@ -62,12 +77,12 @@
                                         {{object.related_service_record.car.car_number|default_if_none:'----' }}</a>
                                     </td>
                                     <td>{{ object.name|default_if_none:'' }}</td>
-                                    <td>{{ object.related_service_record.reserve_time|date:"DATETIME_FORMAT" }}</td>
-                                    <td>{{ object.related_service_record.finish_time|date:"DATETIME_FORMAT" }}</td>
                                     <td>{{ object.item_price|default_if_none:'' }}</td>
                                     <td>{{ object.item_count|default_if_none:'' }}</td>
                                     <td>{{ object.price|default_if_none:'' }}</td>
                                     <td>{{ object.cost|default_if_none:'' }}</td>
+                                    <td>{{ object.datetime_created|date:"DATETIME_FORMAT" }}</td>
+                                    <td>{{ object.related_service_record.reserve_time|date:"DATETIME_FORMAT" }}</td>
                                     <td>{{ object.notes|default_if_none:'' }}</td>
                                 </tr>
                                 {% endfor %}
@@ -126,5 +141,14 @@ Highcharts.chart('static_by_profits', {
     }},
     series: [{name: '利润', colorByPoint: true, data: {{ static_by_profits|safe }}}]
 });
+</script>
+
+<script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="https://cdn.bootcss.com/moment.js/2.22.0/moment-with-locales.js"></script>
+<script src="{% static 'flatlab/assets/bootstrap-datepicker/js/bootstrap-datepicker.min.js' %}"></script>
+<script src="{% static 'flatlab/assets/bootstrap-datepicker/locales/bootstrap-datepicker.zh-CN.min.js' %}"></script>
+<script>
+$('#id_date_start').datepicker({language: "zh-CN"});
+$('#id_date_end').datepicker({language: "zh-CN"});
 </script>
 {% endblock %}
