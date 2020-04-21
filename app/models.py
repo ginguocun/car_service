@@ -696,8 +696,8 @@ class ServiceRecord(models.Model):
     is_reversed = models.BooleanField(_('是预约服务'), default=False)
     reserve_time = models.DateTimeField(_('进厂时间'), null=True, blank=True)
     finish_time = models.DateTimeField(_('预计出厂时间'), null=True, blank=True)
-    reserve_address = models.TextField(_('服务地点'), max_length=1000, null=True, blank=True)
-    vehicle_mileage = models.IntegerField(_('当前行驶公里数'), null=True, blank=True)
+    reserve_address = models.CharField(_('服务地点'), max_length=255, null=True, blank=True)
+    vehicle_mileage = models.IntegerField(_('当前行驶公里数'), help_text=_('未知可填写为0'), null=True)
     total_price = models.DecimalField(_('应收金额（元）'), default=0, decimal_places=2, max_digits=10)
     total_payed = models.DecimalField(_('实收金额（元）'), default=0, decimal_places=2, max_digits=10)
     total_cost = models.DecimalField(_('总成本（元）'), default=0, decimal_places=2, max_digits=10)
@@ -771,7 +771,6 @@ class ServiceItem(models.Model):
         Superior,
         on_delete=models.SET_NULL,
         null=True,
-        blank=True,
         verbose_name=_('维修人员')
     )
     name = models.CharField(_('项目名称'), max_length=255, null=True, blank=True)
@@ -896,7 +895,7 @@ class ServiceApply(models.Model):
     service_info = models.TextField(_('服务详情'), null=True, blank=True,  max_length=200)
     reserve_type = models.IntegerField(_('类型'), null=True, blank=True, choices=[(1, '上门'), (2, '到店')])
     reserve_time = models.DateTimeField(_('服务时间'), null=True, blank=True)
-    reserve_address = models.TextField(_('服务地点'), max_length=1000, null=True, blank=True)
+    reserve_address = models.CharField(_('服务地点'), max_length=255, null=True, blank=True)
     checked_by = models.ForeignKey(
         Superior,
         on_delete=models.SET_NULL,

@@ -308,7 +308,7 @@ class StoreInfoAdmin(SimpleModelAdmin):
 
 class ServiceItemInline(admin.TabularInline):
     model = ServiceItem
-    extra = 1
+    extra = 0
     autocomplete_fields = ('served_by',)
     fields = ['name', 'served_by', 'item_price', 'item_count', 'notes']
 

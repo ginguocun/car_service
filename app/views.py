@@ -158,6 +158,11 @@ class ServiceStaticView(AppListView):
         q = self.request.GET.get('q')
         if q:
             queryset = queryset.filter(Q(served_by__name=q) | Q(served_by__mobile=q) | Q(name=q))
+        store = self.request.GET.get('store')
+        if store:
+            queryset = queryset.filter(related_service_record__related_store_id=store)
+        if q:
+            queryset = queryset.filter(Q(served_by__name=q) | Q(served_by__mobile=q) | Q(name=q))
         date_start = self.request.GET.get('date_start')
         if date_start:
             date_start = date_value(date_start)
@@ -174,6 +179,7 @@ class ServiceStaticView(AppListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data()
+        context['stores'] = StoreInfo.objects.all()
         context['title'] = _('服务统计')
         context['total_count'] = self.get_queryset().count()
         static_by_sales_query = self.get_queryset().values(

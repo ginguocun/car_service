@@ -24,11 +24,11 @@
                     <div class="simpleui-form">
                         <div class="simpleui-form-item el-input el-input--prefix el-input--suffix">
                             <input id='id_date_start' type="text" autocomplete="off" name="date_start" value="{{ request.GET.date_start }}" placeholder="维修开始时间" class="el-input__inner" data-date-format="yyyy-mm-dd">
-                             <span class="el-input__prefix"><i class="el-input__icon el-icon-time"></i></span>
+                            <span class="el-input__prefix"><i class="el-input__icon el-icon-time"></i></span>
                         </div>
                         <div class="simpleui-form-item el-input el-input--prefix el-input--suffix">
                             <input id='id_date_end' type="text" autocomplete="off" name="date_end" value="{{ request.GET.date_end }}" placeholder="维修截止时间" class="el-input__inner" data-date-format="yyyy-mm-dd">
-                             <span class="el-input__prefix"><i class="el-input__icon el-icon-time"></i></span>
+                            <span class="el-input__prefix"><i class="el-input__icon el-icon-time"></i></span>
                         </div>
                         <div class="simpleui-form-item el-input el-input--prefix el-input--suffix">
                             <input type="text" autocomplete="off" name="q" value="{{ request.GET.q }}"
@@ -57,14 +57,15 @@
                                 <tr>
                                     <th scope="col">{% trans 'ID' %}</th>
                                     <th scope="col">{% trans '维修人员' %}</th>
+                                    <th scope="col">{% trans '门店' %}</th>
                                     <th scope="col">{% trans '车牌号' %}</th>
                                     <th scope="col">{% trans '项目名称' %}</th>
-                                    <th scope="col">{% trans '单价（元）' %}</th>
-                                    <th scope="col">{% trans '数量' %}</th>
+<!--                                    <th scope="col">{% trans '单价（元）' %}</th>-->
+<!--                                    <th scope="col">{% trans '数量' %}</th>-->
                                     <th scope="col">{% trans '小计（元）' %}</th>
                                     <th scope="col">{% trans '总成本' %}</th>
                                     <th scope="col">{% trans '维修时间' %}</th>
-                                    <th scope="col">{% trans '进厂时间' %}</th>
+<!--                                    <th scope="col">{% trans '进厂时间' %}</th>-->
                                     <th scope="col">{% trans '备注' %}</th>
                                 </tr>
                                 </thead>
@@ -73,16 +74,17 @@
                                 <tr>
                                     <td scope="row"><a href="">{{object.pk }}</a></td>
                                     <td>{{ object.served_by.name|default_if_none:'' }}</td>
+                                    <td>{{ object.related_service_record.related_store.name|default_if_none:'' }}</td>
                                     <td><a href="">
                                         {{object.related_service_record.car.car_number|default_if_none:'----' }}</a>
                                     </td>
                                     <td>{{ object.name|default_if_none:'' }}</td>
-                                    <td>{{ object.item_price|default_if_none:'' }}</td>
-                                    <td>{{ object.item_count|default_if_none:'' }}</td>
-                                    <td>{{ object.price|default_if_none:'' }}</td>
+<!--                                    <td>{{ object.item_price|default_if_none:'' }}</td>-->
+<!--                                    <td>{{ object.item_count|default_if_none:'' }}</td>-->
+                                    <td>{% if object.item_price %}{{ object.item_price|default_if_none:'' }}*{{ object.item_count|default_if_none:''|floatformat:-2 }} = {{ object.price|default_if_none:'' }}{% endif %}</td>
                                     <td>{{ object.cost|default_if_none:'' }}</td>
                                     <td>{{ object.datetime_created|date:"DATETIME_FORMAT" }}</td>
-                                    <td>{{ object.related_service_record.reserve_time|date:"DATETIME_FORMAT" }}</td>
+<!--                                    <td>{{ object.related_service_record.reserve_time|date:"DATETIME_FORMAT" }}</td>-->
                                     <td>{{ object.notes|default_if_none:'' }}</td>
                                 </tr>
                                 {% endfor %}
