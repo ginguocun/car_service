@@ -174,6 +174,30 @@ class Superior(models.Model):
         )
 
 
+class CustomerLevel(models.Model):
+    """
+    客户等级
+    """
+    level_code = models.SmallIntegerField(_('等级编号'), null=True, unique=True)
+    level_name = models.CharField(_('等级名称'), max_length=100, null=True, unique=True)
+    desc = models.TextField(_('等级描述'), max_length=1000, null=True, blank=True)
+    datetime_created = models.DateTimeField(_('记录时间'), auto_now_add=True)
+    datetime_updated = models.DateTimeField(_('更新时间'), auto_now=True)
+
+    objects = models.Manager()
+
+    class Meta:
+        ordering = ['id']
+        verbose_name = _('客户等级')
+        verbose_name_plural = _('客户等级')
+
+    def __str__(self):
+        return "{0} {1}".format(
+            self.level_code,
+            self.level_name,
+        )
+
+
 class Customer(models.Model):
     """
     客户，手机号作为唯一标识
@@ -184,6 +208,13 @@ class Customer(models.Model):
     bank_account_name = models.CharField(_('银行账户-姓名'), max_length=255, null=True, blank=True)
     bank_account_no = models.CharField(_('银行账户-卡号'), max_length=255, null=True, blank=True)
     bank_name = models.CharField(_('银行名称'), max_length=255, null=True, blank=True)
+    customer_level = models.ForeignKey(
+        CustomerLevel,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        verbose_name=_('客户等级')
+    )
     is_partner = models.BooleanField(_('是合伙人'), default=False)
     current_amounts = models.DecimalField(
         verbose_name=_('当前余额（元）'),

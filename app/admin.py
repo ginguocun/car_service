@@ -186,18 +186,27 @@ class CreditChangeRecordAdmin(AutoUpdateUserModelAdmin):
     actions = [save_execl]
 
 
+@admin.register(CustomerLevel)
+class CustomerLevelAdmin(SimpleModelAdmin):
+    list_display = ['pk', 'level_code', 'level_name', 'desc']
+    list_display_links = ['pk', 'level_code']
+    search_fields = ['level_code', 'level_name', 'desc']
+
+
 @admin.register(Customer)
 class CustomerAdmin(AutoUpdateUserModelAdmin):
     readonly_fields = [
         'current_amounts', 'current_credits', 'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated']
-    list_display = ['pk', 'name', 'mobile', 'current_amounts', 'current_credits', 'is_partner', 'related_superior']
+    list_display = [
+        'pk', 'name', 'mobile', 'current_amounts', 'current_credits', 'customer_level',
+        'is_partner', 'related_superior']
     list_display_links = ['pk', 'name', 'mobile']
     search_fields = ['name', 'mobile']
-    list_filter = ['related_superior', 'is_partner']
-    autocomplete_fields = ['related_superior']
+    list_filter = ['related_superior', 'customer_level', 'is_partner']
+    autocomplete_fields = ['related_superior', 'customer_level']
     filter_horizontal = ['related_user']
     fieldsets = (
-        (_('基础信息'), {'fields': ('name', 'mobile', 'related_superior', 'related_user')}),
+        (_('基础信息'), {'fields': ('name', 'mobile', 'related_superior', 'related_user', 'customer_level')}),
         (_('城市合伙人'), {'fields': ('is_partner',)}),
         (_('余额/积分'), {'fields': ('current_amounts', 'current_credits')}),
         (_('银行卡'), {'fields': ('bank_account_name', 'bank_account_no', 'bank_name')}),
