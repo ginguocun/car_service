@@ -63,12 +63,14 @@
                 <div class="el-col el-col-12">
                     <div id="static_by_profits_person"></div>
                 </div>
+                {% if not request.GET.store %}
                 <div class="el-col el-col-12">
                     <div id="static_by_sales_store"></div>
                 </div>
                 <div class="el-col el-col-12">
                     <div id="static_by_profits_store"></div>
                 </div>
+                {% endif %}
             </div>
             <div class="el-col el-col-24">
                 <div class="el-card box-card is-always-shadow">
