@@ -35,6 +35,18 @@
                                    placeholder="搜索名字,项目名称,手机,备注" class="el-input__inner">
                             <span class="el-input__prefix"><i class="el-input__icon el-icon-search"></i></span>
                         </div>
+                        <div class="simpleui-form-item el-select-dropdown__list el-select-dropdown__wrap">
+                            <select name="store" id="id_store">
+                                <option value="">门店选择</option>
+                                {% for store in stores %}
+                                    {% if store.pk|floatformat:'0' == request.GET.store|floatformat:'0' %}
+                                    <option value="{{ store.pk }}" selected>{{ store.name }}</option>
+                                    {% else %}
+                                    <option value="{{ store.pk }}">{{ store.name }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
                         <button type="submit" class="el-button el-button--primary">
                             <i class="el-icon-search"></i><span>搜索</span>
                         </button>
@@ -44,7 +56,21 @@
                     </div>
                 </form>
             </div>
-            <div class="el-col el-col-18">
+            <div class="row">
+                <div class="el-col el-col-12">
+                    <div id="static_by_sales_person"></div>
+                </div>
+                <div class="el-col el-col-12">
+                    <div id="static_by_profits_person"></div>
+                </div>
+                <div class="el-col el-col-12">
+                    <div id="static_by_sales_store"></div>
+                </div>
+                <div class="el-col el-col-12">
+                    <div id="static_by_profits_store"></div>
+                </div>
+            </div>
+            <div class="el-col el-col-24">
                 <div class="el-card box-card is-always-shadow">
                     <div class="el-card__header">
                         <div class="clearfix"><span>记录明细</span></div>
@@ -60,12 +86,9 @@
                                     <th scope="col">{% trans '门店' %}</th>
                                     <th scope="col">{% trans '车牌号' %}</th>
                                     <th scope="col">{% trans '项目名称' %}</th>
-<!--                                    <th scope="col">{% trans '单价（元）' %}</th>-->
-<!--                                    <th scope="col">{% trans '数量' %}</th>-->
                                     <th scope="col">{% trans '小计（元）' %}</th>
                                     <th scope="col">{% trans '总成本' %}</th>
                                     <th scope="col">{% trans '维修时间' %}</th>
-<!--                                    <th scope="col">{% trans '进厂时间' %}</th>-->
                                     <th scope="col">{% trans '备注' %}</th>
                                 </tr>
                                 </thead>
@@ -79,12 +102,9 @@
                                         {{object.related_service_record.car.car_number|default_if_none:'----' }}</a>
                                     </td>
                                     <td>{{ object.name|default_if_none:'' }}</td>
-<!--                                    <td>{{ object.item_price|default_if_none:'' }}</td>-->
-<!--                                    <td>{{ object.item_count|default_if_none:'' }}</td>-->
                                     <td>{% if object.item_price %}{{ object.item_price|default_if_none:'' }}*{{ object.item_count|default_if_none:''|floatformat:-2 }} = {{ object.price|default_if_none:'' }}{% endif %}</td>
                                     <td>{{ object.cost|default_if_none:'' }}</td>
                                     <td>{{ object.datetime_created|date:"DATETIME_FORMAT" }}</td>
-<!--                                    <td>{{ object.related_service_record.reserve_time|date:"DATETIME_FORMAT" }}</td>-->
                                     <td>{{ object.notes|default_if_none:'' }}</td>
                                 </tr>
                                 {% endfor %}
@@ -100,14 +120,6 @@
                     </div>
                 </div>
             </div>
-            <div class="el-col el-col-6">
-                <div class="block">
-                    <div id="static_by_sales"></div>
-                </div>
-                <div class="block">
-                    <div id="static_by_profits"></div>
-                </div>
-            </div>
         </div>
     </div>
 </div>
@@ -115,10 +127,10 @@
 <script src="https://code.highcharts.com/modules/exporting.js"></script>
 <script src="https://code.highcharts.com/modules/export-data.js"></script>
 <script language="JavaScript">
-Highcharts.chart('static_by_sales', {
+Highcharts.chart('static_by_sales_person', {
     credits: {enabled: false},
     chart: {plotBackgroundColor: null, plotBorderWidth: null, plotShadow: false, type: 'pie'},
-    title: {text: '根据销售额统计'},
+    title: {text: '根据人员统计销售额'},
     tooltip: {pointFormat: '{% trans "金额" %}: ￥{point.y:.2f} <b>比例: {point.percentage:.1f}%</b>'},
     accessibility: {point: {valueSuffix: '%'}},
     plotOptions: {
@@ -127,12 +139,26 @@ Highcharts.chart('static_by_sales', {
             cursor: 'pointer',
             dataLabels: {enabled: true, format: '<b>{point.name}</b>: {point.percentage:.1f} %'}
     }},
-    series: [{name: '销售额', colorByPoint: true, data: {{ static_by_sales|safe }}}]
+    series: [{name: '销售额', colorByPoint: true, data: {{ static_by_sales_person|safe }}}]
 });
-Highcharts.chart('static_by_profits', {
+Highcharts.chart('static_by_profits_person', {
     credits: {enabled: false},
     chart: {plotBackgroundColor: null, plotBorderWidth: null, plotShadow: false, type: 'pie'},
-    title: {text: '根据利润统计'},
+    title: {text: '根据人员统计利润'},
+    // tooltip: {pointFormat: '{% trans "金额" %}: ￥{point.y:.2f} <b>比例: {point.percentage:.1f}%</b>'},
+    accessibility: {point: {valueSuffix: '%'}},
+    plotOptions: {
+        pie: {
+            allowPointSelect: true,
+            cursor: 'pointer',
+            dataLabels: {enabled: true, format: '<b>{point.name}</b>: {point.percentage:.1f} %'}
+    }},
+    series: [{name: '利润', colorByPoint: true, data: {{ static_by_profits_person|safe }}}]
+});
+Highcharts.chart('static_by_sales_store', {
+    credits: {enabled: false},
+    chart: {plotBackgroundColor: null, plotBorderWidth: null, plotShadow: false, type: 'pie'},
+    title: {text: '根据门店统计销售额'},
     tooltip: {pointFormat: '{% trans "金额" %}: ￥{point.y:.2f} <b>比例: {point.percentage:.1f}%</b>'},
     accessibility: {point: {valueSuffix: '%'}},
     plotOptions: {
@@ -141,7 +167,21 @@ Highcharts.chart('static_by_profits', {
             cursor: 'pointer',
             dataLabels: {enabled: true, format: '<b>{point.name}</b>: {point.percentage:.1f} %'}
     }},
-    series: [{name: '利润', colorByPoint: true, data: {{ static_by_profits|safe }}}]
+    series: [{name: '销售额', colorByPoint: true, data: {{ static_by_sales_store|safe }}}]
+});
+Highcharts.chart('static_by_profits_store', {
+    credits: {enabled: false},
+    chart: {plotBackgroundColor: null, plotBorderWidth: null, plotShadow: false, type: 'pie'},
+    title: {text: '根据门店统计利润'},
+    tooltip: {pointFormat: '{% trans "金额" %}: ￥{point.y:.2f} <b>比例: {point.percentage:.1f}%</b>'},
+    accessibility: {point: {valueSuffix: '%'}},
+    plotOptions: {
+        pie: {
+            allowPointSelect: true,
+            cursor: 'pointer',
+            dataLabels: {enabled: true, format: '<b>{point.name}</b>: {point.percentage:.1f} %'}
+    }},
+    series: [{name: '利润', colorByPoint: true, data: {{ static_by_profits_store|safe }}}]
 });
 </script>
 

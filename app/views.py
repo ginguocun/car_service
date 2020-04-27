@@ -182,13 +182,18 @@ class ServiceStaticView(AppListView):
         context['stores'] = StoreInfo.objects.all()
         context['title'] = _('服务统计')
         context['total_count'] = self.get_queryset().count()
-        static_by_sales_query = self.get_queryset().values(
+        static_by_person_query = self.get_queryset().values(
             "served_by__name"
         ).annotate(Sum("price"), Sum("cost")).order_by()
-        static_by_sales_data = []
-        static_by_profits_data = []
-        if static_by_sales_query:
-            for item in static_by_sales_query:
+        static_by_store_query = self.get_queryset().values(
+            "related_service_record__related_store__name"
+        ).annotate(Sum("price"), Sum("cost")).order_by()
+        static_by_sales_person_data = []
+        static_by_profits_person_data = []
+        static_by_sales_store_data = []
+        static_by_profits_store_data = []
+        if static_by_person_query:
+            for item in static_by_person_query:
                 served_by__name = item['served_by__name']
                 if not served_by__name:
                     served_by__name = '未知'
@@ -200,16 +205,39 @@ class ServiceStaticView(AppListView):
                     costs = round(float(item['cost__sum']), 2)
                 else:
                     costs = 0
-                static_by_sales_data.append({
+                static_by_sales_person_data.append({
                     'name': served_by__name,
                     'y': sales
                 })
-                static_by_profits_data.append({
+                static_by_profits_person_data.append({
                     'name': served_by__name,
                     'y': sales - costs
                 })
-        context['static_by_sales'] = json.dumps(static_by_sales_data)
-        context['static_by_profits'] = json.dumps(static_by_profits_data)
+        if static_by_store_query:
+            for item in static_by_store_query:
+                store__name = item['related_service_record__related_store__name']
+                if not store__name:
+                    store__name = '未知'
+                if item['price__sum']:
+                    sales = round(float(item['price__sum']), 2)
+                else:
+                    sales = 0
+                if item['cost__sum']:
+                    costs = round(float(item['cost__sum']), 2)
+                else:
+                    costs = 0
+                static_by_sales_store_data.append({
+                    'name': store__name,
+                    'y': sales
+                })
+                static_by_profits_store_data.append({
+                    'name': store__name,
+                    'y': sales - costs
+                })
+        context['static_by_sales_person'] = json.dumps(static_by_sales_person_data)
+        context['static_by_profits_person'] = json.dumps(static_by_profits_person_data)
+        context['static_by_sales_store'] = json.dumps(static_by_sales_store_data)
+        context['static_by_profits_store'] = json.dumps(static_by_profits_store_data)
         return context
 
 

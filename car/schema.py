@@ -1,5 +1,5 @@
 import warnings
-from collections import  OrderedDict
+from collections import OrderedDict
 
 from django.db import models
 from django.utils.encoding import force_str
