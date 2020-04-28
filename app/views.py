@@ -141,10 +141,34 @@ class ServiceRecordView(AppListView):
     model = ServiceRecord
     paginate_by = 20
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        q = self.request.GET.get('q')
+        if q:
+            queryset = queryset.filter(
+                Q(car__car_number=q) | Q(car__customer__name=q) | Q(car__customer__mobile=q))
+        store = self.request.GET.get('store')
+        if store:
+            queryset = queryset.filter(related_store_id=store)
+        date_start = self.request.GET.get('date_start')
+        if date_start:
+            date_start = date_value(date_start)
+            if date_start:
+                queryset = queryset.filter(
+                    reserve_time__gte=date_start).order_by('reserve_time').distinct()
+        date_end = self.request.GET.get('date_end')
+        if date_end:
+            date_end = date_value(date_end)
+            if date_end:
+                queryset = queryset.filter(
+                    reserve_time__lte='{} 23:59:59.999999'.format(date_end)).order_by('reserve_time').distinct()
+        return queryset
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data()
         context['title'] = _('服务记录')
         context['total_count'] = self.get_queryset().count()
+        context['stores'] = StoreInfo.objects.all()
         return context
 
 

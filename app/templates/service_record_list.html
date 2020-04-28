@@ -1,5 +1,18 @@
 {% extends "admin/base_site.html" %}
-{% load i18n %}
+{% load i18n static %}
+{% block extrahead %}
+    {{ block.super }}
+    <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{% static 'flatlab/assets/bootstrap-datepicker/css/bootstrap-datepicker.min.css' %}" rel="stylesheet">
+    <style>
+        body, #container {
+            background: #FFF;
+        }
+        td, th {
+            padding: 6px;
+        }
+    </style>
+{% endblock %}
 {% block content %}
     <style>
         body, #container {
@@ -8,7 +21,43 @@
     </style>
     <div id="content-main">
         <div class="module">
-
+        <div id="toolbar" style="padding-bottom:20px">
+                <form id="changelist-search" method="get" action="{{ request.path }}">
+                    <div class="simpleui-form">
+                        <div class="simpleui-form-item el-input el-input--prefix el-input--suffix">
+                            <input id='id_date_start' type="text" autocomplete="off" name="date_start" value="{{ request.GET.date_start }}" placeholder="进厂开始时间" class="el-input__inner" data-date-format="yyyy-mm-dd">
+                            <span class="el-input__prefix"><i class="el-input__icon el-icon-time"></i></span>
+                        </div>
+                        <div class="simpleui-form-item el-input el-input--prefix el-input--suffix">
+                            <input id='id_date_end' type="text" autocomplete="off" name="date_end" value="{{ request.GET.date_end }}" placeholder="进厂截止时间" class="el-input__inner" data-date-format="yyyy-mm-dd">
+                            <span class="el-input__prefix"><i class="el-input__icon el-icon-time"></i></span>
+                        </div>
+                        <div class="simpleui-form-item el-input el-input--prefix el-input--suffix">
+                            <input type="text" autocomplete="off" name="q" value="{{ request.GET.q }}"
+                                   placeholder="搜索车牌,姓名,手机,备注" class="el-input__inner">
+                            <span class="el-input__prefix"><i class="el-input__icon el-icon-search"></i></span>
+                        </div>
+                        <div class="simpleui-form-item el-select-dropdown__list el-select-dropdown__wrap">
+                            <select name="store" id="id_store">
+                                <option value="">门店选择</option>
+                                {% for store in stores %}
+                                    {% if store.pk|floatformat:'0' == request.GET.store|floatformat:'0' %}
+                                    <option value="{{ store.pk }}" selected>{{ store.name }}</option>
+                                    {% else %}
+                                    <option value="{{ store.pk }}">{{ store.name }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="el-button el-button--primary">
+                            <i class="el-icon-search"></i><span>搜索</span>
+                        </button>
+                        <span style="padding:20px">
+                        共 {{ total_count }} 条记录
+                    </span>
+                    </div>
+                </form>
+            </div>
             {% if object_list %}
                 <table id="change-history" class="layui-table">
                     <thead>
@@ -16,6 +65,7 @@
                         <th scope="col">{% trans 'ID' %}</th>
                         <th scope="col">{% trans '车牌号' %}</th>
                         <th scope="col">{% trans '客户姓名' %}</th>
+                        <th scope="col">{% trans '门店' %}</th>
                         <th scope="col">{% trans '手机号' %}</th>
                         <th scope="col">{% trans '服务类型' %}</th>
                         <th scope="col">{% trans '进厂时间' %}</th>
@@ -31,6 +81,7 @@
                             <td scope="row"><a href="{% url 'page:service_record_detail' object.pk %}">{{ object.pk }}</a></td>
                             <td><a href="{% url 'page:service_record_detail' object.pk %}">{{ object.car.car_number|default_if_none:'----' }}</a></td>
                             <td>{{ object.car.customer.name }}</td>
+                            <td>{{ object.related_store.name }}</td>
                             <td>{{ object.car.customer.mobile }}</td>
                             <td>{{ object.get_reserve_type_display }}</td>
                             <td>{{ object.reserve_time|date:"DATETIME_FORMAT" }}</td>
@@ -50,4 +101,12 @@
             {% endblock %}
         </div>
     </div>
+    <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://cdn.bootcss.com/moment.js/2.22.0/moment-with-locales.js"></script>
+    <script src="{% static 'flatlab/assets/bootstrap-datepicker/js/bootstrap-datepicker.min.js' %}"></script>
+    <script src="{% static 'flatlab/assets/bootstrap-datepicker/locales/bootstrap-datepicker.zh-CN.min.js' %}"></script>
+    <script>
+    $('#id_date_start').datepicker({language: "zh-CN"});
+    $('#id_date_end').datepicker({language: "zh-CN"});
+    </script>
 {% endblock %}
