@@ -190,8 +190,13 @@ class ServiceStaticView(AppListView):
         ).annotate(Sum("price"), Sum("cost")).order_by()
         static_by_sales_person_data = []
         static_by_profits_person_data = []
+        static_by_person_data = []
         static_by_sales_store_data = []
         static_by_profits_store_data = []
+        static_by_store_data = []
+        total_sales = 0
+        total_costs = 0
+        total_profits = 0
         if static_by_person_query:
             for item in static_by_person_query:
                 served_by__name = item['served_by__name']
@@ -213,6 +218,17 @@ class ServiceStaticView(AppListView):
                     'name': served_by__name,
                     'y': sales - costs
                 })
+                static_by_person_data.append(
+                    {
+                        'name': served_by__name,
+                        'sales': sales,
+                        'costs': costs,
+                        'profits': sales - costs
+                    }
+                )
+                total_sales += sales
+                total_costs += costs
+            total_profits = total_sales - total_costs
         if static_by_store_query:
             for item in static_by_store_query:
                 store__name = item['related_service_record__related_store__name']
@@ -234,10 +250,23 @@ class ServiceStaticView(AppListView):
                     'name': store__name,
                     'y': sales - costs
                 })
+                static_by_store_data.append(
+                    {
+                        'name': store__name,
+                        'sales': sales,
+                        'costs': costs,
+                        'profits': sales - costs
+                    }
+                )
         context['static_by_sales_person'] = json.dumps(static_by_sales_person_data)
         context['static_by_profits_person'] = json.dumps(static_by_profits_person_data)
         context['static_by_sales_store'] = json.dumps(static_by_sales_store_data)
         context['static_by_profits_store'] = json.dumps(static_by_profits_store_data)
+        context['static_by_person_data'] = static_by_person_data
+        context['static_by_store_data'] = static_by_store_data
+        context['total_sales'] = round(total_sales, 2)
+        context['total_costs'] = round(total_costs, 2)
+        context['total_profits'] = round(total_profits, 2)
         return context
 
 
