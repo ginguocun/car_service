@@ -196,7 +196,8 @@ class CustomerLevelAdmin(SimpleModelAdmin):
 @admin.register(Customer)
 class CustomerAdmin(AutoUpdateUserModelAdmin):
     readonly_fields = [
-        'current_amounts', 'current_credits', 'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated']
+        'total_consumption', 'total_consumption_1', 'total_consumption_2',
+        'current_amounts', 'total_credits', 'current_credits', 'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated']
     list_display = [
         'pk', 'name', 'mobile', 'current_amounts', 'current_credits', 'customer_level',
         'is_partner', 'related_superior']
@@ -208,7 +209,9 @@ class CustomerAdmin(AutoUpdateUserModelAdmin):
     fieldsets = (
         (_('基础信息'), {'fields': ('name', 'mobile', 'related_superior', 'related_user', 'customer_level')}),
         (_('城市合伙人'), {'fields': ('is_partner',)}),
-        (_('余额/积分'), {'fields': ('current_amounts', 'current_credits')}),
+        (_('余额/积分'), {'fields': (
+            'total_consumption', 'total_consumption_1', 'total_consumption_2','total_credits',
+            'current_amounts', 'current_credits')}),
         (_('银行卡'), {'fields': ('bank_account_name', 'bank_account_no', 'bank_name')}),
         (_('操作记录'), {'fields': ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')})
     )
@@ -370,7 +373,8 @@ class ServiceRecordAdmin(AutoUpdateUserModelAdmin):
     autocomplete_fields = ['car', 'checked_by', 'related_partner', 'related_store', 'service_package', 'oil_package']
     fieldsets = (
         (_('基础信息'), {'fields': (
-            'reserve_type', 'car', 'reserve_time', 'finish_time', 'reserve_address', 'vehicle_mileage')}),
+            'reserve_type', 'car', 'reserve_time', 'finish_time',
+            'reserve_address', 'vehicle_mileage', 'month_mileage')}),
         (_('服务信息'), {
             'fields': (
                 'related_store',  'total_price', 'total_payed',
@@ -387,6 +391,20 @@ class ServiceRecordAdmin(AutoUpdateUserModelAdmin):
     )
 
     inlines = [ServiceItemInline, ServiceFeedbackInline]
+
+    def save_execl(self, request, queryset):
+        filename = 'media/{0}_{1}.xls'.format('service', datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
+        headers = [
+            'ID', '姓名', '手机号', '车牌号', '进厂时间', '服务地点', '维修门店', '应收金额', '实收金额', '总成本']
+        columns = [
+            'pk', 'car__customer__name', 'car__customer__mobile', 'car__car_number', 'reserve_time',
+            'reserve_address', 'related_store__name', 'total_price', 'total_payed', 'total_cost'
+        ]
+        return export_excel(queryset, headers, columns, filename)
+
+    save_execl.short_description = "导出Excel"
+
+    actions = [save_execl]
 
 
 @admin.register(ServiceApply)

@@ -216,13 +216,26 @@ class Customer(models.Model):
         verbose_name=_('客户等级')
     )
     is_partner = models.BooleanField(_('是合伙人'), default=False)
+    total_consumption = models.DecimalField(
+        verbose_name=_('累计消费（元）'),
+        max_digits=10, decimal_places=2, null=True, blank=True, default=0)
+    total_consumption_1 = models.DecimalField(
+        verbose_name=_('累计消费-保险（元）'),
+        max_digits=10, decimal_places=2, null=True, blank=True, default=0)
+    total_consumption_2 = models.DecimalField(
+        verbose_name=_('累计消费-维修（元）'),
+        max_digits=10, decimal_places=2, null=True, blank=True, default=0)
     current_amounts = models.DecimalField(
         verbose_name=_('当前余额（元）'),
-        help_text=_('请到[积分/余额-->余额变更]添加记录'),
+        help_text=_('请到[收银台-->余额变更]添加记录'),
         max_digits=10, decimal_places=2, null=True, blank=True, default=0)
+    total_credits = models.BigIntegerField(
+        verbose_name=_('累计积分'),
+        help_text=_('历史获得的积分的综合'),
+        null=True, blank=True, default=0)
     current_credits = models.BigIntegerField(
         verbose_name=_('当前积分'),
-        help_text=_('请到[积分/余额-->积分变更]添加记录'),
+        help_text=_('请到[收银台-->积分变更]添加记录'),
         null=True, blank=True, default=0)
     related_superior = models.ForeignKey(
         Superior,
@@ -729,6 +742,7 @@ class ServiceRecord(models.Model):
     finish_time = models.DateTimeField(_('预计出厂时间'), null=True, blank=True)
     reserve_address = models.CharField(_('服务地点'), max_length=255, null=True, blank=True)
     vehicle_mileage = models.IntegerField(_('当前行驶公里数'), help_text=_('未知可填写为0'), null=True)
+    month_mileage = models.IntegerField(_('月行驶公里数'), help_text=_('未知可填写为0'), null=True)
     total_price = models.DecimalField(_('应收金额（元）'), default=0, decimal_places=2, max_digits=10)
     total_payed = models.DecimalField(_('实收金额（元）'), default=0, decimal_places=2, max_digits=10)
     total_cost = models.DecimalField(_('总成本（元）'), default=0, decimal_places=2, max_digits=10)
@@ -1897,16 +1911,31 @@ def post_save_amount_change_record(sender, instance, **kwargs):
 @receiver([pre_save, post_delete], sender=CreditChangeRecord)
 def pre_save_credit_change_record(sender, instance, **kwargs):
     current_credits = 0
-    current_credits_all = 0
+    current_credits_pos = 0
+    current_credits_neg = 0
     # todo 可进行优化
     all_records = CreditChangeRecord.objects.filter(customer=instance.customer)
     if instance.pk:
         all_records = all_records.exclude(pk=instance.pk)
     for r in all_records.values('credits'):
-        current_credits_all += int(r['credits'])
-    current_credits_all += int(instance.credits)
+        c = int(r['credits'])
+        if c >= 0:
+            current_credits_pos += c
+        else:
+            current_credits_neg += c
+    c_n = int(instance.credits)
+    if c_n >= 0:
+        current_credits_pos += c_n
+    else:
+        current_credits_neg += c_n
+    current_credits_all = current_credits_pos + current_credits_neg
     # 更新客户的积分
-    Customer.objects.filter(pk=getattr(instance, 'customer').id).update(current_credits=current_credits_all)
+    Customer.objects.filter(
+        pk=getattr(instance, 'customer').id
+    ).update(
+        current_credits=current_credits_all,
+        total_credits=current_credits_pos
+    )
     # 计算当前记录的剩余积分
     if instance.pk:
         pre_records = all_records.filter(pk__lte=instance.pk)
