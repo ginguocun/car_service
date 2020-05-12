@@ -225,6 +225,12 @@ class Customer(models.Model):
     total_consumption_2 = models.DecimalField(
         verbose_name=_('累计消费-维修（元）'),
         max_digits=10, decimal_places=2, null=True, blank=True, default=0)
+    total_price = models.DecimalField(
+        verbose_name=_('总应付款（元）'),
+        max_digits=10, decimal_places=2, null=True, blank=True, default=0)
+    total_payed = models.DecimalField(
+        verbose_name=_('总已付款（元）'),
+        max_digits=10, decimal_places=2, null=True, blank=True, default=0)
     current_amounts = models.DecimalField(
         verbose_name=_('当前余额（元）'),
         help_text=_('请到[收银台-->余额变更]添加记录'),
@@ -1475,7 +1481,7 @@ class PayedRecord(models.Model):
     credit_change = models.BigIntegerField(_('积分获得'), help_text=_('现金支付，每满20元获得1积分'), default=0)
     cash_payed = models.DecimalField(_('现金支付（元）'), null=True, blank=True, decimal_places=2, max_digits=10)
     is_confirmed = models.BooleanField(_('已确认'), default=False)
-    notes = models.TextField(_('备注'), max_length=1000, null=True, blank=True)
+    notes = models.CharField(_('备注'), max_length=255, null=True, blank=True)
     created_by = models.ForeignKey(
         WxUser,
         null=True,
@@ -1872,6 +1878,40 @@ def post_save_payed_record(sender, instance, **kwargs):
                     'notes': '现金支付获得积分'
                 }
             )
+        # 计算客户的累计支付
+        # todo 联动计算
+        prs = PayedRecord.objects.filter(
+            customer=instance.customer
+        ).values(
+            'total_price', 'total_payed',
+            'related_service_record_id',
+            'related_service_record__total_price', 'related_service_record__total_payed',
+            'related_insurance_record_id',
+            'related_insurance_record__total_price', 'related_insurance_record__payback_amount',
+        )
+        total_consumption_1 = 0  # 保险
+        total_consumption_2 = 0  # 维修
+        total_price = 0
+        total_payed = 0
+        for pr in prs:
+            total_price += float(pr['total_price'])
+            total_payed += float(pr['total_payed'])
+            if pr['related_insurance_record_id']:
+                if pr['related_insurance_record__total_price']:
+                    total_consumption_1 += float(pr['related_insurance_record__total_price'])
+            if pr['related_service_record_id']:
+                if pr['related_service_record__total_price']:
+                    total_consumption_2 += float(pr['related_service_record__total_price'])
+        total_consumption = total_consumption_1 + total_consumption_2
+        Customer.objects.filter(
+            pk=getattr(instance, 'customer').id
+        ).update(
+            total_consumption=round(total_consumption, 2),
+            total_consumption_1=round(total_consumption_1, 2),
+            total_consumption_2=round(total_consumption_2, 2),
+            total_price=round(total_price, 2),
+            total_payed=round(total_payed, 2)
+        )
 
 
 @receiver([pre_save, post_delete], sender=AmountChangeRecord)
@@ -1888,7 +1928,9 @@ def pre_save_amount_change_record(sender, instance, **kwargs):
         current_amounts_all += float(r['amounts'])
     current_amounts_all += float(instance.amounts)  # 计算总余额
     # 更新客户的余额
-    Customer.objects.filter(pk=getattr(instance, 'customer').id).update(current_amounts=round(current_amounts_all, 2))
+    Customer.objects.filter(
+        pk=getattr(instance, 'customer').id
+    ).update(current_amounts=round(current_amounts_all, 2))
     # 计算当前记录的余额
     if instance.pk:
         pre_records = all_records.filter(pk__lt=instance.pk)
@@ -2021,6 +2063,7 @@ def post_save_service_record(sender, instance, **kwargs):
             related_service_record=instance,
             defaults={
                 'customer': customer,
+                'related_store': instance.related_store,
                 'total_price': instance.total_price,
                 'total_payed': instance.total_payed,
                 'created_by': instance.created_by,

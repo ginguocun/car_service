@@ -100,8 +100,7 @@ class PayedRecordAdmin(AutoUpdateUserModelAdmin):
             'payed_date', 'related_store', 'customer',
             'total_price', 'total_payed', 'amount_payed', 'credit_payed', 'cash_payed', 'is_confirmed')}),
         (_('操作记录'), {'fields': (
-            'related_service_record',
-            'related_insurance_record',
+            'notes', 'related_service_record', 'related_insurance_record',
             'credit_change', 'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')})
     )
 
@@ -196,10 +195,12 @@ class CustomerLevelAdmin(SimpleModelAdmin):
 @admin.register(Customer)
 class CustomerAdmin(AutoUpdateUserModelAdmin):
     readonly_fields = [
-        'total_consumption', 'total_consumption_1', 'total_consumption_2',
-        'current_amounts', 'total_credits', 'current_credits', 'created_by', 'confirmed_by', 'datetime_created', 'datetime_updated']
+        'total_consumption', 'total_consumption_1', 'total_consumption_2', 'total_price', 'total_payed',
+        'current_amounts', 'total_credits', 'current_credits', 'created_by', 'confirmed_by',
+        'datetime_created', 'datetime_updated']
     list_display = [
-        'pk', 'name', 'mobile', 'current_amounts', 'current_credits', 'customer_level',
+        'pk', 'name', 'mobile', 'total_consumption_1', 'total_consumption_2', 'total_price', 'total_payed',
+        'current_amounts', 'current_credits', 'customer_level',
         'is_partner', 'related_superior']
     list_display_links = ['pk', 'name', 'mobile']
     search_fields = ['name', 'mobile']
@@ -210,7 +211,8 @@ class CustomerAdmin(AutoUpdateUserModelAdmin):
         (_('基础信息'), {'fields': ('name', 'mobile', 'related_superior', 'related_user', 'customer_level')}),
         (_('城市合伙人'), {'fields': ('is_partner',)}),
         (_('余额/积分'), {'fields': (
-            'total_consumption', 'total_consumption_1', 'total_consumption_2','total_credits',
+            'total_consumption', 'total_consumption_1', 'total_consumption_2', 'total_credits',
+            'total_price', 'total_payed',
             'current_amounts', 'current_credits')}),
         (_('银行卡'), {'fields': ('bank_account_name', 'bank_account_no', 'bank_name')}),
         (_('操作记录'), {'fields': ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')})
