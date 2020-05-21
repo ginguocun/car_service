@@ -185,8 +185,6 @@ class ServiceStaticView(AppListView):
         store = self.request.GET.get('store')
         if store:
             queryset = queryset.filter(related_service_record__related_store_id=store)
-        if q:
-            queryset = queryset.filter(Q(served_by__name=q) | Q(served_by__mobile=q) | Q(name=q))
         date_start = self.request.GET.get('date_start')
         if date_start:
             date_start = date_value(date_start)
@@ -240,14 +238,14 @@ class ServiceStaticView(AppListView):
                 })
                 static_by_profits_person_data.append({
                     'name': served_by__name,
-                    'y': sales - costs
+                    'y': round(sales - costs, 2)
                 })
                 static_by_person_data.append(
                     {
                         'name': served_by__name,
                         'sales': sales,
                         'costs': costs,
-                        'profits': sales - costs
+                        'profits': round(sales - costs, 2)
                     }
                 )
                 total_sales += sales
@@ -272,14 +270,14 @@ class ServiceStaticView(AppListView):
                 })
                 static_by_profits_store_data.append({
                     'name': store__name,
-                    'y': sales - costs
+                    'y': round(sales - costs, 2)
                 })
                 static_by_store_data.append(
                     {
                         'name': store__name,
                         'sales': sales,
                         'costs': costs,
-                        'profits': sales - costs
+                        'profits': round(sales - costs, 2)
                     }
                 )
         context['static_by_sales_person'] = json.dumps(static_by_sales_person_data)
@@ -288,6 +286,129 @@ class ServiceStaticView(AppListView):
         context['static_by_profits_store'] = json.dumps(static_by_profits_store_data)
         context['static_by_person_data'] = static_by_person_data
         context['static_by_store_data'] = static_by_store_data
+        context['total_sales'] = round(total_sales, 2)
+        context['total_costs'] = round(total_costs, 2)
+        context['total_profits'] = round(total_profits, 2)
+        return context
+
+
+class InsuranceStaticView(AppListView):
+    template_name = 'insurance_static.html'
+    model = InsuranceRecord
+    paginate_by = 20
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        q = self.request.GET.get('q')
+        if q:
+            queryset = queryset.filter(
+                Q(car__car_number=q) | Q(receiver__name=q) | Q(car__customer__name=q) | Q(car__customer__mobile=q))
+        insurance_company = self.request.GET.get('insurance_company')
+        if insurance_company:
+            queryset = queryset.filter(insurance_company_id=insurance_company)
+        date_start = self.request.GET.get('date_start')
+        if date_start:
+            date_start = date_value(date_start)
+            if date_start:
+                queryset = queryset.filter(
+                    record_date__gte=date_start).order_by('record_date').distinct()
+        date_end = self.request.GET.get('date_end')
+        if date_end:
+            date_end = date_value(date_end)
+            if date_end:
+                queryset = queryset.filter(
+                    record_date__lte=date_end).order_by('record_date').distinct()
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        context['ics'] = InsuranceCompany.objects.all()
+        context['title'] = _('保险业务统计')
+        context['total_count'] = self.get_queryset().count()
+        # belong_to
+        static_by_belong_to_query = self.get_queryset().values(
+            "belong_to__name"
+        ).annotate(Sum("total_price"), Sum("profits")).order_by()
+        static_by_sales_belong_to_data = []
+        static_by_profits_belong_to_data = []
+        static_by_belong_to_data = []
+        # insurance_company
+        static_by_insurance_company_query = self.get_queryset().values(
+            "insurance_company__name"
+        ).annotate(Sum("total_price"), Sum("profits")).order_by()
+        static_by_sales_insurance_company_data = []
+        static_by_profits_insurance_company_data = []
+        static_by_insurance_company_data = []
+        total_sales = 0
+        total_costs = 0
+        total_profits = 0
+        if static_by_belong_to_query:
+            for item in static_by_belong_to_query:
+                belong_to__name = item['belong_to__name']
+                if not belong_to__name:
+                    belong_to__name = '未知'
+                if item['total_price__sum']:
+                    sales = round(float(item['total_price__sum']), 2)
+                else:
+                    sales = 0
+                if item['profits__sum']:
+                    profits = round(float(item['profits__sum']), 2)
+                else:
+                    profits = 0
+                static_by_sales_belong_to_data.append({
+                    'name': belong_to__name,
+                    'y': sales
+                })
+                static_by_profits_belong_to_data.append({
+                    'name': belong_to__name,
+                    'y': profits
+                })
+                static_by_belong_to_data.append(
+                    {
+                        'name': belong_to__name,
+                        'sales': sales,
+                        'costs': round(sales - profits, 2),
+                        'profits': profits
+                    }
+                )
+                total_sales += sales
+                total_profits += profits
+            total_costs = total_sales - total_profits
+        if static_by_insurance_company_query:
+            for item in static_by_insurance_company_query:
+                insurance_company__name = item['insurance_company__name']
+                if not insurance_company__name:
+                    insurance_company__name = '未知'
+                if item['total_price__sum']:
+                    sales = round(float(item['total_price__sum']), 2)
+                else:
+                    sales = 0
+                if item['profits__sum']:
+                    profits = round(float(item['profits__sum']), 2)
+                else:
+                    profits = 0
+                static_by_sales_insurance_company_data.append({
+                    'name': insurance_company__name,
+                    'y': sales
+                })
+                static_by_profits_insurance_company_data.append({
+                    'name': insurance_company__name,
+                    'y': profits
+                })
+                static_by_insurance_company_data.append(
+                    {
+                        'name': insurance_company__name,
+                        'sales': sales,
+                        'costs': round(sales - profits, 2),
+                        'profits': profits
+                    }
+                )
+        context['static_by_sales_belong_to_data'] = json.dumps(static_by_sales_belong_to_data)
+        context['static_by_profits_belong_to_data'] = json.dumps(static_by_profits_belong_to_data)
+        context['static_by_belong_to_data'] = static_by_belong_to_data
+        context['static_by_sales_insurance_company_data'] = json.dumps(static_by_sales_insurance_company_data)
+        context['static_by_profits_insurance_company_data'] = json.dumps(static_by_profits_insurance_company_data)
+        context['static_by_insurance_company_data'] = static_by_insurance_company_data
         context['total_sales'] = round(total_sales, 2)
         context['total_costs'] = round(total_costs, 2)
         context['total_profits'] = round(total_profits, 2)

@@ -127,14 +127,50 @@ class WxUser(AbstractUser):
         )
 
 
+class Department(models.Model):
+    name = models.CharField(_('部门名称'), max_length=100, null=True, blank=True)
+    created_by = models.ForeignKey(
+        WxUser,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='department_created_by',
+        verbose_name=_('创建人员')
+    )
+    confirmed_by = models.ForeignKey(
+        WxUser,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='department_confirmed_by',
+        verbose_name=_('审核人员')
+    )
+    datetime_created = models.DateTimeField(_('记录时间'), auto_now_add=True)
+    datetime_updated = models.DateTimeField(_('更新时间'), auto_now=True)
+
+    objects = models.Manager()
+
+    class Meta:
+        ordering = ['id']
+        verbose_name = _('部门')
+        verbose_name_plural = _('部门')
+
+
 class Superior(models.Model):
     """
     工作人员
     """
     name = models.CharField(_('名字'), max_length=100, unique=True, null=True)
     mobile = models.CharField(_('手机号'), max_length=100, null=True, blank=True, unique=True)
+    department = models.ForeignKey(
+        Department,
+        on_delete=models.SET_NULL,
+        null=True,
+        verbose_name=_('部门')
+    )
+    position = models.CharField(_('职务'), max_length=255, null=True, blank=True)
     desc = models.TextField(_('描述'), max_length=1000, null=True, blank=True)
-    is_active = models.BooleanField(_('是否有效'), default=True)
+    is_active = models.BooleanField(_('是否在职'), default=True)
     user = models.ForeignKey(
         WxUser,
         null=True,
@@ -1904,7 +1940,7 @@ def post_save_payed_record(sender, instance, **kwargs):
                     total_consumption_2 += float(pr['related_service_record__total_price'])
         total_consumption = total_consumption_1 + total_consumption_2
         Customer.objects.filter(
-            pk=getattr(instance, 'customer').id
+            pk=getattr(instance, 'customer').pk
         ).update(
             total_consumption=round(total_consumption, 2),
             total_consumption_1=round(total_consumption_1, 2),
@@ -1982,8 +2018,10 @@ def pre_save_credit_change_record(sender, instance, **kwargs):
     if instance.pk:
         pre_records = all_records.filter(pk__lte=instance.pk)
         for r in pre_records.values('credits'):
-            current_credits += int(r['credits'])
-        current_credits += int(instance.credits)
+            if r['credits']:
+                current_credits += int(r['credits'])
+        if instance.credits:
+            current_credits += int(instance.credits)
     else:
         current_credits = current_credits_all
     instance.current_credits = current_credits

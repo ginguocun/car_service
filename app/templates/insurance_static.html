@@ -23,11 +23,11 @@
                 <form id="changelist-search" method="get" action="{{ request.path }}">
                     <div class="simpleui-form">
                         <div class="simpleui-form-item el-input el-input--prefix el-input--suffix">
-                            <input id='id_date_start' type="text" autocomplete="off" name="date_start" value="{{ request.GET.date_start }}" placeholder="维修开始时间" class="el-input__inner" data-date-format="yyyy-mm-dd">
+                            <input id='id_date_start' type="text" autocomplete="off" name="date_start" value="{{ request.GET.date_start }}" placeholder="开始时间" class="el-input__inner" data-date-format="yyyy-mm-dd">
                             <span class="el-input__prefix"><i class="el-input__icon el-icon-time"></i></span>
                         </div>
                         <div class="simpleui-form-item el-input el-input--prefix el-input--suffix">
-                            <input id='id_date_end' type="text" autocomplete="off" name="date_end" value="{{ request.GET.date_end }}" placeholder="维修截止时间" class="el-input__inner" data-date-format="yyyy-mm-dd">
+                            <input id='id_date_end' type="text" autocomplete="off" name="date_end" value="{{ request.GET.date_end }}" placeholder="截止时间" class="el-input__inner" data-date-format="yyyy-mm-dd">
                             <span class="el-input__prefix"><i class="el-input__icon el-icon-time"></i></span>
                         </div>
                         <div class="simpleui-form-item el-input el-input--prefix el-input--suffix">
@@ -36,13 +36,13 @@
                             <span class="el-input__prefix"><i class="el-input__icon el-icon-search"></i></span>
                         </div>
                         <div class="simpleui-form-item el-select-dropdown__list el-select-dropdown__wrap">
-                            <select name="store" id="id_store">
-                                <option value="">门店选择</option>
-                                {% for store in stores %}
-                                    {% if store.pk|floatformat:'0' == request.GET.store|floatformat:'0' %}
-                                    <option value="{{ store.pk }}" selected>{{ store.name }}</option>
+                            <select name="insurance_company" id="id_insurance_company">
+                                <option value="">保险公司选择</option>
+                                {% for insurance_company in ics %}
+                                    {% if insurance_company.pk|floatformat:'0' == request.GET.insurance_company|floatformat:'0' %}
+                                    <option value="{{ insurance_company.pk }}" selected>{{ insurance_company.name }}</option>
                                     {% else %}
-                                    <option value="{{ store.pk }}">{{ store.name }}</option>
+                                    <option value="{{ insurance_company.pk }}">{{ insurance_company.name }}</option>
                                     {% endif %}
                                 {% endfor %}
                             </select>
@@ -58,12 +58,18 @@
             </div>
             <div class="row">
                 <div class="el-col el-col-24">
+
+                    <div class="el-col el-col-12">
+                        <div id="static_by_sales_belong_to_data"></div>
+                    </div>
+                    <div class="el-col el-col-12">
+                        <div id="static_by_profits_belong_to_data"></div>
+                    </div>
                     <div class="el-col el-col-11">
                         <div class="el-card box-card is-always-shadow">
                             <div class="el-card__body">
                                 <h4>根据人员统计</h4>
                                 <table class="el-table">
-
                                     <thead>
                                         <tr>
                                             <th>{% trans '人员' %}</th>
@@ -73,12 +79,12 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                    {% for d in static_by_person_data %}
+                                    {% for d in static_by_belong_to_data %}
                                     <tr>
                                         <td>{{ d.name }}</td>
                                         <td style="text-align:right">￥ {{ d.sales }}</td>
                                         <td style="text-align:right">￥ {{ d.costs }}</td>
-                                        <td style="text-align:right">￥ {{ d.profits|floatformat:1 }}</td>
+                                        <td style="text-align:right">￥ {{ d.profits }}</td>
                                     </tr>
                                     {% endfor %}
                                     <tr>
@@ -92,103 +98,36 @@
                             </div>
                         </div>
                     </div>
-                    {% if not request.GET.store %}
                     <div class="el-col el-col-11 el-col-offset-2">
                         <div class="el-card box-card is-always-shadow">
                             <div class="el-card__body">
-                                <h4>根据门店统计</h4>
+                                <h4>根据保险公司统计</h4>
                                 <table class="el-table">
                                     <thead>
                                         <tr>
-                                            <th>{% trans '门店' %}</th>
+                                            <th>{% trans '保险公司' %}</th>
                                             <th style="text-align:right">{% trans '营业额' %}</th>
                                             <th style="text-align:right">{% trans '总成本' %}</th>
                                             <th style="text-align:right">{% trans '总利润' %}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                    {% for d in static_by_store_data %}
+                                    {% for d in static_by_insurance_company_data %}
                                     <tr>
                                         <td>{{ d.name }}</td>
-                                        <td style="text-align:right">￥ {{ d.sales|floatformat:1 }}</td>
-                                        <td style="text-align:right">￥ {{ d.costs|floatformat:1 }}</td>
-                                        <td style="text-align:right">￥ {{ d.profits|floatformat:1 }}</td>
+                                        <td style="text-align:right">￥ {{ d.sales }}</td>
+                                        <td style="text-align:right">￥ {{ d.costs }}</td>
+                                        <td style="text-align:right">￥ {{ d.profits }}</td>
                                     </tr>
                                     {% endfor %}
                                     <tr>
                                         <th>{% trans '合计' %}</th>
-                                        <th style="text-align:right">￥ {{ total_sales|floatformat:1 }}</th>
-                                        <th style="text-align:right">￥ {{ total_costs|floatformat:1 }}</th>
-                                        <th style="text-align:right">￥ {{ total_profits|floatformat:1 }}</th>
+                                        <th style="text-align:right">￥ {{ total_sales }}</th>
+                                        <th style="text-align:right">￥ {{ total_costs }}</th>
+                                        <th style="text-align:right">￥ {{ total_profits }}</th>
                                     </tr>
                                     </tbody>
                                 </table>
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
-                </div>
-                <div class="el-col el-col-12">
-                    <div id="static_by_sales_person"></div>
-                </div>
-                <div class="el-col el-col-12">
-                    <div id="static_by_profits_person"></div>
-                </div>
-                {% if not request.GET.store %}
-                <div class="el-col el-col-12">
-                    <div id="static_by_sales_store"></div>
-                </div>
-                <div class="el-col el-col-12">
-                    <div id="static_by_profits_store"></div>
-                </div>
-                {% endif %}
-
-                <div class="el-col el-col-24">
-                    <div class="el-card box-card is-always-shadow">
-                        <div class="el-card__header">
-                            <div class="clearfix"><span>记录明细</span></div>
-                        </div>
-                        <div class="el-card__body">
-                            <div class="clearfix">
-                                {% if object_list %}
-                                <table id="change-history" class="layui-table">
-                                    <thead>
-                                    <tr>
-                                        <th scope="col">{% trans 'ID' %}</th>
-                                        <th scope="col">{% trans '维修人员' %}</th>
-                                        <th scope="col">{% trans '门店' %}</th>
-                                        <th scope="col">{% trans '车牌号' %}</th>
-                                        <th scope="col">{% trans '项目名称' %}</th>
-                                        <th scope="col">{% trans '小计（元）' %}</th>
-                                        <th scope="col">{% trans '总成本' %}</th>
-                                        <th scope="col">{% trans '维修时间' %}</th>
-                                        <th scope="col">{% trans '备注' %}</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    {% for object in object_list %}
-                                    <tr>
-                                        <td scope="row"><a href="">{{object.pk }}</a></td>
-                                        <td>{{ object.served_by.name|default_if_none:'' }}</td>
-                                        <td>{{ object.related_service_record.related_store.name|default_if_none:'' }}</td>
-                                        <td><a href="">
-                                            {{object.related_service_record.car.car_number|default_if_none:'----' }}</a>
-                                        </td>
-                                        <td>{{ object.name|default_if_none:'' }}</td>
-                                        <td>{% if object.item_price %}{{ object.item_price|default_if_none:'' }}*{{ object.item_count|default_if_none:''|floatformat:-2 }} = {{ object.price|default_if_none:'' }}{% endif %}</td>
-                                        <td>{{ object.cost|default_if_none:'' }}</td>
-                                        <td>{{ object.datetime_created|date:"DATETIME_FORMAT" }}</td>
-                                        <td>{{ object.notes|default_if_none:'' }}</td>
-                                    </tr>
-                                    {% endfor %}
-                                    </tbody>
-                                </table>
-                                {% else %}
-                                <p>{% trans "无记录" %}</p>
-                                {% endif %}
-                                {% block pagination %}
-                                {% include "pagination.html" %}
-                                {% endblock %}
                             </div>
                         </div>
                     </div>
@@ -201,7 +140,7 @@
 <script src="https://code.highcharts.com/modules/exporting.js"></script>
 <script src="https://code.highcharts.com/modules/export-data.js"></script>
 <script language="JavaScript">
-Highcharts.chart('static_by_sales_person', {
+Highcharts.chart('static_by_sales_belong_to_data', {
     credits: {enabled: false},
     chart: {plotBackgroundColor: null, plotBorderWidth: null, plotShadow: false, type: 'pie'},
     title: {text: '根据人员统计销售额'},
@@ -213,9 +152,9 @@ Highcharts.chart('static_by_sales_person', {
             cursor: 'pointer',
             dataLabels: {enabled: true, format: '<b>{point.name}</b>: {point.percentage:.1f} %'}
     }},
-    series: [{name: '销售额', colorByPoint: true, data: {{ static_by_sales_person|safe }}}]
+    series: [{name: '销售额', colorByPoint: true, data: {{ static_by_sales_belong_to_data|safe }}}]
 });
-Highcharts.chart('static_by_profits_person', {
+Highcharts.chart('static_by_profits_belong_to_data', {
     credits: {enabled: false},
     chart: {plotBackgroundColor: null, plotBorderWidth: null, plotShadow: false, type: 'pie'},
     title: {text: '根据人员统计利润'},
@@ -227,35 +166,7 @@ Highcharts.chart('static_by_profits_person', {
             cursor: 'pointer',
             dataLabels: {enabled: true, format: '<b>{point.name}</b>: {point.percentage:.1f} %'}
     }},
-    series: [{name: '利润', colorByPoint: true, data: {{ static_by_profits_person|safe }}}]
-});
-Highcharts.chart('static_by_sales_store', {
-    credits: {enabled: false},
-    chart: {plotBackgroundColor: null, plotBorderWidth: null, plotShadow: false, type: 'pie'},
-    title: {text: '根据门店统计销售额'},
-    tooltip: {pointFormat: '{% trans "金额" %}: ￥{point.y:.2f} <b>比例: {point.percentage:.1f}%</b>'},
-    accessibility: {point: {valueSuffix: '%'}},
-    plotOptions: {
-        pie: {
-            allowPointSelect: true,
-            cursor: 'pointer',
-            dataLabels: {enabled: true, format: '<b>{point.name}</b>: {point.percentage:.1f} %'}
-    }},
-    series: [{name: '销售额', colorByPoint: true, data: {{ static_by_sales_store|safe }}}]
-});
-Highcharts.chart('static_by_profits_store', {
-    credits: {enabled: false},
-    chart: {plotBackgroundColor: null, plotBorderWidth: null, plotShadow: false, type: 'pie'},
-    title: {text: '根据门店统计利润'},
-    tooltip: {pointFormat: '{% trans "金额" %}: ￥{point.y:.2f} <b>比例: {point.percentage:.1f}%</b>'},
-    accessibility: {point: {valueSuffix: '%'}},
-    plotOptions: {
-        pie: {
-            allowPointSelect: true,
-            cursor: 'pointer',
-            dataLabels: {enabled: true, format: '<b>{point.name}</b>: {point.percentage:.1f} %'}
-    }},
-    series: [{name: '利润', colorByPoint: true, data: {{ static_by_profits_store|safe }}}]
+    series: [{name: '利润', colorByPoint: true, data: {{ static_by_profits_belong_to_data|safe }}}]
 });
 </script>
 

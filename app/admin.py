@@ -46,10 +46,11 @@ class UserLevelAdmin(SimpleModelAdmin):
 
 @admin.register(Superior)
 class SuperiorAdmin(AutoUpdateUserModelAdmin):
-    list_display = ['pk', 'name', 'mobile', 'desc', 'user']
+    list_display = ['pk', 'name', 'department', 'position', 'mobile', 'desc', 'user']
     list_display_links = ['pk', 'name']
-    search_fields = ['name', 'mobile', 'desc']
+    search_fields = ['name', 'mobile', 'position', 'desc']
     autocomplete_fields = ['user']
+    list_filter = ['is_active', 'department']
 
 
 @admin.register(WxUser)

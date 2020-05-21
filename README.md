@@ -76,3 +76,22 @@ uwsgi --reload /opt/car_service/uwsgi/uwsgi.pid
 python3 manage.py dumpdata --all --format=json > mysite_all_data.json
 python3 manage.py loaddata mysite_all_data.json
 ```
+
+```python
+from app.models import *
+
+irs = InsuranceRecord.objects.filter(profits__isnull=True)
+for ir in irs:
+    if ir.total_price:
+        if ir.payback_amount:
+            payback_amount = ir.payback_amount
+        else:
+            payback_amount = 0
+        if ir.ic_payback_amount:
+            ic_payback_amount = ir.ic_payback_amount
+        else:
+            ic_payback_amount = 0
+        ir.profits = round(float(ir.total_price) - float(payback_amount) - float(ic_payback_amount), 2)
+        ir.save()
+        print(ir.total_price, ir.profits)
+```
