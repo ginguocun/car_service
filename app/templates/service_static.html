@@ -143,56 +143,56 @@
                 </div>
                 {% endif %}
 
-                <div class="el-col el-col-24">
-                    <div class="el-card box-card is-always-shadow">
-                        <div class="el-card__header">
-                            <div class="clearfix"><span>记录明细</span></div>
-                        </div>
-                        <div class="el-card__body">
-                            <div class="clearfix">
-                                {% if object_list %}
-                                <table id="change-history" class="layui-table">
-                                    <thead>
-                                    <tr>
-                                        <th scope="col">{% trans 'ID' %}</th>
-                                        <th scope="col">{% trans '维修人员' %}</th>
-                                        <th scope="col">{% trans '门店' %}</th>
-                                        <th scope="col">{% trans '车牌号' %}</th>
-                                        <th scope="col">{% trans '项目名称' %}</th>
-                                        <th scope="col">{% trans '小计（元）' %}</th>
-                                        <th scope="col">{% trans '总成本' %}</th>
-                                        <th scope="col">{% trans '维修时间' %}</th>
-                                        <th scope="col">{% trans '备注' %}</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    {% for object in object_list %}
-                                    <tr>
-                                        <td scope="row"><a href="">{{object.pk }}</a></td>
-                                        <td>{{ object.served_by.name|default_if_none:'' }}</td>
-                                        <td>{{ object.related_service_record.related_store.name|default_if_none:'' }}</td>
-                                        <td><a href="">
-                                            {{object.related_service_record.car.car_number|default_if_none:'----' }}</a>
-                                        </td>
-                                        <td>{{ object.name|default_if_none:'' }}</td>
-                                        <td>{% if object.item_price %}{{ object.item_price|default_if_none:'' }}*{{ object.item_count|default_if_none:''|floatformat:-2 }} = {{ object.price|default_if_none:'' }}{% endif %}</td>
-                                        <td>{{ object.cost|default_if_none:'' }}</td>
-                                        <td>{{ object.datetime_created|date:"DATETIME_FORMAT" }}</td>
-                                        <td>{{ object.notes|default_if_none:'' }}</td>
-                                    </tr>
-                                    {% endfor %}
-                                    </tbody>
-                                </table>
-                                {% else %}
-                                <p>{% trans "无记录" %}</p>
-                                {% endif %}
-                                {% block pagination %}
-                                {% include "pagination.html" %}
-                                {% endblock %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
+<!--                <div class="el-col el-col-24">-->
+<!--                    <div class="el-card box-card is-always-shadow">-->
+<!--                        <div class="el-card__header">-->
+<!--                            <div class="clearfix"><span>记录明细</span></div>-->
+<!--                        </div>-->
+<!--                        <div class="el-card__body">-->
+<!--                            <div class="clearfix">-->
+<!--                                {% if object_list %}-->
+<!--                                <table id="change-history" class="layui-table">-->
+<!--                                    <thead>-->
+<!--                                    <tr>-->
+<!--                                        <th scope="col">{% trans 'ID' %}</th>-->
+<!--                                        <th scope="col">{% trans '维修人员' %}</th>-->
+<!--                                        <th scope="col">{% trans '门店' %}</th>-->
+<!--                                        <th scope="col">{% trans '车牌号' %}</th>-->
+<!--                                        <th scope="col">{% trans '项目名称' %}</th>-->
+<!--                                        <th scope="col">{% trans '小计（元）' %}</th>-->
+<!--                                        <th scope="col">{% trans '总成本' %}</th>-->
+<!--                                        <th scope="col">{% trans '维修时间' %}</th>-->
+<!--                                        <th scope="col">{% trans '备注' %}</th>-->
+<!--                                    </tr>-->
+<!--                                    </thead>-->
+<!--                                    <tbody>-->
+<!--                                    {% for object in object_list %}-->
+<!--                                    <tr>-->
+<!--                                        <td scope="row"><a href="">{{object.pk }}</a></td>-->
+<!--                                        <td>{{ object.served_by.name|default_if_none:'' }}</td>-->
+<!--                                        <td>{{ object.related_service_record.related_store.name|default_if_none:'' }}</td>-->
+<!--                                        <td><a href="">-->
+<!--                                            {{object.related_service_record.car.car_number|default_if_none:'&#45;&#45;&#45;&#45;' }}</a>-->
+<!--                                        </td>-->
+<!--                                        <td>{{ object.name|default_if_none:'' }}</td>-->
+<!--                                        <td>{% if object.item_price %}{{ object.item_price|default_if_none:'' }}*{{ object.item_count|default_if_none:''|floatformat:-2 }} = {{ object.price|default_if_none:'' }}{% endif %}</td>-->
+<!--                                        <td>{{ object.cost|default_if_none:'' }}</td>-->
+<!--                                        <td>{{ object.datetime_created|date:"DATETIME_FORMAT" }}</td>-->
+<!--                                        <td>{{ object.notes|default_if_none:'' }}</td>-->
+<!--                                    </tr>-->
+<!--                                    {% endfor %}-->
+<!--                                    </tbody>-->
+<!--                                </table>-->
+<!--                                {% else %}-->
+<!--                                <p>{% trans "无记录" %}</p>-->
+<!--                                {% endif %}-->
+<!--                                {% block pagination %}-->
+<!--                                {% include "pagination.html" %}-->
+<!--                                {% endblock %}-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                </div>-->
             </div>
         </div>
     </div>
