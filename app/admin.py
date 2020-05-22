@@ -45,7 +45,7 @@ class UserLevelAdmin(SimpleModelAdmin):
 
 
 @admin.register(Department)
-class DepartmentAdmin(SimpleModelAdmin):
+class DepartmentAdmin(AutoUpdateUserModelAdmin):
     list_display = ['pk', 'name']
     list_display_links = ['pk', 'name']
     search_fields = ['name']
@@ -56,7 +56,7 @@ class SuperiorAdmin(AutoUpdateUserModelAdmin):
     list_display = ['pk', 'name', 'department', 'position', 'mobile', 'desc', 'user']
     list_display_links = ['pk', 'name']
     search_fields = ['name', 'mobile', 'position', 'desc']
-    autocomplete_fields = ['user']
+    autocomplete_fields = ['user', 'department']
     list_filter = ['is_active', 'department']
 
 
