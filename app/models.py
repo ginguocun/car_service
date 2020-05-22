@@ -155,6 +155,11 @@ class Department(models.Model):
         verbose_name = _('部门')
         verbose_name_plural = _('部门')
 
+    def __str__(self):
+        return "{0}".format(
+            self.name,
+        )
+
 
 class Superior(models.Model):
     """
