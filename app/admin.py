@@ -44,6 +44,13 @@ class UserLevelAdmin(SimpleModelAdmin):
     search_fields = ['level_code', 'level_name', 'desc']
 
 
+@admin.register(Department)
+class DepartmentAdmin(SimpleModelAdmin):
+    list_display = ['pk', 'name']
+    list_display_links = ['pk', 'name']
+    search_fields = ['name']
+
+
 @admin.register(Superior)
 class SuperiorAdmin(AutoUpdateUserModelAdmin):
     list_display = ['pk', 'name', 'department', 'position', 'mobile', 'desc', 'user']
