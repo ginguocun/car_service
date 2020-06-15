@@ -421,7 +421,7 @@ class ServiceRecordAdmin(AutoUpdateUserModelAdmin):
 class ServiceApplyAdmin(AutoUpdateUserModelAdmin):
     readonly_fields = ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')
     list_display = [
-        'pk', 'car_number', 'name', 'mobile', 'is_checked', 'data_import', 'service_package', 'service_info',
+        'pk', 'datetime_created', 'car_number', 'name', 'mobile', 'is_checked', 'data_import', 'service_package', 'service_info',
         'reserve_type', 'reserve_time', 'reserve_address', 'related_store', 'notes'
     ]
     list_display_links = ['pk', 'car_number']
@@ -446,7 +446,7 @@ class ServiceApplyAdmin(AutoUpdateUserModelAdmin):
 class InsuranceApplyAdmin(AutoUpdateUserModelAdmin):
     readonly_fields = ('created_by', 'confirmed_by', 'datetime_created', 'datetime_updated')
     list_display = [
-        'pk', 'car_number', 'name', 'mobile', 'service_type', 'is_checked', 'data_import', 'checked_by',
+        'pk', 'datetime_created', 'car_number', 'name', 'mobile', 'service_type', 'is_checked', 'data_import', 'checked_by',
         'insurance_date',  'related_record', 'notes'
     ]
     list_display_links = ['pk', 'car_number']
