@@ -908,7 +908,7 @@ class ServiceFeedback(models.Model):
     related_service_record = models.ForeignKey(
         ServiceRecord,
         null=True,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         verbose_name=_('维修服务')
     )
     feedback_date = models.DateField(_('回访日期'), null=True, blank=True)
@@ -1832,7 +1832,7 @@ def pre_save_service_item(sender, instance, **kwargs):
         instance.price = float(getattr(instance, 'item_price')) * int(getattr(instance, 'item_count'))
 
 
-@receiver([post_save, post_delete], sender=ServiceItem)
+@receiver([post_save], sender=ServiceItem)
 def update_related_service_record(sender, instance, **kwargs):
     total_price = 0
     total_cost = 0
