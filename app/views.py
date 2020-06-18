@@ -302,7 +302,8 @@ class InsuranceStaticView(AppListView):
         q = self.request.GET.get('q')
         if q:
             queryset = queryset.filter(
-                Q(car__car_number=q) | Q(receiver__name=q) | Q(car__customer__name=q) | Q(car__customer__mobile=q))
+                Q(car__car_number=q) | Q(receiver__name=q) | Q(car__customer__name=q) | Q(car__customer__mobile=q) | Q(
+                    belong_to__name__icontains=q))
         insurance_company = self.request.GET.get('insurance_company')
         if insurance_company:
             queryset = queryset.filter(insurance_company_id=insurance_company)
