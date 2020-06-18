@@ -278,7 +278,7 @@ class InsuranceRecordAdmin(AutoUpdateUserModelAdmin):
         'is_payed', 'notes'
     ]
     list_display_links = ['pk', 'car']
-    list_filter = ['has_payback', 'belong_to', 'insurance_company']
+    list_filter = ['has_payback', 'belong_to', 'insurance_company', 'record_date']
     date_hierarchy = 'record_date'
     search_fields = ['car__car_number', 'car__customer__name', 'car__customer__mobile']
     autocomplete_fields = ['car', 'related_partner', 'receiver', 'belong_to', 'insurance_company']
@@ -377,7 +377,7 @@ class ServiceRecordAdmin(AutoUpdateUserModelAdmin):
     ]
     list_display_links = ['pk', 'car']
     list_filter = [
-        'is_reversed', 'checked_by', 'is_checked', 'is_served', 'is_payed', 'related_store', 'service_package']
+        'is_reversed', 'checked_by', 'is_checked', 'is_served', 'is_payed', 'related_store', 'service_package', 'reserve_time']
     date_hierarchy = 'reserve_time'
     search_fields = ['car__car_number', 'car__customer__name', 'car__customer__mobile']
     autocomplete_fields = ['car', 'checked_by', 'related_partner', 'related_store', 'service_package', 'oil_package']
