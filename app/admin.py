@@ -237,7 +237,7 @@ class PartnerAdmin(SimpleModelAdmin):
 @admin.register(CarInfo)
 class CarInfoAdmin(AutoUpdateUserModelAdmin):
     list_display = [
-        'pk', 'car_number', 'car_brand', 'car_model', 'car_price', 'bought_date', 'desc',
+        'pk', 'car_number', 'insurance_date', 'annual_inspection_date', 'bought_date', 'desc',
         'is_confirmed', 'is_active', 'customer', 'created_by']
     list_display_links = ['pk', 'car_number']
     list_filter = ['is_active', 'is_confirmed']
@@ -252,6 +252,19 @@ class CarInfoAdmin(AutoUpdateUserModelAdmin):
             'fields': ('insurance_company', 'insurance_date', 'bought_date', 'annual_inspection_date',)}),
         (_('状态'), {'fields': ('is_confirmed', 'is_active')})
     )
+
+    def save_execl(self, request, queryset):
+        filename = 'media/{0}_{1}.xls'.format('car_info', datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
+        headers = [
+            'ID', '车牌', '购买日期', '车辆年检日期', '交强险到期日', '保险公司']
+        columns = [
+            'pk', 'car_number', 'bought_date', 'annual_inspection_date', 'insurance_date', 'insurance_company',
+        ]
+        return export_excel(queryset, headers, columns, filename)
+
+    save_execl.short_description = "导出Excel"
+
+    actions = [save_execl]
 
 
 @admin.register(InsuranceCompany)
