@@ -236,11 +236,12 @@ class PartnerAdmin(SimpleModelAdmin):
 
 @admin.register(CarInfo)
 class CarInfoAdmin(AutoUpdateUserModelAdmin):
+    date_hierarchy = None
     list_display = [
         'pk', 'car_number', 'insurance_date', 'annual_inspection_date', 'bought_date', 'desc',
         'is_confirmed', 'is_active', 'customer', 'created_by']
     list_display_links = ['pk', 'car_number']
-    list_filter = ['is_active', 'is_confirmed']
+    list_filter = ['is_active', 'is_confirmed', 'insurance_date', 'annual_inspection_date']
     search_fields = ['car_number', 'car_brand', 'car_model', 'customer__name', 'customer__mobile']
     autocomplete_fields = ['customer']
     fieldsets = (
