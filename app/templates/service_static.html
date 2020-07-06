@@ -23,11 +23,11 @@
                 <form id="changelist-search" method="get" action="{{ request.path }}">
                     <div class="simpleui-form">
                         <div class="simpleui-form-item el-input el-input--prefix el-input--suffix">
-                            <input id='id_date_start' type="text" autocomplete="off" name="date_start" value="{{ request.GET.date_start }}" placeholder="维修开始时间" class="el-input__inner" data-date-format="yyyy-mm-dd">
+                            <input id='id_date_start' type="text" autocomplete="off" name="date_start" value="{{ request.GET.date_start }}" placeholder="进厂时间开始" class="el-input__inner" data-date-format="yyyy-mm-dd">
                             <span class="el-input__prefix"><i class="el-input__icon el-icon-time"></i></span>
                         </div>
                         <div class="simpleui-form-item el-input el-input--prefix el-input--suffix">
-                            <input id='id_date_end' type="text" autocomplete="off" name="date_end" value="{{ request.GET.date_end }}" placeholder="维修截止时间" class="el-input__inner" data-date-format="yyyy-mm-dd">
+                            <input id='id_date_end' type="text" autocomplete="off" name="date_end" value="{{ request.GET.date_end }}" placeholder="进厂时间截止" class="el-input__inner" data-date-format="yyyy-mm-dd">
                             <span class="el-input__prefix"><i class="el-input__icon el-icon-time"></i></span>
                         </div>
                         <div class="simpleui-form-item el-input el-input--prefix el-input--suffix">
