@@ -150,18 +150,22 @@ class ServiceRecordView(AppListView):
         store = self.request.GET.get('store')
         if store:
             queryset = queryset.filter(related_store_id=store)
+        # 开始时间
         date_start = self.request.GET.get('date_start')
         if date_start:
             date_start = date_value(date_start)
             if date_start:
                 queryset = queryset.filter(
-                    reserve_time__gte=date_start).order_by('reserve_time').distinct()
+                    reserve_time__gte='{} 00:00:00'.format(date_start)
+                ).order_by('reserve_time').distinct()
+        # 截止时间
         date_end = self.request.GET.get('date_end')
         if date_end:
             date_end = date_value(date_end)
             if date_end:
                 queryset = queryset.filter(
-                    reserve_time__lte='{} 23:59:59.999999'.format(date_end)).order_by('reserve_time').distinct()
+                    reserve_time__lte='{} 23:59:59.999999'.format(date_end)
+                ).order_by('reserve_time').distinct()
         return queryset
 
     def get_context_data(self, **kwargs):
@@ -185,18 +189,22 @@ class ServiceStaticView(AppListView):
         store = self.request.GET.get('store')
         if store:
             queryset = queryset.filter(related_service_record__related_store_id=store)
+        # 开始时间
         date_start = self.request.GET.get('date_start')
         if date_start:
             date_start = date_value(date_start)
             if date_start:
                 queryset = queryset.filter(
-                    related_service_record__reserve_time__gte=date_start).order_by('datetime_created').distinct()
+                    related_service_record__reserve_time__gte='{} 00:00:00'.format(date_start)
+                ).order_by('reserve_time').distinct()
+        # 截止时间
         date_end = self.request.GET.get('date_end')
         if date_end:
             date_end = date_value(date_end)
             if date_end:
                 queryset = queryset.filter(
-                    related_service_record__reserve_time__lte='{} 23:59:59.999999'.format(date_end)).order_by('datetime_created').distinct()
+                    related_service_record__reserve_time__lte='{} 23:59:59.999999'.format(date_end)
+                ).order_by('reserve_time').distinct()
         return queryset
 
     def get_context_data(self, **kwargs):

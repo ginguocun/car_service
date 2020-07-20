@@ -392,7 +392,7 @@ class ServiceRecordAdmin(AutoUpdateUserModelAdmin):
     list_display_links = ['pk', 'car']
     list_filter = [
         'is_reversed', 'checked_by', 'is_checked', 'is_served', 'is_payed', 'related_store', 'service_package', 'reserve_time']
-    # date_hierarchy = 'reserve_time'
+    date_hierarchy = None
     search_fields = ['car__car_number', 'car__customer__name', 'car__customer__mobile']
     autocomplete_fields = ['car', 'checked_by', 'related_partner', 'related_store', 'service_package', 'oil_package']
     fieldsets = (
