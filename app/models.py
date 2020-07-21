@@ -1828,7 +1828,7 @@ def post_save_customer(sender, instance, **kwargs):
 
 @receiver(pre_save, sender=ServiceItem)
 def pre_save_service_item(sender, instance, **kwargs):
-    if instance.item_price and instance.item_count:
+    if instance.item_price is not None and instance.item_count is not None:
         instance.price = float(getattr(instance, 'item_price')) * int(getattr(instance, 'item_count'))
 
 
@@ -1863,13 +1863,13 @@ def update_related_service_record(sender, instance, **kwargs):
 @receiver(pre_save, sender=PayedRecord)
 def update_cash_payed(sender, instance, **kwargs):
     # 自动计算现金支付金额和积分获得
-    if instance.total_payed:
+    if instance.total_payed is not None:
         total_payed = float(getattr(instance, 'total_payed'))
         amount_payed = 0
         credit_payed = 0
-        if instance.amount_payed:
+        if instance.amount_payed is not None:
             amount_payed = float(getattr(instance, 'amount_payed'))
-        if instance.credit_payed:
+        if instance.credit_payed is not None:
             credit_payed = float(getattr(instance, 'credit_payed'))
         # 现金支付
         cash_payed = total_payed - amount_payed - credit_payed
@@ -1881,7 +1881,7 @@ def update_cash_payed(sender, instance, **kwargs):
 @receiver(post_save, sender=PayedRecord)
 def post_save_payed_record(sender, instance, **kwargs):
     # 如果有余额支付的情况，自动创建余额变更记录
-    if instance.amount_payed and instance.customer:
+    if instance.amount_payed is not None and instance.customer:
         amounts_change = - float(getattr(instance, 'amount_payed'))
         AmountChangeRecord.objects.update_or_create(
             related_payed_record_id=instance.pk,
@@ -1894,7 +1894,7 @@ def post_save_payed_record(sender, instance, **kwargs):
             })
     if instance.customer:
         # 积分消耗
-        if instance.credit_payed:
+        if instance.credit_payed is not None:
             credits_used = - float(getattr(instance, 'credit_payed'))
             CreditChangeRecord.objects.update_or_create(
                 related_payed_record_id=instance.pk,
@@ -1907,7 +1907,7 @@ def post_save_payed_record(sender, instance, **kwargs):
                 }
             )
         # 积分获得
-        if instance.credit_change:
+        if instance.credit_change is not None:
             credits_get = float(getattr(instance, 'credit_change'))
             CreditChangeRecord.objects.update_or_create(
                 related_payed_record_id=instance.pk,
@@ -2047,9 +2047,9 @@ def post_save_insurance_record(sender, instance, **kwargs):
         total_payed = 0
         total_price = 0
         customer = None
-        if instance.total_price:
+        if instance.total_price is not None:
             total_price = float(instance.total_price)
-            if instance.payback_amount:
+            if instance.payback_amount is not None:
                 total_payed = float(instance.total_price) - float(instance.payback_amount)
             else:
                 total_payed = float(instance.total_price)
