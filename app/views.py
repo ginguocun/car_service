@@ -196,7 +196,7 @@ class ServiceStaticView(AppListView):
             if date_start:
                 queryset = queryset.filter(
                     related_service_record__reserve_time__gte='{} 00:00:00'.format(date_start)
-                ).order_by('reserve_time').distinct()
+                ).order_by('pk').distinct()
         # 截止时间
         date_end = self.request.GET.get('date_end')
         if date_end:
@@ -204,7 +204,7 @@ class ServiceStaticView(AppListView):
             if date_end:
                 queryset = queryset.filter(
                     related_service_record__reserve_time__lte='{} 23:59:59.999999'.format(date_end)
-                ).order_by('reserve_time').distinct()
+                ).order_by('pk').distinct()
         return queryset
 
     def get_context_data(self, **kwargs):
