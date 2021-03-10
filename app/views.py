@@ -2,7 +2,7 @@ import json
 
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ImproperlyConfigured
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, QuerySet
 from django.forms import modelformset_factory
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
@@ -12,26 +12,77 @@ from django.utils.translation import gettext_lazy as _
 from .forms import *
 
 
+def get_obj_permission_required(obj):
+    if obj.permission_required is None:
+        if obj.model is None:
+            raise ImproperlyConfigured(
+                '{0} is missing the model attribute.'.format(obj.__class__.__name__)
+            )
+        else:
+            obj.permission_required = obj.get_required_object_permissions(obj.model)
+    if isinstance(obj.permission_required, str):
+        perms = (obj.permission_required,)
+    else:
+        perms = obj.permission_required
+    return perms
+
+
 class AppListView(PermissionRequiredMixin, ListView):
     paginate_by = 10
+    list_filter = None
 
     @staticmethod
     def get_required_object_permissions(model_cls):
         return '{0}.view_{1}'.format(getattr(model_cls, '_meta').app_label, getattr(model_cls, '_meta').model_name)
 
     def get_permission_required(self):
-        if self.permission_required is None:
-            if self.model is None:
-                raise ImproperlyConfigured(
-                    '{0} is missing the model attribute.'.format(self.__class__.__name__)
-                )
+        return get_obj_permission_required(self)
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if self.list_filter:
+            filter_data = dict()
+            for field in self.list_filter:
+                field_value = self.request.GET.get(field)
+                if field_value:
+                    filter_data[field] = field_value
+            if filter_data:
+                queryset = queryset.filter(**filter_data)
+        return queryset
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(object_list=object_list, **kwargs)
+        if isinstance(self.get_queryset(), QuerySet):
+            context['data_length'] = self.get_queryset().count()
+        elif isinstance(self.get_queryset(), list):
+            context['data_length'] = len(self.get_queryset())
+        page_range = getattr(context['paginator'], 'page_range')
+        current_page_num = getattr(context['page_obj'], 'number')
+        page_range_list = list()
+        if page_range:
+            if len(page_range) > 7:
+                for p_num in page_range:
+                    if -3 < p_num - current_page_num < 3:
+                        page_range_list.append(p_num)
+                if 1 not in page_range_list:
+                    page_range_list.insert(0, 1)
+                    if 2 not in page_range_list:
+                        page_range_list.insert(1, 0)
+                if page_range[-1] not in page_range_list:
+                    if page_range[-2] not in page_range_list:
+                        page_range_list.append(0)
+                    page_range_list.append(page_range[-1])
             else:
-                self.permission_required = self.get_required_object_permissions(self.model)
-        if isinstance(self.permission_required, str):
-            perms = (self.permission_required,)
-        else:
-            perms = self.permission_required
-        return perms
+                for p_num in page_range:
+                    page_range_list.append(p_num)
+        context['page_range'] = page_range_list
+        if self.list_filter:
+            if isinstance(self.list_filter, list):
+                for field in self.list_filter:
+                    context[field] = getattr(
+                        getattr(getattr(self.model, field), 'field'), 'related_model'
+                    ).objects.all()
+        return context
 
 
 class AppDetailView(PermissionRequiredMixin, DetailView):
