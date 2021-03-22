@@ -1,4 +1,6 @@
 import hashlib
+import random
+
 import pandas as pd
 
 from django.conf import settings
@@ -760,6 +762,7 @@ class ServiceRecord(models.Model):
     """
     服务记录
     """
+    record_number = models.CharField(verbose_name=_('订单号'), max_length=255, null=True, blank=True)
     car = models.ForeignKey(
         CarInfo,
         on_delete=models.SET_NULL,
@@ -782,13 +785,13 @@ class ServiceRecord(models.Model):
         blank=True,
         verbose_name=_('机油套餐')
     )
-    service_info = models.TextField(_('服务详情'), null=True, blank=True, max_length=200)
+    service_info = models.TextField(_('服务详情'), null=True, blank=True, max_length=2000)
     reserve_type = models.IntegerField(_('服务类型'), null=True, blank=True, choices=[(1, '上门'), (2, '到店')])
     is_reversed = models.BooleanField(_('是预约服务'), default=False)
     reserve_time = models.DateTimeField(_('进厂时间'), null=True, blank=True)
     finish_time = models.DateTimeField(_('预计出厂时间'), null=True, blank=True)
     reserve_address = models.CharField(_('服务地点'), max_length=255, null=True, blank=True)
-    vehicle_mileage = models.IntegerField(_('当前行驶公里数'), help_text=_('未知可填写为0'), null=True)
+    vehicle_mileage = models.IntegerField(_('进厂公里数'), help_text=_('未知可填写为0'), null=True)
     month_mileage = models.IntegerField(_('月行驶公里数'), help_text=_('未知可填写为0'), null=True)
     total_price = models.DecimalField(_('应收金额（元）'), default=0, decimal_places=2, max_digits=10)
     total_payed = models.DecimalField(_('实收金额（元）'), default=0, decimal_places=2, max_digits=10)
@@ -840,6 +843,12 @@ class ServiceRecord(models.Model):
 
     objects = models.Manager()
 
+    def make_record_number(self):
+        if self.datetime_created:
+            self.record_number = '{}{}'.format(
+                self.datetime_created.strftime('%Y%m%d%H%M%S'),
+                random.randrange(100, 999))
+
     class Meta:
         ordering = ['-id']
         verbose_name = _('服务记录')
@@ -850,6 +859,13 @@ class ServiceRecord(models.Model):
             self.car,
             self.reserve_time,
         )
+
+
+@receiver(pre_save, sender=ServiceRecord)
+def pre_save_service_order(sender, instance, **kwargs):
+    # 自动创建订单号
+    if not instance.record_number:
+        instance.make_record_number()
 
 
 class ServiceItem(models.Model):
@@ -1832,7 +1848,7 @@ def pre_save_service_item(sender, instance, **kwargs):
         instance.price = float(getattr(instance, 'item_price')) * int(getattr(instance, 'item_count'))
 
 
-@receiver([post_save], sender=ServiceItem)
+@receiver(post_save, sender=ServiceItem)
 def update_related_service_record(sender, instance, **kwargs):
     total_price = 0
     total_cost = 0

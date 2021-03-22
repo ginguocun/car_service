@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>结算单</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            background-color: grey;
+            font-size: 9pt;
+        }
+        .print_page {
+            width: 210mm;
+            background-color: whitesmoke;
+            margin: auto;
+        }
+        section.service_order_title {
+            padding: 0.5cm 0;
+            margin-top: 1cm;
+            text-align: center;
+        }
+        h1 {
+            font-size: 16pt;
+        }
+        table.order-number {
+            margin: 0 6%;
+            font-size: 9pt;
+            width: 88%;
+        }
+        table.table-bordered {
+            border-collapse: collapse;
+            border-left: 1px solid black;
+            border-top: 1px solid black;
+            margin: 0 6%;
+            font-size: 9pt;
+            width: 88%;
+        }
+        table.table-bordered > tbody > tr > td {
+            border-right: 1px solid black;
+            border-bottom: 1px solid black;
+        }
+        table.table-bordered > thead > tr > th {
+            border-right: 1px solid black;
+            border-bottom: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+<div class="print_page">
+    <section class="service_order_title">
+        <h1>{{ data.title }}</h1>
+    </section>
+    <section>
+        <table class="order-number">
+            <tbody>
+                <tr>
+                    <td style="width: 12%">工单号：</td><td>{{ data.record_number }}</td><td></td><td style="width: 12%">打印时间：</td><td style="width: 20%">{{ current_time }}</td>
+                </tr>
+            </tbody>
+        </table>
+        <table class="table-bordered">
+            <tbody>
+                <tr><td style="width: 12%">客户姓名</td><td>{{ data.customer_name }}</td><td style="width: 12%">联系电话</td><td>{{ data.mobile }}</td><td style="width: 12%;">车牌号</td><td style="width: 12%">{{ car_number }}</td></tr>
+                <tr><td>车辆型号</td><td colspan="3">{{ data.car_brand }}-{{ data.car_model }}</td><td>进厂时间</td><td>{{ reserve_time }}</td></tr>
+                <tr><td style="font-size: 8pt">下次年检日期</td><td>{{ data }}</td><td style="font-size: 8pt">交强险到期日</td><td>{{ data }}</td><td>进厂公里数</td><td>{{ vehicle_mileage }}</td></tr>
+                <tr><td style="font-size: 8pt">上次保养公里数</td><td>{{ data.insurance_date }}</td><td>下次保养日期</td><td></td><td style="font-size: 8pt">下次保养公里数</td><td></td></tr>
+                <tr><td>备注</td><td colspan="5">{{ data.notes }}</td></tr>
+            </tbody>
+        </table>
+        <table class="table-bordered" style="margin-top: 0.5cm">
+            <tbody>
+                <tr>
+                    <td>序号</td>
+                    <td>名称</td>
+                    <td>维修员</td>
+                    <td>单价</td>
+                    <td>数量</td>
+                    <td>备注</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+        <table class="table-bordered" style="margin-top: 0.5cm">
+            <tbody>
+                <tr>
+                    <td rowspan="2">合计</td>
+                    <td>合计金额</td>
+                    <td>优惠金额</td>
+                    <td>余额抵扣</td>
+                    <td>积分抵扣</td>
+                    <td>现金支付</td>
+                </tr>
+                <tr>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>3</td>
+                    <td>4</td>
+                    <td>5</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+</div>
+</body>
+</html>
